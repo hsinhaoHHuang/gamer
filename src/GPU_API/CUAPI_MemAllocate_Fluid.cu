@@ -1,4 +1,4 @@
-#include "CUAPI.h"
+#include "GAMER.h"
 #include "CUFLU.h"
 
 #ifdef GPU

@@ -46,7 +46,7 @@ static int Table_01( const int SibID, const int Side, const char dim, const int 
 //                                     HYDRO : _DENS, _MOMX, _MOMY, _MOMZ, _ENGY, _VELX, _VELY, _VELZ, _PRES, _TEMP,
 //                                             [, _POTE]
 //                                     MHD   :
-//                                     ELBDM : _DENS, _REAL, _IMAG [, _POTE]
+//                                     ELBDM : _DENS, _REAL1, _IMAG1, _REAL2, _IMAG2 [, _POTE]
 //                                 --> _FLUID, _PASSIVE, _TOTAL, and _DERIVED apply to all models
 //                NVar_Tot       : Total number of variables to be prepared
 //                NVar_Flu       : Number of fluid variables to be prepared
@@ -769,7 +769,7 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData[], const in
 
 #     elif ( MODEL == ELBDM )
 //    apply monotonic interpolation to density and all passive scalars
-      if ( TFluVarIdx != REAL  &&  TFluVarIdx != IMAG )  Monotonicity[v] = EnsureMonotonicity_Yes;
+      if ( TFluVarIdx != REAL1  &&  TFluVarIdx != IMAG1 && TFluVarIdx != REAL2 && TFluVarIdx != IMAG2 )  Monotonicity[v] = EnsureMonotonicity_Yes;
       else                                               Monotonicity[v] = EnsureMonotonicity_No;
 
 #     else
@@ -781,51 +781,64 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData[], const in
 // interpolation
 #  if ( MODEL == ELBDM )
    real *CData_Dens = NULL;
-   real *CData_Real = NULL;
-   real *CData_Imag = NULL;
+   real *CData_Real1 = NULL;
+   real *CData_Imag1 = NULL;
+   real *CData_Real2 = NULL;
+   real *CData_Imag2 = NULL;
    real *FData_Dens = NULL;
-   real *FData_Real = NULL;
-   real *FData_Imag = NULL;
+   real *FData_Real1 = NULL;
+   real *FData_Imag1 = NULL;
+   real *FData_Real2 = NULL;
+   real *FData_Imag2 = NULL;
 
 // c1. interpolation on phase in ELBDM
    if ( IntPhase )
    {
-      int DensIdx=-1, RealIdx=-1, ImagIdx=-1;
+      int DensIdx=-1, Real1Idx=-1, Imag1Idx=-1, Real2Idx=-1, Imag2Idx=-1;
 
       for (int v=0; v<NVar_Flu; v++)
       {
          TFluVarIdx = TFluVarIdxList[v];
 
          if      ( TFluVarIdx == DENS )   DensIdx = v;
-         else if ( TFluVarIdx == REAL )   RealIdx = v;
-         else if ( TFluVarIdx == IMAG )   ImagIdx = v;
+         else if ( TFluVarIdx == REAL1 )   Real1Idx = v;
+         else if ( TFluVarIdx == IMAG1 )   Imag1Idx = v;
+         else if ( TFluVarIdx == REAL2 )   Real2Idx = v;
+         else if ( TFluVarIdx == IMAG2 )   Imag2Idx = v;
       }
 
 //    check
 #     ifdef GAMER_DEBUG
-      if ( RealIdx == -1  ||  ImagIdx == -1 )
+      if ( Real1Idx == -1  ||  Imag1Idx == -1 || Real2Idx == -1 || Imag2Idx == -1 )
          Aux_Error( ERROR_INFO, "real and/or imag parts are not found for phase interpolation in ELBDM !!\n" );
 #     endif
 
 //    determine the array index to store density
-      CData_Dens = CData   + ( (DensIdx==-1) ? ImagIdx : DensIdx )*CSize3D;
-      CData_Real = CData   + RealIdx*CSize3D;
-      CData_Imag = CData   + ImagIdx*CSize3D;
-      FData_Dens = IntData + ( (DensIdx==-1) ? ImagIdx : DensIdx )*FSize3D;
-      FData_Real = IntData + RealIdx*FSize3D;
-      FData_Imag = IntData + ImagIdx*FSize3D;
+      CData_Dens = CData   + ( (DensIdx==-1) ? Imag2Idx : DensIdx )*CSize3D;
+      CData_Real1 = CData   + Real1Idx*CSize3D;
+      CData_Imag1 = CData   + Imag1Idx*CSize3D;
+      CData_Real2 = CData   + Real2Idx*CSize3D;
+      CData_Imag2 = CData   + Imag2Idx*CSize3D;
+      FData_Dens = IntData + ( (DensIdx==-1) ? Imag2Idx : DensIdx )*FSize3D;
+      FData_Real1 = IntData + Real1Idx*FSize3D;
+      FData_Imag1 = IntData + Imag1Idx*FSize3D;
+      FData_Real2 = IntData + Real2Idx*FSize3D;
+      FData_Imag2 = IntData + Imag2Idx*FSize3D;
 
 //    get the wrapped phase (store in the REAL component) and density (store in the IMAG component)
-      real Re, Im;
+      real Re1, Im1, Re2, Im2;
 
       for (int t=0; t<CSize3D; t++)
       {
-         Re = CData_Real[t];
-         Im = CData_Imag[t];
+         Re1 = CData_Real1[t];
+         Im1 = CData_Imag1[t];
+         Re2 = CData_Real2[t];
+         Im2 = CData_Imag2[t];
 
-         CData_Real[t] = ATAN2( Im, Re );
+         CData_Real1[t] = ATAN2( Im1, Re1 );
+         CData_Real2[t] = ATAN2( Im2, Re2 );
          if ( DensIdx == -1 )
-         CData_Dens[t] = Re*Re + Im*Im;
+         CData_Dens[t] = Re1*Re1 + Im1*Im1 + Re2*Re2 + Im2*Im2;
       }
 
 //    interpolate density
@@ -833,7 +846,9 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData[], const in
                    PhaseUnwrapping_No, &EnsureMonotonicity_Yes );
 
 //    interpolate phase
-      Interpolate( CData_Real, CSize, CStart, CRange, FData_Real, FSize, FStart, 1, IntScheme,
+      Interpolate( CData_Real1, CSize, CStart, CRange, FData_Real1, FSize, FStart, 1, IntScheme,
+                   PhaseUnwrapping_Yes, &EnsureMonotonicity_No );
+      Interpolate( CData_Real2, CSize, CStart, CRange, FData_Real2, FSize, FStart, 1, IntScheme,
                    PhaseUnwrapping_Yes, &EnsureMonotonicity_No );
    } // if ( IntPhase )
 
@@ -849,11 +864,12 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData[], const in
 // retrieve real and imaginary parts when phase interpolation is adopted
    if ( IntPhase )
    {
-      real Amp, Phase, Rho;
+      real Amp, Phase1, Phase2, Rho;
 
       for (int t=0; t<FSize3D; t++)
       {
-         Phase = FData_Real[t];
+         Phase1 = FData_Real1[t];
+         Phase2 = FData_Real2[t];
          Rho   = FData_Dens[t];
 
 //       be careful about the negative density introduced from the round-off errors
@@ -865,8 +881,11 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData[], const in
          }
 
          Amp           = SQRT( Rho );
-         FData_Real[t] = Amp*COS( Phase );
-         FData_Imag[t] = Amp*SIN( Phase );
+         FData_Real1[t] = Amp*COS( Phase1 );
+         FData_Imag1[t] = Amp*SIN( Phase1 );
+         FData_Real2[t] = Amp*COS( Phase2 );
+         FData_Imag2[t] = Amp*SIN( Phase2 );
+
       }
    }
 

@@ -590,7 +590,8 @@ void Output_DumpData_Total( const char *FileName )
       const double DT__PHASE                 = NULL_REAL;
       const bool   OPT__FLAG_ENGY_DENSITY    = NULL_BOOL;
       const bool   OPT__INT_PHASE            = NULL_BOOL;
-      const double ELBDM_MASS                = NULL_REAL;
+      const double ELBDM_MASS1               = NULL_REAL;
+      const double ELBDM_MASS2               = NULL_REAL;
       const double ELBDM_PLANCK_CONST        = NULL_REAL;
 #     endif
 
@@ -630,7 +631,8 @@ void Output_DumpData_Total( const char *FileName )
       fwrite( &EP_COEFF,                  sizeof(double),                  1,             File );
       fwrite( &opt__lr_limiter,           sizeof(int),                     1,             File );
       fwrite( &opt__waf_limiter,          sizeof(int),                     1,             File );
-      fwrite( &ELBDM_MASS,                sizeof(double),                  1,             File );
+      fwrite( &ELBDM_MASS1,                sizeof(double),                  1,             File );
+      fwrite( &ELBDM_MASS2,                sizeof(double),                  1,             File );
       fwrite( &ELBDM_PLANCK_CONST,        sizeof(double),                  1,             File );
       fwrite( &FLU_GPU_NPGROUP,           sizeof(int),                     1,             File );
       fwrite( &GPU_NSTREAM,               sizeof(int),                     1,             File );

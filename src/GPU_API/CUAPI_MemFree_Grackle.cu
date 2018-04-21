@@ -1,4 +1,4 @@
-#include "CUAPI.h"
+#include "GAMER.h"
 
 #if ( defined GPU  &&  defined SUPPORT_GRACKLE )
 

@@ -19,7 +19,7 @@
 //                           --> Supported variables in different models:
 //                               HYDRO : _DENS, _MOMX, _MOMY, _MOMZ, _ENGY,[, _POTE]
 //                               MHD   :
-//                               ELBDM : _DENS, _REAL, _IMAG, [, _POTE]
+//                               ELBDM : _DENS, _REAL1, _IMAG1, _REAL2, _IMAG2 [, _POTE]
 //                           --> _FLUID, _PASSIVE, and _TOTAL apply to all models
 //-------------------------------------------------------------------------------------------------------
 void Flu_Restrict( const int FaLv, const int SonFluSg, const int FaFluSg, const int SonPotSg, const int FaPotSg,
@@ -230,16 +230,18 @@ void Flu_Restrict( const int FaLv, const int SonFluSg, const int FaFluSg, const 
 
 //    rescale real and imaginary parts to get the correct density in ELBDM
 #     if ( MODEL == ELBDM )
-      real Real, Imag, Rho_Wrong, Rho_Corr, Rescale;
+      real Real1, Imag1, Real2, Imag2,  Rho_Wrong, Rho_Corr, Rescale;
 
-      if (  ( TVar & _DENS )  &&  ( TVar & _REAL )  &&  (TVar & _IMAG )  )
+      if (  ( TVar & _DENS )  &&  ( TVar & _REAL1 )  &&  (TVar & _IMAG1 ) && (TVar & _REAL2) && (TVar & _IMAG2) )
       for (int k=0; k<PATCH_SIZE; k++)
       for (int j=0; j<PATCH_SIZE; j++)
       for (int i=0; i<PATCH_SIZE; i++)
       {
-         Real      = amr->patch[FaFluSg][FaLv][FaPID]->fluid[REAL][k][j][i];
-         Imag      = amr->patch[FaFluSg][FaLv][FaPID]->fluid[IMAG][k][j][i];
-         Rho_Wrong = Real*Real + Imag*Imag;
+         Real1      = amr->patch[FaFluSg][FaLv][FaPID]->fluid[REAL1][k][j][i];
+         Imag1      = amr->patch[FaFluSg][FaLv][FaPID]->fluid[IMAG1][k][j][i];
+         Real2      = amr->patch[FaFluSg][FaLv][FaPID]->fluid[REAL2][k][j][i];
+         Imag2      = amr->patch[FaFluSg][FaLv][FaPID]->fluid[IMAG2][k][j][i];
+         Rho_Wrong = Real1*Real1 + Imag1*Imag1 + Real2*Real2 + Imag2*Imag2;
          Rho_Corr  = amr->patch[FaFluSg][FaLv][FaPID]->fluid[DENS][k][j][i];
 
 //       be careful about the negative density introduced from the round-off errors
@@ -251,8 +253,10 @@ void Flu_Restrict( const int FaLv, const int SonFluSg, const int FaFluSg, const 
          else
             Rescale = SQRT( Rho_Corr/Rho_Wrong );
 
-         amr->patch[FaFluSg][FaLv][FaPID]->fluid[REAL][k][j][i] *= Rescale;
-         amr->patch[FaFluSg][FaLv][FaPID]->fluid[IMAG][k][j][i] *= Rescale;
+         amr->patch[FaFluSg][FaLv][FaPID]->fluid[REAL1][k][j][i] *= Rescale;
+         amr->patch[FaFluSg][FaLv][FaPID]->fluid[IMAG1][k][j][i] *= Rescale;
+         amr->patch[FaFluSg][FaLv][FaPID]->fluid[REAL2][k][j][i] *= Rescale;
+         amr->patch[FaFluSg][FaLv][FaPID]->fluid[IMAG2][k][j][i] *= Rescale;
       }
 #     endif
 

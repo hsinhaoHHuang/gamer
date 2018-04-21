@@ -796,16 +796,16 @@ void Aux_Check_Parameter()
 
 // errors
 // ------------------------------
-#  if ( NCOMP_FLUID != 3 )
-#     error : ERROR : NCOMP_FLUID != 3 in ELBDM !!
+#  if ( NCOMP_FLUID != 5 )
+#     error : ERROR : NCOMP_FLUID != 5 in ELBDM !!
 #  endif
 
-#  if ( FLU_NIN != 2 )
-#     error : ERROR : FLU_NIN != 2 in ELBDM !!
+#  if ( FLU_NIN != 4 )
+#     error : ERROR : FLU_NIN != 4 in ELBDM !!
 #  endif
 
-#  if ( FLU_NOUT != 3 )
-#     error : ERROR : FLU_NOUT != 3 in ELBDM !!
+#  if ( FLU_NOUT != 5 )
+#     error : ERROR : FLU_NOUT != 5 in ELBDM !!
 #  endif
 
 #  if ( NCOMP_PASSIVE > 0 )
@@ -825,8 +825,11 @@ void Aux_Check_Parameter()
    if ( ELBDM_PLANCK_CONST <= 0.0 )
       Aux_Error( ERROR_INFO, "%s (%14.7e) <= 0.0 !!\n", "ELBDM_PLANCK_CONST", ELBDM_PLANCK_CONST );
 
-   if ( ELBDM_ETA <= 0.0 )
-      Aux_Error( ERROR_INFO, "%s (%14.7e) <= 0.0 !!\n", "ELBDM_ETA", ELBDM_ETA );
+   if ( ELBDM_ETA1 <= 0.0 )
+      Aux_Error( ERROR_INFO, "%s (%14.7e) <= 0.0 !!\n", "ELBDM_ETA1", ELBDM_ETA1 );
+
+   if ( ELBDM_ETA2 <= 0.0 )
+      Aux_Error( ERROR_INFO, "%s (%14.7e) <= 0.0 !!\n", "ELBDM_ETA2", ELBDM_ETA2 );
 
    if ( OPT__INT_PHASE  &&  OPT__FLU_INT_SCHEME == INT_MINMOD1D )
       Aux_Error( ERROR_INFO, "unsupported interpolation scheme \"%s = %d\" when OPT__INT_PHASE is on !!\n",
@@ -1257,6 +1260,7 @@ void Aux_Check_Parameter()
       Aux_Message( stderr, "WARNING : SF_CREATE_STAR_SCHEME == 1 will break bitwise reproducibility due to the \n" );
       Aux_Message( stderr, "          random values used for the stochastic star formation !!\n" );
       Aux_Message( stderr, "          --> Enable \"SF_CREATE_STAR_DET_RANDOM\" if reproducibility is of great concern\n" );
+      Aux_Message( stderr, "              (note that it is automatically enabled when BITWISE_REPRODUCIBILITY is adopted)\n" );
    }
 
    } // if ( MPI_Rank == 0 )

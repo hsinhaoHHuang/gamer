@@ -12,7 +12,7 @@
 //                2. One can specify three and only three units among UNIT_L/M/T/V/D in the input parameter file
 //                   --> Other units are calculated from these three basic units
 //                3. Some physical constants are also converted to code units by this function
-//                   --> NEWTON_G, ELBDM_MASS, ELBDM_PLANCK_CONST, ...
+//                   --> NEWTON_G, ELBDM_MASS1, ELBDM_MASS2, ELBDM_PLANCK_CONST, ...
 //                4. For cosmological simulations, basic units are fixed to
 //                       UNIT_L = Mpc/h
 //                       UNIT_D = current matter density = 3*OMEGA_M0*H0^2/(8*pi*G)
@@ -181,9 +181,11 @@ void Init_Unit()
 #     if ( MODEL == ELBDM )
 //    (2) particle mass in ELBDM
 //    note that the input value of ELBDM_MASS is always in eV/c^2 when OPT__UNIT is on (i.e., independent of UNIT_*)
-      ELBDM_MASS = ELBDM_MASS*Const_eV/SQR(Const_c) / UNIT_M;
-      if ( MPI_Rank == 0 )    Aux_Message( stdout, "NOTE : ELBDM_MASS is set to %13.7e internally\n", ELBDM_MASS );
+      ELBDM_MASS1 = ELBDM_MASS1*Const_eV/SQR(Const_c) / UNIT_M;
+      if ( MPI_Rank == 0 )    Aux_Message( stdout, "NOTE : ELBDM_MASS1 is set to %13.7e internally\n", ELBDM_MASS1 );
 
+      ELBDM_MASS2 = ELBDM_MASS2*Const_eV/SQR(Const_c) / UNIT_M;
+      if ( MPI_Rank == 0 )    Aux_Message( stdout, "NOTE : ELBDM_MASS2 is set to %13.7e internally\n", ELBDM_MASS2 );
 //    (3) reduced Planck constant
       ELBDM_PLANCK_CONST = Const_Planck / ( SQR(UNIT_L)*UNIT_M/UNIT_T );
       if ( MPI_Rank == 0 )    Aux_Message( stdout, "NOTE : ELBDM_PLANCK_CONST is set to %13.7e internally\n", ELBDM_PLANCK_CONST );

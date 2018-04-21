@@ -45,8 +45,6 @@ template <typename T> void Aux_DeallocateArray2D( T** &Array );
 template <typename T> void Aux_DeallocateArray3D( T*** &Array );
 template <typename T> int  Aux_LoadTable( T *&Data, const char *FileName, const int NCol_Target, const int TCol[],
                                           const bool RowMajor, const bool AllocMem );
-int Aux_IsFinite( const float x );
-int Aux_IsFinite( const double x );
 
 
 // Buffer
@@ -74,7 +72,7 @@ void CPU_FluidSolver( real h_Flu_Array_In [][FLU_NIN    ][ FLU_NXT*FLU_NXT*FLU_N
                       const real h_Pot_Array_USG[][USG_NXT_F][USG_NXT_F][USG_NXT_F],
                       const int NPatchGroup, const real dt, const real dh, const real Gamma, const bool StoreFlux,
                       const bool XYZ, const LR_Limiter_t LR_Limiter, const real MinMod_Coeff, const real EP_Coeff,
-                      const WAF_Limiter_t WAF_Limiter, const real ELBDM_Eta, real ELBDM_Taylor3_Coeff,
+                      const WAF_Limiter_t WAF_Limiter, const real ELBDM_Eta1, const real ELBDM_Eta2, real ELBDM_Taylor3_Coeff,
                       const bool ELBDM_Taylor3_Auto, const double Time, const OptGravityType_t GravityType,
                       const real MinDens, const real MinPres, const real DualEnergySwitch,
                       const bool NormPassive, const int NNorm, const int NormIdx[],
@@ -281,7 +279,7 @@ void CPU_PoissonGravitySolver( const real h_Rho_Array    [][RHO_NXT][RHO_NXT][RH
                                const int SOR_Max_Iter, const real SOR_Omega, const int MG_Max_Iter,
                                const int MG_NPre_Smooth, const int MG_NPost_Smooth, const real MG_Tolerated_Error,
                                const real Poi_Coeff, const IntScheme_t IntScheme, const bool P5_Gradient,
-                               const real ELBDM_Eta, const real ELBDM_Lambda, const bool Poisson, const bool GraAcc,
+                               const real ELBDM_Eta1, const real ELBDM_Eta2, const real ELBDM_Lambda, const bool Poisson, const bool GraAcc,
                                const OptGravityType_t GravityType, const double TimeNew, const double TimeOld,
                                const bool ExtPot, const real MinEint );
 void CPU_PoissonSolver_FFT( const real Poi_Coeff, const int SaveSg, const double PrepTime );
@@ -408,8 +406,8 @@ void   ELBDM_Init_ByFile_AssignData( const int lv, real *UM_Data, const int NVar
 double ELBDM_GetTimeStep_Fluid( const int lv );
 double ELBDM_GetTimeStep_Gravity( const int lv );
 double ELBDM_GetTimeStep_Phase( const int lv );
-bool   ELBDM_Flag_EngyDensity( const int i, const int j, const int k, const real Real_Array[],
-                               const real Imag_Array[], const double Angle_2pi, const double Eps );
+bool   ELBDM_Flag_EngyDensity( const int i, const int j, const int k, const real Real_Array1[],
+                               const real Imag_Array1[], const real Real_Array2[], const real Imag_Array2[], const double Angle_2pi, const double Eps );
 real   ELBDM_UnwrapPhase( const real Phase_Ref, const real Phase_Wrapped );
 real   ELBDM_SetTaylor3Coeff( const real dt, const real dh, const real Eta );
 
@@ -429,7 +427,7 @@ void CUAPI_Asyn_FluidSolver( real h_Flu_Array_In [][FLU_NIN    ][ FLU_NXT*FLU_NX
                              real h_Pot_Array_USG[][USG_NXT_F][USG_NXT_F][USG_NXT_F],
                              const int NPatchGroup, const real dt, const real dh, const real Gamma, const bool StoreFlux,
                              const bool XYZ, const LR_Limiter_t LR_Limiter, const real MinMod_Coeff, const real EP_Coeff,
-                             const WAF_Limiter_t WAF_Limiter, const real ELBDM_Eta, real ELBDM_Taylor3_Coeff,
+                             const WAF_Limiter_t WAF_Limiter, const real ELBDM_Eta1, const real ELBDM_Eta2, real ELBDM_Taylor3_Coeff,
                              const bool ELBDM_Taylor3_Auto, const double Time, const OptGravityType_t GravityType,
                              const int GPU_NStream, const real MinDens, const real MinPres, const real DualEnergySwitch,
                              const bool NormPassive, const int NNorm,
@@ -459,7 +457,7 @@ void CUAPI_Asyn_PoissonGravitySolver( const real h_Rho_Array    [][RHO_NXT][RHO_
                                       const int SOR_Max_Iter, const real SOR_Omega, const int MG_Max_Iter,
                                       const int MG_NPre_Smooth, const int MG_NPost_Smooth,
                                       const real MG_Tolerated_Error, const real Poi_Coeff,
-                                      const IntScheme_t IntScheme, const bool P5_Gradient, const real ELBDM_Eta,
+                                      const IntScheme_t IntScheme, const bool P5_Gradient, const real ELBDM_Eta1, const real ELBDM_Eta2,
                                       const real ELBDM_Lambda, const bool Poisson, const bool GraAcc, const int GPU_NStream,
                                       const OptGravityType_t GravityType, const double TimeNew, const double TimeOld,
                                       const bool ExtPot, const real MinEint );
@@ -561,7 +559,7 @@ void CPU_GrackleSolver_Original( grackle_field_data *Che_FieldData, code_units C
 #ifdef STAR_FORMATION
 void SF_CreateStar( const int lv, const real TimeNew, const real dt );
 void SF_FreeRNG();
-void SF_CreateStar_AGORA( const int lv, const real TimeNew, const real dt, RandomNumber_t *RNG,
+void SF_CreateStar_AGORA( const int lv, const real TimeNew, const real dt, struct drand48_data *drand_buf,
                           const real GasDensThres, const real Efficiency, const real MinStarMass, const real MaxStarMFrac,
                           const bool DetRandom, const bool UseMetal );
 #endif

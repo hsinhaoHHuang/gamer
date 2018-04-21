@@ -73,7 +73,7 @@ bool ParDensArray_Initialized = false;
 //                                     HYDRO : _DENS, _MOMX, _MOMY, _MOMZ, _ENGY, _VELX, _VELY, _VELZ, _PRES, _TEMP,
 //                                             [, _POTE]
 //                                     MHD   :
-//                                     ELBDM : _DENS, _REAL, _IMAG [, _POTE]
+//                                     ELBDM : _DENS, _REAL1, _IMAG1, _REAL2, _IMAG2 [, _POTE]
 //                                 --> _FLUID, _PASSIVE, _TOTAL, and _DERIVED apply to all models
 //                IntScheme      : Interpolation scheme
 //                                 --> currently supported schemes include
@@ -92,7 +92,7 @@ bool ParDensArray_Initialized = false;
 //                                     NSIDE_06 (=  6) : prepare only sibling directions 0~5
 //                                     NSIDE_26 (= 26) : prepare all sibling directions 0~25
 //                IntPhase       : true --> Perform interpolation on rho/phase instead of real/imag parts in ELBDM
-//                                      --> TVar must contain _REAL and _IMAG
+//                                      --> TVar must contain _REAL1 and _IMAG1 and _REAL2 and _IMAG2
 //                FluBC          : Fluid boundary condition
 //                                 --> This variable is used to determine whether periodic BC is adopted even in the cases
 //                                     where we are NOT preparing any fluid variable (i.e., _POTE | _PAR_DENS)
@@ -158,7 +158,7 @@ void Prepare_PatchData( const int lv, const double PrepTime, real *h_Input_Array
 #     endif
 
 #     if ( MODEL == ELBDM )
-      if (  ( (TVar & _REAL) || (TVar & _IMAG) )  &&  MPI_Rank == 0  )
+      if (  ( (TVar & _REAL1) || (TVar & _IMAG1) || (TVar & _REAL2) || (TVar & _IMAG2) )  &&  MPI_Rank == 0  )
          Aux_Message( stderr, "WARNING : real and imaginary parts are NOT rescaled after applying the minimum density check !!\n" );
 #     endif
    }
@@ -179,7 +179,7 @@ void Prepare_PatchData( const int lv, const double PrepTime, real *h_Input_Array
    if ( IntPhase )
    {
 #     if ( MODEL == ELBDM )
-      if (  !(TVar & _REAL)  ||  !(TVar & _IMAG)  )
+      if (  !(TVar & _REAL1)  ||  !(TVar & _IMAG1) || !(TVar & _REAL2) || !(TVar & _IMAG2)  )
       Aux_Error( ERROR_INFO, "real and/or imag parts are not found for phase interpolation in ELBDM !!\n" );
 #     else
       Aux_Error( ERROR_INFO, "\"interpolation on phase\" is useful only in ELBDM !!\n" );

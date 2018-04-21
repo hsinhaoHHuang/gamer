@@ -1,4 +1,4 @@
-#include "CUAPI.h"
+#include "GAMER.h"
 #include "CUFLU.h"
 
 #ifdef GPU
@@ -83,7 +83,7 @@ __global__ void CUFLU_FluidSolver_CTU( const real g_Fluid_In[]   [NCOMP_TOTAL][ 
 __global__ void CUFLU_ELBDMSolver( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU_NXT ],
                                    real g_Fluid_Out[][FLU_NOUT][ PS2*PS2*PS2 ],
                                    real g_Flux     [][9][NFLUX_TOTAL][ PS2*PS2 ],
-                                   const real dt, const real _dh, const real Eta, const bool StoreFlux,
+                                   const real dt, const real _dh, const real Eta1, const real Eta2, const bool StoreFlux,
                                    const real Taylor3_Coeff, const bool XYZ, const real MinDens );
 
 #else
@@ -182,7 +182,8 @@ extern cudaStream_t *Stream;
 //                EP_Coeff             : Coefficient of the extrema-preserving limiter
 //                WAF_Limiter          : Flux limiter for the WAF scheme
 //                                       (0/1/2/3) = (SuperBee/vanLeer/vanAlbada/MinBee)
-//                ELBDM_Eta            : Particle mass / Planck constant
+//                ELBDM_Eta1            : Particle mass 1 / Planck constant
+//                ELBDM_Eta2            : Particle mass 2 / Planck constant
 //                ELBDM_Taylor3_Coeff  : Coefficient in front of the third term in the Taylor expansion for ELBDM
 //                ELBDM_Taylor3_Auto   : true --> Determine ELBDM_Taylor3_Coeff automatically by invoking the
 //                                                function "ELBDM_SetTaylor3Coeff"
@@ -209,7 +210,7 @@ void CUAPI_Asyn_FluidSolver( real h_Flu_Array_In [][FLU_NIN    ][ FLU_NXT*FLU_NX
                              real h_Pot_Array_USG[][USG_NXT_F][USG_NXT_F][USG_NXT_F],
                              const int NPatchGroup, const real dt, const real dh, const real Gamma, const bool StoreFlux,
                              const bool XYZ, const LR_Limiter_t LR_Limiter, const real MinMod_Coeff, const real EP_Coeff,
-                             const WAF_Limiter_t WAF_Limiter, const real ELBDM_Eta, real ELBDM_Taylor3_Coeff,
+                             const WAF_Limiter_t WAF_Limiter, const real ELBDM_Eta1, const real ELBDM_Eta2, real ELBDM_Taylor3_Coeff,
                              const bool ELBDM_Taylor3_Auto, const double Time, const OptGravityType_t GravityType,
                              const int GPU_NStream, const real MinDens, const real MinPres, const real DualEnergySwitch,
                              const bool NormPassive, const int NNorm,
@@ -265,7 +266,7 @@ void CUAPI_Asyn_FluidSolver( real h_Flu_Array_In [][FLU_NIN    ][ FLU_NXT*FLU_NX
 
 #  elif ( MODEL == ELBDM )
 // evaluate the optimized Taylor expansion coefficient
-   if ( ELBDM_Taylor3_Auto )  ELBDM_Taylor3_Coeff = ELBDM_SetTaylor3Coeff( dt, dh, ELBDM_Eta );
+   if ( ELBDM_Taylor3_Auto )  ELBDM_Taylor3_Coeff = ELBDM_SetTaylor3Coeff( dt, dh, ELBDM_Eta1 );
 
 #  else
 #  error : ERROR : unsupported MODEL !!
@@ -432,7 +433,7 @@ void CUAPI_Asyn_FluidSolver( real h_Flu_Array_In [][FLU_NIN    ][ FLU_NXT*FLU_NX
                                ( d_Flu_Array_F_In  + UsedPatch[s],
                                  d_Flu_Array_F_Out + UsedPatch[s],
                                  d_Flux_Array      + UsedPatch[s],
-                                 dt, _dh, ELBDM_Eta, StoreFlux, ELBDM_Taylor3_Coeff, XYZ, MinDens );
+                                 dt, _dh, ELBDM_Eta1, ELBDM_Eta2, StoreFlux, ELBDM_Taylor3_Coeff, XYZ, MinDens );
 
 #     else
 

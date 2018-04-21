@@ -70,7 +70,8 @@ void Aux_Check_Conservation( const char *comment )
    const int    NGhost            = 1;    // number of ghost zones for calculating the gradient of wave function
    const int    Size_Flu          = PS1 + 2*NGhost;
    const int    NPG               = 1;
-   const double _2Eta2            = 0.5/SQR(ELBDM_ETA);
+   const double _2Eta12           = 0.5/SQR(ELBDM_ETA1);
+   const double _2Eta22           = 0.5/SQR(ELBDM_ETA2);
 
    real GradR[3], GradI[3], _dh2;
    int  ip, im, jp, jm, kp, km;
@@ -118,7 +119,7 @@ void Aux_Check_Conservation( const char *comment )
          const real MinDens_No = -1.0;
          const real MinPres_No = -1.0;
 
-         Prepare_PatchData( lv, Time[lv], Flu_ELBDM[0][0][0][0], NGhost, NPG, &PID0, _REAL|_IMAG,
+         Prepare_PatchData( lv, Time[lv], Flu_ELBDM[0][0][0][0], NGhost, NPG, &PID0, _REAL1|_IMAG1,
                             IntScheme, UNIT_PATCH, NSIDE_06, IntPhase_No, OPT__BC_FLU, BC_POT_NONE,
                             MinDens_No, MinPres_No, DE_Consistency_No );
 #        endif
@@ -196,7 +197,7 @@ void Aux_Check_Conservation( const char *comment )
                   GradI[1] = _dh2*( Flu_ELBDM[t][1][k ][jp][i ] - Flu_ELBDM[t][1][k ][jm][i ] );
                   GradI[2] = _dh2*( Flu_ELBDM[t][1][kp][j ][i ] - Flu_ELBDM[t][1][km][j ][i ] );
 
-                  Fluid_lv[1] += _2Eta2*( SQR(GradR[0]) + SQR(GradR[1]) + SQR(GradR[2]) +
+                  Fluid_lv[1] += _2Eta12*( SQR(GradR[0]) + SQR(GradR[1]) + SQR(GradR[2]) +
                                           SQR(GradI[0]) + SQR(GradI[1]) + SQR(GradI[2])   );
                }}}
 

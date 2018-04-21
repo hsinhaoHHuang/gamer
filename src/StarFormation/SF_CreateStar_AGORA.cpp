@@ -30,7 +30,7 @@ extern double ExtAcc_AuxArray[EXT_ACC_NAUX_MAX];
 //                dt           : Time interval to advance solution
 //                               --> Currently this function does not distinguish dt and the physical time interval (dTime)
 //                               --> Does NOT support COMOVING yet
-//                RNG          : Random number generator
+//                drand_buf    : Buffer for the reentrant and thread-safe random number generator drand48_r()
 //                GasDensThres : Minimum gas density for creating star particles                (--> "SF_CREATE_STAR_MIN_GAS_DENS"  )
 //                Efficiency   : Gas-to-star mass efficiency                                    (--> "SF_CREATE_STAR_MASS_EFF"      )
 //                MinStarMass  : Minimum star particle mass for the stochastical star formation (--> "SF_CREATE_STAR_MIN_STAR_MASS" )
@@ -41,7 +41,7 @@ extern double ExtAcc_AuxArray[EXT_ACC_NAUX_MAX];
 // Return      :  1. Particle repository will be updated
 //                2. fluid[] array of gas will be updated
 //-------------------------------------------------------------------------------------------------------
-void SF_CreateStar_AGORA( const int lv, const real TimeNew, const real dt, RandomNumber_t *RNG,
+void SF_CreateStar_AGORA( const int lv, const real TimeNew, const real dt, struct drand48_data *drand_buf,
                           const real GasDensThres, const real Efficiency, const real MinStarMass, const real MaxStarMFrac,
                           const bool DetRandom, const bool UseMetal )
 {
@@ -112,7 +112,7 @@ void SF_CreateStar_AGORA( const int lv, const real TimeNew, const real dt, Rando
 // loop over all real patches
 // use static schedule to ensure bitwise reproducibility when running with the same numbers of OpenMP threads and MPI ranks
 // --> bitwise reproducibility will still break when running with different numbers of OpenMP threads and/or MPI ranks
-//     unless both BITWISE_REPRODUCIBILITY and SF_CREATE_STAR_DET_RANDOM are enabled
+//     unless BITWISE_REPRODUCIBILITY is enabled
 #  pragma omp for schedule( static )
    for (int PID=0; PID<amr->NPatchComma[lv][1]; PID++)
    {
@@ -128,7 +128,7 @@ void SF_CreateStar_AGORA( const int lv, const real TimeNew, const real dt, Rando
 //       the factor "1.0e6" in the end is just to make random seeds at different times more different, especially for
 //       extremely small time-step
          const long RSeed = SF_CREATE_STAR_RSEED + amr->patch[0][lv][PID]->LB_Idx + long(TimeNew*UNIT_T/Const_yr*1.0e6);
-         RNG->SetSeed( TID, RSeed );
+         srand48_r( RSeed, drand_buf+TID );
       }
 
 
@@ -169,10 +169,8 @@ void SF_CreateStar_AGORA( const int lv, const real TimeNew, const real dt, Rando
 //       --> Eq. [5] in Goldbaum et al. (2015)
          if ( StarMass < MinStarMass )
          {
-            const double Min = 0.0;
-            const double Max = 1.0;
-
-            double Random = RNG->GetValue( TID, Min, Max );
+            double Random;
+            drand48_r( drand_buf+TID, &Random );   // ensure different threads use different drand_buf
 
             if ( (real)Random < StarMass*_MinStarMass )  StarMFrac = MinStarMass / GasMass;
             else                                         continue;

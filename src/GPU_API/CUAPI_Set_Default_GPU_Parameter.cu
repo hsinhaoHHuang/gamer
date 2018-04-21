@@ -1,4 +1,4 @@
-#include "CUAPI.h"
+#include "GAMER.h"
 #include "CUFLU.h"
 #ifdef GRAVITY
 #include "CUPOT.h"
@@ -101,7 +101,7 @@ __global__ void CUPOT_dtSolver_HydroGravity( real g_dt_Array[],
 __global__ void CUFLU_ELBDMSolver( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU_NXT ],
                                    real g_Fluid_Out[][FLU_NOUT][ PS2*PS2*PS2 ],
                                    real g_Flux     [][9][NFLUX_TOTAL][ PS2*PS2 ],
-                                   const real dt, const real _dh, const real Eta, const bool StoreFlux,
+                                   const real dt, const real _dh, const real Eta1, const real Eta2, const bool StoreFlux,
                                    const real Taylor3_Coeff, const bool XYZ, const real MinDens );
 
 #else
@@ -154,7 +154,7 @@ __global__ void CUPOT_HydroGravitySolver(       real g_Flu_Array_New[][GRA_NIN][
 __global__ void CUPOT_ELBDMGravitySolver(       real g_Flu_Array[][GRA_NIN][ PS1*PS1*PS1 ],
                                           const real g_Pot_Array[][ GRA_NXT*GRA_NXT*GRA_NXT ],
                                           const double g_Corner_Array[][3],
-                                          const real EtaDt, const real dh, const real Lambda, const bool ExtPot,
+                                          const real EtaDt1, const real EtaDt2, const real dh, const real Lambda, const bool ExtPot,
                                           const double Time );
 
 #else
@@ -208,8 +208,6 @@ void CUAPI_Set_Default_GPU_Parameter( int &GPU_NStream, int &Flu_GPU_NPGroup, in
             GPU_NStream = 32;
 #           elif ( GPU_ARCH == PASCAL )
             GPU_NStream = 32;
-#           elif ( GPU_ARCH == VOLTA )
-            GPU_NStream = 32;
 #           else
 #           error : UNKNOWN GPU_ARCH !!
 #           endif
@@ -225,8 +223,6 @@ void CUAPI_Set_Default_GPU_Parameter( int &GPU_NStream, int &Flu_GPU_NPGroup, in
 #           elif ( GPU_ARCH == MAXWELL )
             GPU_NStream = 32;
 #           elif ( GPU_ARCH == PASCAL )
-            GPU_NStream = 32;
-#           elif ( GPU_ARCH == VOLTA )
             GPU_NStream = 32;
 #           else
 #           error : ERROR : UNKNOWN GPU_ARCH !!
@@ -258,8 +254,6 @@ void CUAPI_Set_Default_GPU_Parameter( int &GPU_NStream, int &Flu_GPU_NPGroup, in
          Flu_GPU_NPGroup = 1*GPU_NStream*DeviceProp.multiProcessorCount;
 #        elif ( GPU_ARCH == PASCAL )
          Flu_GPU_NPGroup = 1*GPU_NStream*DeviceProp.multiProcessorCount;
-#        elif ( GPU_ARCH == VOLTA )
-         Flu_GPU_NPGroup = 1*GPU_NStream*DeviceProp.multiProcessorCount;
 #        else
 #        error : UNKNOWN GPU_ARCH !!
 #        endif
@@ -275,8 +269,6 @@ void CUAPI_Set_Default_GPU_Parameter( int &GPU_NStream, int &Flu_GPU_NPGroup, in
 #        elif ( GPU_ARCH == MAXWELL )
          Flu_GPU_NPGroup = 1*GPU_NStream*DeviceProp.multiProcessorCount;
 #        elif ( GPU_ARCH == PASCAL )
-         Flu_GPU_NPGroup = 1*GPU_NStream*DeviceProp.multiProcessorCount;
-#        elif ( GPU_ARCH == VOLTA )
          Flu_GPU_NPGroup = 1*GPU_NStream*DeviceProp.multiProcessorCount;
 #        else
 #        error : UNKNOWN GPU_ARCH !!
@@ -302,8 +294,6 @@ void CUAPI_Set_Default_GPU_Parameter( int &GPU_NStream, int &Flu_GPU_NPGroup, in
       Pot_GPU_NPGroup = 1*GPU_NStream*DeviceProp.multiProcessorCount;
 #     elif ( GPU_ARCH == PASCAL )
       Pot_GPU_NPGroup = 1*GPU_NStream*DeviceProp.multiProcessorCount;
-#     elif ( GPU_ARCH == VOLTA )
-      Pot_GPU_NPGroup = 1*GPU_NStream*DeviceProp.multiProcessorCount;
 #     else
 #     error : UNKNOWN GPU_ARCH !!
 #     endif
@@ -325,8 +315,6 @@ void CUAPI_Set_Default_GPU_Parameter( int &GPU_NStream, int &Flu_GPU_NPGroup, in
 #     elif ( GPU_ARCH == MAXWELL )
       Che_GPU_NPGroup = 1*GPU_NStream*DeviceProp.multiProcessorCount;
 #     elif ( GPU_ARCH == PASCAL )
-      Che_GPU_NPGroup = 1*GPU_NStream*DeviceProp.multiProcessorCount;
-#     elif ( GPU_ARCH == VOLTA )
       Che_GPU_NPGroup = 1*GPU_NStream*DeviceProp.multiProcessorCount;
 #     else
 #     error : UNKNOWN GPU_ARCH !!

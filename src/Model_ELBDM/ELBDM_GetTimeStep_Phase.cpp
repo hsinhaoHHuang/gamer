@@ -67,13 +67,14 @@ real GetMaxPhaseDerivative( const int lv )
 
    real (*Flu_Array)[NCOMP_FLUID][Size_Flu][Size_Flu][Size_Flu] = NULL;
 
-   real dS_dt, MaxdS_dt, _dh, _dh2, _dh_sqr, Re, Im, GradS[3];
+   real dS_dt, MaxdS_dt, _dh, _dh2, _dh_sqr, Re1, Im1, Re2, Im2, GradS[3];
    real LapAmp_Amp, Vel_Sqr;                 // laplacian(amplitude)/amplitude, -grad(phase)^2
    real _Dens, _Amp;                         // 0.5/Dens/dh, 1.0/amplitude
    int  im, ip, jm, jp, km, kp, I, J, K;
 
 #  ifdef GRAVITY
-   const real PotCoeff = -2.0*SQR(ELBDM_ETA);
+   const real PotCoeff1 = -2.0*SQR(ELBDM_ETA1);
+   const real PotCoeff2 = -2.0*SQR(ELBDM_ETA2);
    const int  Size_Pot = PS2;                // size of the array Pot_Array
    real Pot;                                 // -2.0*ELBDM_ETA^2*potential
    real (*Pot_Array)[Size_Pot][Size_Pot][Size_Pot] = NULL;
@@ -86,10 +87,10 @@ real GetMaxPhaseDerivative( const int lv )
 
 
 #  ifdef GRAVITY
-#  pragma omp parallel private( Flu_Array, dS_dt, Re, Im, GradS, LapAmp_Amp, Vel_Sqr, _Dens, _Amp, Pot_Array, Pot, \
+#  pragma omp parallel private( Flu_Array, dS_dt, Re1, Im1, GradS, LapAmp_Amp, Vel_Sqr, _Dens, _Amp, Pot_Array, Pot, \
                                 im, ip, jm, jp, km, kp, I, J, K )
 #  else
-#  pragma omp parallel private( Flu_Array, dS_dt, Re, Im, GradS, LapAmp_Amp, Vel_Sqr, _Dens, _Amp, \
+#  pragma omp parallel private( Flu_Array, dS_dt, Re1, Im1, GradS, LapAmp_Amp, Vel_Sqr, _Dens, _Amp, \
                                 im, ip, jm, jp, km, kp, I, J, K )
 #  endif
    {
@@ -103,15 +104,24 @@ real GetMaxPhaseDerivative( const int lv )
       for (int PID0=0; PID0<amr->NPatchComma[lv][1]; PID0+=NPG*8)
       {
 //       prepare real part with NGhost ghost zone on each side (any interpolation scheme can be used)
-         Prepare_PatchData( lv, Time[lv], &Flu_Array[0][REAL][0][0][0], NGhost, NPG, &PID0, _REAL,
+         Prepare_PatchData( lv, Time[lv], &Flu_Array[0][REAL1][0][0][0], NGhost, NPG, &PID0, _REAL1,
                             INT_MINMOD1D, UNIT_PATCHGROUP, NSIDE_06, IntPhase_No, OPT__BC_FLU, BC_POT_NONE,
                             MinDens_No, MinPres_No, DE_Consistency_No );
 
 //       prepare imag part with NGhost ghost zone on each side (any interpolation scheme can be used)
-         Prepare_PatchData( lv, Time[lv], &Flu_Array[0][IMAG][0][0][0], NGhost, NPG, &PID0, _IMAG,
+         Prepare_PatchData( lv, Time[lv], &Flu_Array[0][IMAG1][0][0][0], NGhost, NPG, &PID0, _IMAG1,
                             INT_MINMOD1D, UNIT_PATCHGROUP, NSIDE_06, IntPhase_No, OPT__BC_FLU, BC_POT_NONE,
                             MinDens_No, MinPres_No, DE_Consistency_No );
 
+//       prepare real part with NGhost ghost zone on each side (any interpolation scheme can be used)
+         Prepare_PatchData( lv, Time[lv], &Flu_Array[0][REAL2][0][0][0], NGhost, NPG, &PID0, _REAL2,
+                            INT_MINMOD1D, UNIT_PATCHGROUP, NSIDE_06, IntPhase_No, OPT__BC_FLU, BC_POT_NONE,
+                            MinDens_No, MinPres_No, DE_Consistency_No );
+
+//       prepare imag part with NGhost ghost zone on each side (any interpolation scheme can be used)
+         Prepare_PatchData( lv, Time[lv], &Flu_Array[0][IMAG2][0][0][0], NGhost, NPG, &PID0, _IMAG2,
+                            INT_MINMOD1D, UNIT_PATCHGROUP, NSIDE_06, IntPhase_No, OPT__BC_FLU, BC_POT_NONE,
+                            MinDens_No, MinPres_No, DE_Consistency_No );
 //       prepare potential with no ghost zone
 #        ifdef GRAVITY
          Prepare_PatchData( lv, Time[lv], &Pot_Array[0][0][0][0],            0, NPG, &PID0, _POTE,
@@ -124,10 +134,12 @@ real GetMaxPhaseDerivative( const int lv )
          for (int j=0; j<Size_Flu; j++)
          for (int i=0; i<Size_Flu; i++)
          {
-            Re = Flu_Array[0][REAL][k][j][i];
-            Im = Flu_Array[0][IMAG][k][j][i];
+            Re1 = Flu_Array[0][REAL1][k][j][i];
+            Im1 = Flu_Array[0][IMAG1][k][j][i];
+            Re2 = Flu_Array[0][REAL2][k][j][i];
+            Im2 = Flu_Array[0][IMAG2][k][j][i];
 
-            Flu_Array[0][AMP][k][j][i] = SQRT( Re*Re + Im*Im + Eps );
+            Flu_Array[0][AMP][k][j][i] = SQRT( Re1*Re1 + Im1*Im1 + Re2*Re2 + Im2*Im2 + Eps );
          }
 
 //       evaluate dS_dt
@@ -138,18 +150,18 @@ real GetMaxPhaseDerivative( const int lv )
             _Amp       = (real)1.0 / Flu_Array[0][AMP][k][j][i];
             _Dens      = _dh2*_Amp*_Amp;
 
-            GradS[0]   = _Dens*(  Flu_Array[0][REAL][k][j][i]*( Flu_Array[0][IMAG][k ][j ][ip] -
-                                                                Flu_Array[0][IMAG][k ][j ][im] )
-                                 -Flu_Array[0][IMAG][k][j][i]*( Flu_Array[0][REAL][k ][j ][ip] -
-                                                                Flu_Array[0][REAL][k ][j ][im] )  );
-            GradS[1]   = _Dens*(  Flu_Array[0][REAL][k][j][i]*( Flu_Array[0][IMAG][k ][jp][i ] -
-                                                                Flu_Array[0][IMAG][k ][jm][i ] )
-                                 -Flu_Array[0][IMAG][k][j][i]*( Flu_Array[0][REAL][k ][jp][i ] -
-                                                                Flu_Array[0][REAL][k ][jm][i ] )  );
-            GradS[2]   = _Dens*(  Flu_Array[0][REAL][k][j][i]*( Flu_Array[0][IMAG][kp][j ][i ] -
-                                                                Flu_Array[0][IMAG][km][j ][i ] )
-                                 -Flu_Array[0][IMAG][k][j][i]*( Flu_Array[0][REAL][kp][j ][i ] -
-                                                              Flu_Array[0][REAL][km][j ][i ] )  );
+            GradS[0]   = _Dens*(  Flu_Array[0][REAL1][k][j][i]*( Flu_Array[0][IMAG1][k ][j ][ip] -
+                                                                Flu_Array[0][IMAG1][k ][j ][im] )
+                                 -Flu_Array[0][IMAG1][k][j][i]*( Flu_Array[0][REAL1][k ][j ][ip] -
+                                                                Flu_Array[0][REAL1][k ][j ][im] )  );
+            GradS[1]   = _Dens*(  Flu_Array[0][REAL1][k][j][i]*( Flu_Array[0][IMAG1][k ][jp][i ] -
+                                                                Flu_Array[0][IMAG1][k ][jm][i ] )
+                                 -Flu_Array[0][IMAG1][k][j][i]*( Flu_Array[0][REAL1][k ][jp][i ] -
+                                                                Flu_Array[0][REAL1][k ][jm][i ] )  );
+            GradS[2]   = _Dens*(  Flu_Array[0][REAL1][k][j][i]*( Flu_Array[0][IMAG1][kp][j ][i ] -
+                                                                Flu_Array[0][IMAG1][km][j ][i ] )
+                                 -Flu_Array[0][IMAG1][k][j][i]*( Flu_Array[0][REAL1][kp][j ][i ] -
+                                                              Flu_Array[0][REAL1][km][j ][i ] )  );
 
             LapAmp_Amp = _dh_sqr*( Flu_Array[0][AMP][kp][j ][i ] + Flu_Array[0][AMP][km][j ][i ] +
                                    Flu_Array[0][AMP][k ][jp][i ] + Flu_Array[0][AMP][k ][jm][i ] +
@@ -159,7 +171,7 @@ real GetMaxPhaseDerivative( const int lv )
             dS_dt      = LapAmp_Amp + Vel_Sqr;
 
 #           ifdef GRAVITY
-            Pot        = PotCoeff*Pot_Array[0][K][J][I];
+            Pot        = PotCoeff1*Pot_Array[0][K][J][I];
             dS_dt     += Pot;
 #           endif
 
@@ -190,7 +202,7 @@ real GetMaxPhaseDerivative( const int lv )
       Aux_Message( stderr, "WARNING : MaxdS_dt == 0.0 at lv %d !!\n", lv );
 
 
-   return MaxdS_dt_AllRank*0.5/ELBDM_ETA;
+   return MaxdS_dt_AllRank*0.5/ELBDM_ETA1;
 
 } // FUNCTION : GetMaxPhaseDerivative
 

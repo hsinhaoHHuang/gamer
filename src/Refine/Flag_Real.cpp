@@ -99,7 +99,7 @@ void Flag_Real( const int lv, const UseLBFunc_t UseLBFunc )
    if ( OPT__FLAG_LOHNER_DENS )
    {
       Lohner_NVar = 2;
-      Lohner_TVar = _REAL | _IMAG;
+      Lohner_TVar = _REAL1 | _IMAG1;
    }
 
 #  else

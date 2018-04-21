@@ -46,7 +46,7 @@ void CPU_HydroGravitySolver(       real Flu_Array_New[][GRA_NIN][PS1][PS1][PS1],
 void CPU_ELBDMGravitySolver(       real Flu_Array[][GRA_NIN][PATCH_SIZE][PATCH_SIZE][PATCH_SIZE],
                              const real Pot_Array[][GRA_NXT][GRA_NXT][GRA_NXT],
                              const double Corner_Array[][3],
-                             const int NPatchGroup, const real EtaDt, const real dh, const real Lambda,
+                             const int NPatchGroup, const real EtaDt1, const real EtaDt2, const real dh, const real Lambda,
                              const bool ExtPot, const double Time, const double ExtPot_AuxArray[] );
 
 #else
@@ -85,7 +85,8 @@ void CPU_ELBDMGravitySolver(       real Flu_Array[][GRA_NIN][PATCH_SIZE][PATCH_S
 //                                           INT_CQUAD : conservative quadratic interpolation
 //                                           INT_QUAD  : quadratic interpolation
 //                P5_Gradient          : Use 5-points stencil to evaluate the potential gradient
-//                ELBDM_Eta            : Particle mass / Planck constant in ELBDM
+//                ELBDM_Eta1           : Particle mass 1 / Planck constant in ELBDM
+//                ELBDM_Eta2           : Particle mass 2 / Planck constant in ELBDM
 //                ELBDM_Lambda         : Quartic self-interaction coefficient in ELBDM
 //                Poisson              : true --> invoke the Poisson solver
 //                GraAcc               : true --> invoke the Gravity solver
@@ -112,7 +113,7 @@ void CPU_PoissonGravitySolver( const real h_Rho_Array    [][RHO_NXT][RHO_NXT][RH
                                const int SOR_Max_Iter, const real SOR_Omega, const int MG_Max_Iter,
                                const int MG_NPre_Smooth, const int MG_NPost_Smooth, const real MG_Tolerated_Error,
                                const real Poi_Coeff, const IntScheme_t IntScheme, const bool P5_Gradient,
-                               const real ELBDM_Eta, const real ELBDM_Lambda, const bool Poisson, const bool GraAcc,
+                               const real ELBDM_Eta1, const real ELBDM_Eta2, const real ELBDM_Lambda, const bool Poisson, const bool GraAcc,
                                const OptGravityType_t GravityType, const double TimeNew, const double TimeOld,
                                const bool ExtPot, const real MinEint )
 {
@@ -177,7 +178,7 @@ void CPU_PoissonGravitySolver( const real h_Rho_Array    [][RHO_NXT][RHO_NXT][RH
 #     error : WAIT MHD !!!
 
 #     elif ( MODEL == ELBDM )
-      CPU_ELBDMGravitySolver( h_Flu_Array, h_Pot_Array_Out, h_Corner_Array, NPatchGroup, ELBDM_Eta*dt, dh, ELBDM_Lambda,
+      CPU_ELBDMGravitySolver( h_Flu_Array, h_Pot_Array_Out, h_Corner_Array, NPatchGroup, ELBDM_Eta1*dt, ELBDM_Eta2*dt, dh, ELBDM_Lambda,
                               ExtPot, TimeNew, ExtPot_AuxArray );
 
 #     else

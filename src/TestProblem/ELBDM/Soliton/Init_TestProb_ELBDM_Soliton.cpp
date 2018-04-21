@@ -287,8 +287,10 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
 
 
 // set the real and imaginary parts
-   fluid[REAL] = sqrt( fluid[DENS] );
-   fluid[IMAG] = 0.0;                  // imaginary part is always zero --> no initial velocity
+   fluid[REAL1] = sqrt( fluid[DENS] );
+   fluid[IMAG1] = 0.0;                  // imaginary part is always zero --> no initial velocity
+   fluid[REAL2] = sqrt( fluid[DENS] );
+   fluid[IMAG2] = 0.0;                  // imaginary part is always zero --> no initial velocity
 
 } // FUNCTION : SetGridIC
 
@@ -331,8 +333,10 @@ void BC( real fluid[], const double x, const double y, const double z, const dou
          const int lv, double AuxArray[] )
 {
 
-   fluid[REAL] = (real)0.0;
-   fluid[IMAG] = (real)0.0;
+   fluid[REAL1] = (real)0.0;
+   fluid[IMAG1] = (real)0.0;
+   fluid[REAL2] = (real)0.0;
+   fluid[IMAG2] = (real)0.0;
    fluid[DENS] = (real)0.0;
 
 } // FUNCTION : BC

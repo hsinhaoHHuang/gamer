@@ -1,4 +1,4 @@
-#include "CUAPI.h"
+#include "GAMER.h"
 #include "CUPOT.h"
 
 #if ( defined GPU  &&  defined GRAVITY )
@@ -48,7 +48,7 @@ __global__ void CUPOT_HydroGravitySolver(       real g_Flu_Array_New[][GRA_NIN][
 __global__ void CUPOT_ELBDMGravitySolver(       real g_Flu_Array[][GRA_NIN][ PS1*PS1*PS1 ],
                                           const real g_Pot_Array[][ GRA_NXT*GRA_NXT*GRA_NXT ],
                                           const double g_Corner_Array[][3],
-                                          const real EtaDt, const real dh, const real Lambda, const bool ExtPot,
+                                          const real EtaDt1, const real EtaDt2, const real dh, const real Lambda, const bool ExtPot,
                                           const double TimeNew );
 
 #else
@@ -122,7 +122,8 @@ extern cudaStream_t *Stream;
 //                                           INT_CQUAD : conservative quadratic interpolation
 //                                           INT_QUAD  : quadratic interpolation
 //                P5_Gradient          : Use 5-points stencil to evaluate the potential gradient
-//                ELBDM_Eta            : Particle mass / Planck constant in ELBDM
+//                ELBDM_Eta1           : Particle mass 1 / Planck constant in ELBDM
+//                ELBDM_Eta2           : Particle mass 2 / Planck constant in ELBDM
 //                ELBDM_Lambda         : Quartic self-interaction coefficient in ELBDM
 //                Poisson              : true --> invoke the Poisson solver
 //                GraAcc               : true --> invoke the Gravity solver
@@ -148,7 +149,7 @@ void CUAPI_Asyn_PoissonGravitySolver( const real h_Rho_Array    [][RHO_NXT][RHO_
                                       const int SOR_Max_Iter, const real SOR_Omega, const int MG_Max_Iter,
                                       const int MG_NPre_Smooth, const int MG_NPost_Smooth,
                                       const real MG_Tolerated_Error, const real Poi_Coeff,
-                                      const IntScheme_t IntScheme, const bool P5_Gradient, const real ELBDM_Eta,
+                                      const IntScheme_t IntScheme, const bool P5_Gradient, const real ELBDM_Eta1, const real ELBDM_Eta2,
                                       const real ELBDM_Lambda, const bool Poisson, const bool GraAcc, const int GPU_NStream,
                                       const OptGravityType_t GravityType, const double TimeNew, const double TimeOld,
                                       const bool ExtPot, const real MinEint )
@@ -175,7 +176,8 @@ void CUAPI_Asyn_PoissonGravitySolver( const real h_Rho_Array    [][RHO_NXT][RHO_
 #  warning : WAIT MHD !!!
 
 #  elif ( MODEL == ELBDM )
-   const real ELBDM_EtaDt = ELBDM_Eta*dt;
+   const real ELBDM_EtaDt1 = ELBDM_Eta1*dt;
+   const real ELBDM_EtaDt2 = ELBDM_Eta2*dt;
 
 #  else
 #  error : ERROR : unsupported MODEL !!
@@ -395,7 +397,7 @@ void CUAPI_Asyn_PoissonGravitySolver( const real h_Rho_Array    [][RHO_NXT][RHO_
                                   ( d_Flu_Array_G     + UsedPatch[s],
                                     d_Pot_Array_P_Out + UsedPatch[s],
                                     d_Corner_Array_G  + UsedPatch[s],
-                                    ELBDM_EtaDt, dh, ELBDM_Lambda, ExtPot, TimeNew );
+                                    ELBDM_EtaDt1, ELBDM_EtaDt2, dh, ELBDM_Lambda, ExtPot, TimeNew );
 
 #        else
 #        error : ERROR : unsupported MODEL !!

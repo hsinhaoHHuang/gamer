@@ -53,14 +53,14 @@ void ELBDM_Init_ByFile_AssignData( const int lv, real *UM_Data, const int NVar )
          if ( NVar == 1 )
          {
             amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[DENS][k][j][i] = UM_Data[Idx];
-            amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[REAL][k][j][i] = SQRT( UM_Data[Idx] );
-            amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[IMAG][k][j][i] = (real)0.0;
+            amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[REAL1][k][j][i] = SQRT( UM_Data[Idx] );
+            amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[IMAG1][k][j][i] = (real)0.0;
          }
 
          else // NVar == 2
          {
-            amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[REAL][k][j][i] = UM_Data[Idx+0];
-            amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[IMAG][k][j][i] = UM_Data[Idx+1];
+            amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[REAL1][k][j][i] = UM_Data[Idx+0];
+            amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[IMAG1][k][j][i] = UM_Data[Idx+1];
             amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[DENS][k][j][i] = SQR( UM_Data[Idx+0] ) + SQR( UM_Data[Idx+1] );
          }
       }}}

@@ -741,8 +741,10 @@ int AllocateSonPatch( const int FaLv, const int *Cr, const int PScale, const int
    real *const CData_Flu              = CData;
 #  if ( MODEL == ELBDM )
    real *const CData_Dens             = CData_Flu + DENS*CSize_Flu1v;
-   real *const CData_Real             = CData_Flu + REAL*CSize_Flu1v;
-   real *const CData_Imag             = CData_Flu + IMAG*CSize_Flu1v;
+   real *const CData_Real1             = CData_Flu + REAL1*CSize_Flu1v;
+   real *const CData_Imag1             = CData_Flu + IMAG1*CSize_Flu1v;
+   real *const CData_Real2             = CData_Flu + REAL2*CSize_Flu1v;
+   real *const CData_Imag2             = CData_Flu + IMAG2*CSize_Flu1v;
 #  endif
 
 // 3.2.1 determine which variables require **monotonic** interpolation
@@ -763,7 +765,7 @@ int AllocateSonPatch( const int FaLv, const int *Cr, const int PScale, const int
 #     warning : WAIT MHD !!!
 
 #     elif ( MODEL == ELBDM )
-      if ( v != REAL  &&  v != IMAG )  Monotonicity[v] = EnsureMonotonicity_Yes;
+      if ( v != REAL1  &&  v != IMAG1 && v != REAL2 && v != IMAG2 )  Monotonicity[v] = EnsureMonotonicity_Yes;
       else                             Monotonicity[v] = EnsureMonotonicity_No;
 
 #     else
@@ -776,14 +778,17 @@ int AllocateSonPatch( const int FaLv, const int *Cr, const int PScale, const int
    if ( OPT__INT_PHASE )
    {
 //    get the wrapped phase (store in the REAL component)
-      for (int t=0; t<CSize_Flu1v; t++)   CData_Real[t] = ATAN2( CData_Imag[t], CData_Real[t] );
+      for (int t=0; t<CSize_Flu1v; t++)   CData_Real1[t] = ATAN2( CData_Imag1[t], CData_Real1[t] );
+      for (int t=0; t<CSize_Flu1v; t++)   CData_Real2[t] = ATAN2( CData_Imag2[t], CData_Real2[t] );
 
 //    interpolate density
       Interpolate( CData_Dens, CSize_Flu_Temp, CStart_Flu, CRange, &FData_Flu[DENS][0][0][0],
                    FSize_Temp, FStart, 1, OPT__REF_FLU_INT_SCHEME, PhaseUnwrapping_No, &EnsureMonotonicity_Yes );
 
 //    interpolate phase
-      Interpolate( CData_Real, CSize_Flu_Temp, CStart_Flu, CRange, &FData_Flu[REAL][0][0][0],
+      Interpolate( CData_Real1, CSize_Flu_Temp, CStart_Flu, CRange, &FData_Flu[REAL1][0][0][0],
+                   FSize_Temp, FStart, 1, OPT__REF_FLU_INT_SCHEME, PhaseUnwrapping_Yes, &EnsureMonotonicity_No );
+      Interpolate( CData_Real2, CSize_Flu_Temp, CStart_Flu, CRange, &FData_Flu[REAL2][0][0][0],
                    FSize_Temp, FStart, 1, OPT__REF_FLU_INT_SCHEME, PhaseUnwrapping_Yes, &EnsureMonotonicity_No );
    }
 
@@ -797,13 +802,14 @@ int AllocateSonPatch( const int FaLv, const int *Cr, const int PScale, const int
    if ( OPT__INT_PHASE )
    {
 //    retrieve real and imaginary parts
-      real Amp, Phase, Rho;
+      real Amp, Phase1, Phase2, Rho;
 
       for (int k=0; k<FSize; k++)
       for (int j=0; j<FSize; j++)
       for (int i=0; i<FSize; i++)
       {
-         Phase = FData_Flu[REAL][k][j][i];
+         Phase1 = FData_Flu[REAL1][k][j][i];
+         Phase2 = FData_Flu[REAL2][k][j][i];
          Rho   = FData_Flu[DENS][k][j][i];
 
 //       be careful about the negative density introduced from the round-off errors
@@ -814,8 +820,10 @@ int AllocateSonPatch( const int FaLv, const int *Cr, const int PScale, const int
          }
 
          Amp                      = SQRT( Rho );
-         FData_Flu[REAL][k][j][i] = Amp*COS( Phase );
-         FData_Flu[IMAG][k][j][i] = Amp*SIN( Phase );
+         FData_Flu[REAL1][k][j][i] = Amp*COS( Phase1 );
+         FData_Flu[IMAG1][k][j][i] = Amp*SIN( Phase1 );
+         FData_Flu[REAL2][k][j][i] = Amp*COS( Phase2 );
+         FData_Flu[IMAG2][k][j][i] = Amp*SIN( Phase2 );
       }
    }
 
@@ -859,8 +867,10 @@ int AllocateSonPatch( const int FaLv, const int *Cr, const int PScale, const int
          {
             const real Rescale = SQRT( (real)MIN_DENS / DensOld );
 
-            FData_Flu[REAL][k][j][i] *= Rescale;
-            FData_Flu[IMAG][k][j][i] *= Rescale;
+            FData_Flu[REAL1][k][j][i] *= Rescale;
+            FData_Flu[IMAG1][k][j][i] *= Rescale;
+            FData_Flu[REAL2][k][j][i] *= Rescale;
+            FData_Flu[IMAG2][k][j][i] *= Rescale;
          }
 #        endif
 
@@ -942,16 +952,18 @@ int AllocateSonPatch( const int FaLv, const int *Cr, const int PScale, const int
 
 //    rescale real and imaginary parts to get the correct density in ELBDM if OPT__INT_PHASE is off
 #     if ( MODEL == ELBDM )
-      real Real, Imag, Rho_Corr, Rho_Wrong, Rescale;
+      real Real1, Imag1, Real2, Imag2, Rho_Corr, Rho_Wrong, Rescale;
 
       if ( !OPT__INT_PHASE )
       for (int k=0; k<PATCH_SIZE; k++)
       for (int j=0; j<PATCH_SIZE; j++)
       for (int i=0; i<PATCH_SIZE; i++)
       {
-         Real      = amr->patch[FSg_Flu][SonLv][SonPID]->fluid[REAL][k][j][i];
-         Imag      = amr->patch[FSg_Flu][SonLv][SonPID]->fluid[IMAG][k][j][i];
-         Rho_Wrong = Real*Real + Imag*Imag;
+         Real1      = amr->patch[FSg_Flu][SonLv][SonPID]->fluid[REAL1][k][j][i];
+         Imag1      = amr->patch[FSg_Flu][SonLv][SonPID]->fluid[IMAG1][k][j][i];
+         Real2      = amr->patch[FSg_Flu][SonLv][SonPID]->fluid[REAL2][k][j][i];
+         Imag2      = amr->patch[FSg_Flu][SonLv][SonPID]->fluid[IMAG2][k][j][i];
+         Rho_Wrong = Real1*Real1 + Imag1*Imag1 + Real2*Real2 + Imag2*Imag2;
          Rho_Corr  = amr->patch[FSg_Flu][SonLv][SonPID]->fluid[DENS][k][j][i];
 
 //       be careful about the negative density introduced from the round-off errors
@@ -963,8 +975,10 @@ int AllocateSonPatch( const int FaLv, const int *Cr, const int PScale, const int
          else
             Rescale = SQRT( Rho_Corr/Rho_Wrong );
 
-         amr->patch[FSg_Flu][SonLv][SonPID]->fluid[REAL][k][j][i] *= Rescale;
-         amr->patch[FSg_Flu][SonLv][SonPID]->fluid[IMAG][k][j][i] *= Rescale;
+         amr->patch[FSg_Flu][SonLv][SonPID]->fluid[REAL1][k][j][i] *= Rescale;
+         amr->patch[FSg_Flu][SonLv][SonPID]->fluid[IMAG1][k][j][i] *= Rescale;
+         amr->patch[FSg_Flu][SonLv][SonPID]->fluid[REAL2][k][j][i] *= Rescale;
+         amr->patch[FSg_Flu][SonLv][SonPID]->fluid[IMAG2][k][j][i] *= Rescale;
       }
 #     endif
    } // for (int LocalID=0; LocalID<8; LocalID++)

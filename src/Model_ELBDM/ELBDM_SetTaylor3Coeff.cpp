@@ -16,18 +16,19 @@
 // 
 // Parameter   :  dt    : Time interval to advance solution
 //                dh    : Grid size
-//                Eta   : Particle mass / Planck constant
+//                Eta1   : Particle mass1 / Planck constant
+//                Eta2   : Particle mass2 / Planck constant
 //
 // Return      :  Taylor3_Coeff
 //-------------------------------------------------------------------------------------------------------
-real ELBDM_SetTaylor3Coeff( const real dt, const real dh, const real Eta )
+real ELBDM_SetTaylor3Coeff( const real dt, const real dh, const real Eta1, const real Eta2 )
 {
 
 // check
    if ( dt <= 0.0 )  Aux_Error( ERROR_INFO, "dt = %14.7e <= 0.0 !!\n", dt );
 
 
-   const real Alpha   = 0.5*dt/(Eta*dh*dh);
+   const real Alpha   = 0.5*dt/(Eta1*dh*dh);
    const real Alpha2  = SQR( Alpha );
    const real Damping = 1.000157;   // dampling coefficient, which must be greater than 1
 

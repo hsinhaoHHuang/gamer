@@ -23,7 +23,6 @@
 #define KEPLER       2
 #define MAXWELL      3
 #define PASCAL       4
-#define VOLTA        5
 
 
 // models
@@ -74,11 +73,6 @@
 #define HILBERT      1
 
 
-// random number implementation
-#define RNG_GNU_EXT  1
-#define RNG_CPP11    2
-
-
 // NCOMP_FLUID : number of active components in each cell (i.e., the "fluid" array)
 //               --> do not include passive components here, which is set by NCOMP_PASSIVE
 // NFLUX_FLUID : number of active components in the "flux" array
@@ -94,7 +88,7 @@
 
 // for ELBDM, we only need the density flux
 #elif ( MODEL == ELBDM )
-#  define NCOMP_FLUID         3
+#  define NCOMP_FLUID         5
 #  define NFLUX_FLUID         1
 
 #elif ( MODEL == PAR_ONLY )
@@ -255,17 +249,19 @@
 #elif ( MODEL == ELBDM )
 // variable indices in the array "fluid"
 #  define  DENS               0
-#  define  REAL               1
-#  define  IMAG               2
-
+#  define  REAL1              1
+#  define  IMAG1              2
+#  define  REAL2              3
+#  define  IMAG2              4
 // variable indices in the array "flux" [0 ... NFLUX_FLUID-1]
 #  define  FLUX_DENS          0
 
 // symbolic constants used as function parameters (e.g., Prepare_PatchData)
 #  define _DENS               ( 1 << DENS )
-#  define _REAL               ( 1 << REAL )
-#  define _IMAG               ( 1 << IMAG )
-
+#  define _REAL1              ( 1 << REAL1 )
+#  define _IMAG1              ( 1 << IMAG1 )
+#  define _REAL2              ( 1 << REAL2 )
+#  define _IMAG2              ( 1 << IMAG2 )
 // symbolic constants of flux used as function parameters (e.g., Buf_GetBufferData)
 #  define _FLUX_DENS          ( 1 << FLUX_DENS )
 

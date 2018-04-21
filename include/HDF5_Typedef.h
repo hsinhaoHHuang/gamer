@@ -108,7 +108,6 @@ struct Makefile_t
    int SupportHDF5;
    int SupportGSL;
    int SupportGrackle;
-   int RandomNumber;
 
 #  ifdef GRAVITY
    int PotScheme;
@@ -414,7 +413,8 @@ struct InputPara_t
 
 // ELBDM solvers
 #  if ( MODEL == ELBDM )
-   double ELBDM_Mass;
+   double ELBDM_Mass1;
+   double ELBDM_Mass2;
    double ELBDM_PlanckConst;
 #  ifdef QUARTIC_SELF_INTERACTION
    double ELBDM_Lambda;

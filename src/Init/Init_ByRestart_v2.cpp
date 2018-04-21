@@ -825,7 +825,7 @@ void Load_Parameter_After_2000( FILE *File, const int FormatVersion, int &NLv_Re
    int    opt__gra_int_scheme, opt__ref_flu_int_scheme, opt__ref_pot_int_scheme;
    int    opt__output_total, opt__output_part, opt__output_mode, output_step, opt__1st_flux_corr_scheme;
    long   end_step;
-   double lb_wli_max, gamma, minmod_coeff, ep_coeff, elbdm_mass, elbdm_planck_const, newton_g, sor_omega;
+   double lb_wli_max, gamma, minmod_coeff, ep_coeff, elbdm_mass1, elbdm_mass2, elbdm_planck_const, newton_g, sor_omega;
    double mg_tolerated_error, output_part_x, output_part_y, output_part_z, molecular_weight;
    double box_size, end_t, omega_m0, dt__fluid, dt__gravity, dt__phase, dt__max_delta_a, output_dt, hubble0;
    double unit_l, unit_m, unit_t, unit_v, unit_d, unit_e, unit_p;
@@ -860,7 +860,8 @@ void Load_Parameter_After_2000( FILE *File, const int FormatVersion, int &NLv_Re
    fread( &ep_coeff,                   sizeof(double),                  1,             File );
    fread( &opt__lr_limiter,            sizeof(int),                     1,             File );
    fread( &opt__waf_limiter,           sizeof(int),                     1,             File );
-   fread( &elbdm_mass,                 sizeof(double),                  1,             File );
+   fread( &elbdm_mass1,                sizeof(double),                  1,             File );
+   fread( &elbdm_mass2,                sizeof(double),                  1,             File );
    fread( &elbdm_planck_const,         sizeof(double),                  1,             File );
    fread( &flu_gpu_npgroup,            sizeof(int),                     1,             File );
    fread( &gpu_nstream,                sizeof(int),                     1,             File );
@@ -1411,7 +1412,8 @@ void Load_Parameter_After_2000( FILE *File, const int FormatVersion, int &NLv_Re
       CompareVar( "DT__PHASE",               dt__phase,                    DT__PHASE,                 NonFatal );
       CompareVar( "OPT__FLAG_ENGY_DENSITY",  opt__flag_engy_density,       OPT__FLAG_ENGY_DENSITY,    NonFatal );
       CompareVar( "OPT__INT_PHASE",          opt__int_phase,               OPT__INT_PHASE,            NonFatal );
-      CompareVar( "ELBDM_MASS",              elbdm_mass,                   ELBDM_MASS,                NonFatal );
+      CompareVar( "ELBDM_MASS1",              elbdm_mass1,                   ELBDM_MASS1,                NonFatal );
+      CompareVar( "ELBDM_MASS2",              elbdm_mass2,                   ELBDM_MASS2,                NonFatal );
       CompareVar( "ELBDM_PLANCK_CONST",      elbdm_planck_const,           ELBDM_PLANCK_CONST,        NonFatal );
 
 #     else

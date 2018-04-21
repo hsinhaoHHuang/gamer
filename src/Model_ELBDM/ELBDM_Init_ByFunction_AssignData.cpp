@@ -47,9 +47,11 @@ void Init_Function_User( real fluid[], const double x, const double y, const dou
    const double Width1  =  64.0;
    const double Width2  = 512.0;
 
-   fluid[REAL] = 1.0 + Height1*exp(  -( SQR(x-C1[0]) + SQR(y-C1[1]) + SQR(z-C1[2]) ) /SQR(Width1)  );
-   fluid[IMAG] = 1.0 + Height2*exp(  -( SQR(x-C2[0]) + SQR(y-C2[1]) + SQR(z-C2[2]) ) /SQR(Width2)  );
-   fluid[DENS] = fluid[REAL]*fluid[REAL] + fluid[IMAG]*fluid[IMAG];
+   fluid[REAL1] = 1.0 + Height1*exp(  -( SQR(x-C1[0]) + SQR(y-C1[1]) + SQR(z-C1[2]) ) /SQR(Width1)  );
+   fluid[IMAG1] = 1.0 + Height2*exp(  -( SQR(x-C2[0]) + SQR(y-C2[1]) + SQR(z-C2[2]) ) /SQR(Width2)  );
+   fluid[REAL2] = 1.0 + Height1*exp(  -( SQR(x-C1[0]) + SQR(y-C1[1]) + SQR(z-C1[2]) ) /SQR(Width1)  );
+   fluid[IMAG2] = 1.0 + Height2*exp(  -( SQR(x-C2[0]) + SQR(y-C2[1]) + SQR(z-C2[2]) ) /SQR(Width2)  );
+   fluid[DENS] = fluid[REAL1]*fluid[REAL1] + fluid[IMAG2]*fluid[IMAG2] + fluid[REAL2]*fluid[REAL2] + fluid[IMAG2]*fluid[IMAG2];
 
 // ELBDM does not support passive scalars yet ...
 
@@ -120,17 +122,21 @@ void ELBDM_Init_ByFunction_AssignData( const int lv )
          }}}
 
 //       ensure density = real_part^2 + imaginary_part^2
-         fluid[REAL] *= _NSub3;
-         fluid[IMAG] *= _NSub3;
-         fluid[DENS]  = fluid[REAL]*fluid[REAL] + fluid[IMAG]*fluid[IMAG];
+         fluid[REAL1] *= _NSub3;
+         fluid[IMAG1] *= _NSub3;
+         fluid[REAL2] *= _NSub3;
+         fluid[IMAG2] *= _NSub3;
+         fluid[DENS]  = fluid[REAL1]*fluid[REAL1] + fluid[IMAG1]*fluid[IMAG1] + fluid[REAL2]*fluid[REAL2] + fluid[IMAG2]*fluid[IMAG2];
 
 //       check minimum density (but keep phase fixed)
          if ( fluid[DENS] < (real)MIN_DENS )
          {
             const real Rescale = SQRT( (real)MIN_DENS/fluid[DENS] );
 
-            fluid[REAL] *= Rescale;
-            fluid[IMAG] *= Rescale;
+            fluid[REAL1] *= Rescale;
+            fluid[IMAG1] *= Rescale;
+            fluid[REAL2] *= Rescale;
+            fluid[IMAG2] *= Rescale;
             fluid[DENS]  = (real)MIN_DENS;
          }
 
@@ -166,8 +172,10 @@ void ELBDM_Init_ByFunction_AssignData( const int lv )
          {
             const real Rescale = SQRT( (real)MIN_DENS/fluid[DENS] );
 
-            fluid[REAL] *= Rescale;
-            fluid[IMAG] *= Rescale;
+            fluid[REAL1] *= Rescale;
+            fluid[IMAG1] *= Rescale;
+            fluid[REAL2] *= Rescale;
+            fluid[IMAG2] *= Rescale;
             fluid[DENS]  = (real)MIN_DENS;
          }
 

@@ -69,7 +69,7 @@ Procedure for outputting new variables:
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  Output_DumpData_Total_HDF5 (FormatVersion = 2264)
+// Function    :  Output_DumpData_Total_HDF5 (FormatVersion = 2263)
 // Description :  Output all simulation data in the HDF5 format, which can be used as a restart file
 //                or loaded by YT
 //
@@ -149,7 +149,6 @@ Procedure for outputting new variables:
 //                2261 : 2017/12/05 --> no longer define INTEL
 //                2262 : 2017/12/27 --> rename all UM variables
 //                2263 : 2017/12/27 --> remove OPT__RESTART_HEADER
-//                2264 : 2018/02/28 --> add RANDOM_NUMBER
 //-------------------------------------------------------------------------------------------------------
 void Output_DumpData_Total_HDF5( const char *FileName )
 {
@@ -715,8 +714,10 @@ void Output_DumpData_Total_HDF5( const char *FileName )
 
 #  elif ( MODEL == ELBDM )
    sprintf( FieldName[DENS], "Dens" );
-   sprintf( FieldName[REAL], "Real" );
-   sprintf( FieldName[IMAG], "Imag" );
+   sprintf( FieldName[REAL1], "Real1" );
+   sprintf( FieldName[IMAG1], "Imag1" );
+   sprintf( FieldName[REAL2], "Real2" );
+   sprintf( FieldName[IMAG2], "Imag2" );
 
 #  else
 #  error : ERROR : unsupported MODEL !!
@@ -1256,7 +1257,7 @@ void FillIn_KeyInfo( KeyInfo_t &KeyInfo )
 
    const time_t CalTime  = time( NULL );   // calendar time
 
-   KeyInfo.FormatVersion = 2264;
+   KeyInfo.FormatVersion = 2263;
    KeyInfo.Model         = MODEL;
    KeyInfo.NLevel        = NLEVEL;
    KeyInfo.NCompFluid    = NCOMP_FLUID;
@@ -1433,8 +1434,6 @@ void FillIn_Makefile( Makefile_t &Makefile )
 #  else
    Makefile.SupportGrackle         = 0;
 #  endif
-
-   Makefile.RandomNumber           = RANDOM_NUMBER;
 
    Makefile.NLevel                 = NLEVEL;
    Makefile.MaxPatch               = MAX_PATCH;
@@ -1853,7 +1852,8 @@ void FillIn_InputPara( InputPara_t &InputPara )
 
 // ELBDM solvers
 #  if ( MODEL == ELBDM )
-   InputPara.ELBDM_Mass              = ELBDM_MASS;
+   InputPara.ELBDM_Mass1              = ELBDM_MASS1;
+   InputPara.ELBDM_Mass2              = ELBDM_MASS2;
    InputPara.ELBDM_PlanckConst       = ELBDM_PLANCK_CONST;
 #  ifdef QUARTIC_SELF_INTERACTION
    InputPara.ELBDM_Lambda            = ELBDM_LAMBDA;
@@ -2174,7 +2174,6 @@ void GetCompound_Makefile( hid_t &H5_TypeID )
    H5Tinsert( H5_TypeID, "SupportHDF5",            HOFFSET(Makefile_t,SupportHDF5            ), H5T_NATIVE_INT );
    H5Tinsert( H5_TypeID, "SupportGSL",             HOFFSET(Makefile_t,SupportGSL             ), H5T_NATIVE_INT );
    H5Tinsert( H5_TypeID, "SupportGrackle",         HOFFSET(Makefile_t,SupportGrackle         ), H5T_NATIVE_INT );
-   H5Tinsert( H5_TypeID, "RandomNumber",           HOFFSET(Makefile_t,RandomNumber           ), H5T_NATIVE_INT );
 
    H5Tinsert( H5_TypeID, "NLevel",                 HOFFSET(Makefile_t,NLevel                 ), H5T_NATIVE_INT );
    H5Tinsert( H5_TypeID, "MaxPatch",               HOFFSET(Makefile_t,MaxPatch               ), H5T_NATIVE_INT );
@@ -2529,7 +2528,8 @@ void GetCompound_InputPara( hid_t &H5_TypeID )
 
 // ELBDM solvers
 #  if ( MODEL == ELBDM )
-   H5Tinsert( H5_TypeID, "ELBDM_Mass",              HOFFSET(InputPara_t,ELBDM_Mass             ), H5T_NATIVE_DOUBLE  );
+   H5Tinsert( H5_TypeID, "ELBDM_Mass1",              HOFFSET(InputPara_t,ELBDM_Mass1             ), H5T_NATIVE_DOUBLE  );
+   H5Tinsert( H5_TypeID, "ELBDM_Mass2",              HOFFSET(InputPara_t,ELBDM_Mass2             ), H5T_NATIVE_DOUBLE  );
    H5Tinsert( H5_TypeID, "ELBDM_PlanckConst",       HOFFSET(InputPara_t,ELBDM_PlanckConst      ), H5T_NATIVE_DOUBLE  );
 #  ifdef QUARTIC_SELF_INTERACTION
    H5Tinsert( H5_TypeID, "ELBDM_Lambda",            HOFFSET(InputPara_t,ELBDM_Lambda           ), H5T_NATIVE_DOUBLE  );

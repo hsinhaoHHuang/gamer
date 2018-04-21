@@ -82,12 +82,6 @@
 #        else
 #        define POT_BLOCK_SIZE_Z      4      // not optimized yet
 #        endif
-#     elif ( GPU_ARCH == VOLTA )
-#        ifdef FLOAT8
-#        define POT_BLOCK_SIZE_Z      2      // not optimized yet
-#        else
-#        define POT_BLOCK_SIZE_Z      4      // not optimized yet
-#        endif
 #     else
 #        define POT_BLOCK_SIZE_Z      NULL_INT
 #        ifdef GPU
@@ -113,7 +107,7 @@
 // --> only work for POT_GHOST_SIZE == 5 since # threads must be a multiple of warpSize
 // --> although strickly speaking the shuffle functions do NOT work for double precision, but experiments
 //     show that residual_sum += (float)residual, where residual_sum is double, gives acceptable accuracy
-#  if ( GPU_ARCH == KEPLER  ||  GPU_ARCH == MAXWELL  ||  GPU_ARCH == PASCAL  ||  GPU_ARCH == VOLTA )
+#  if ( GPU_ARCH == KEPLER  ||  GPU_ARCH == MAXWELL  ||  GPU_ARCH == PASCAL )
 #     define SOR_USE_SHUFFLE
 #  endif
 
@@ -166,7 +160,7 @@
 #define DT_GRA_BLOCK_SIZE_Z         4
 
 // use shuffle reduction in the KEPLER and later GPUs
-#if ( GPU_ARCH == KEPLER  ||  GPU_ARCH == MAXWELL  ||  GPU_ARCH == PASCAL  ||  GPU_ARCH == VOLTA )
+#if ( GPU_ARCH == KEPLER  ||  GPU_ARCH == MAXWELL  ||  GPU_ARCH == PASCAL )
 #   define DT_GRA_USE_SHUFFLE
 #endif
 
@@ -180,7 +174,7 @@
 // --> please refer to https://en.wikipedia.org/wiki/CUDA#Version_features_and_specifications
 //     for information on warp size
 #ifdef __CUDACC__
-#if ( GPU_ARCH == FERMI  ||  GPU_ARCH == KEPLER  ||  GPU_ARCH == MAXWELL  ||  GPU_ARCH == PASCAL  ||  GPU_ARCH == VOLTA )
+#if ( GPU_ARCH == FERMI  ||  GPU_ARCH == KEPLER  ||  GPU_ARCH == MAXWELL  ||  GPU_ARCH == PASCAL )
 // CUFLU.h will define WARP_SIZE as well
 #  ifndef WARP_SIZE
 #  define WARP_SIZE 32

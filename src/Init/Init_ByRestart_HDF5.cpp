@@ -581,8 +581,10 @@ void Init_ByRestart_HDF5( const char *FileName )
 
 #  elif ( MODEL == ELBDM )
    sprintf( FieldName[DENS], "Dens" );
-   sprintf( FieldName[REAL], "Real" );
-   sprintf( FieldName[IMAG], "Imag" );
+   sprintf( FieldName[REAL1], "Real1" );
+   sprintf( FieldName[IMAG1], "Imag1" );
+   sprintf( FieldName[REAL2], "Real2" );
+   sprintf( FieldName[IMAG2], "Imag2" );
 
 #  else
 #  error : ERROR : unsupported MODEL !!
@@ -1264,7 +1266,6 @@ void Check_Makefile( const char *FileName )
    LoadField( "SupportHDF5",            &RS.SupportHDF5,            SID, TID, NonFatal, &RT.SupportHDF5,            1, NonFatal );
    LoadField( "SupportGSL",             &RS.SupportGSL,             SID, TID, NonFatal, &RT.SupportGSL,             1, NonFatal );
    LoadField( "SupportGrackle",         &RS.SupportGrackle,         SID, TID, NonFatal, &RT.SupportGrackle,         1, NonFatal );
-   LoadField( "RandomNumber",           &RS.RandomNumber,           SID, TID, NonFatal, &RT.RandomNumber,           1, NonFatal );
 
    LoadField( "NLevel",                 &RS.NLevel,                 SID, TID, NonFatal, &RT.NLevel,                 1, NonFatal );
    LoadField( "MaxPatch",               &RS.MaxPatch,               SID, TID, NonFatal, &RT.MaxPatch,               1, NonFatal );
@@ -1648,7 +1649,8 @@ void Check_InputPara( const char *FileName )
 
 // ELBDM solvers
 #  if ( MODEL == ELBDM )
-   LoadField( "ELBDM_Mass",              &RS.ELBDM_Mass,              SID, TID, NonFatal, &RT.ELBDM_Mass,               1, NonFatal );
+   LoadField( "ELBDM_Mass1",              &RS.ELBDM_Mass1,              SID, TID, NonFatal, &RT.ELBDM_Mass1,               1, NonFatal );
+   LoadField( "ELBDM_Mass2",              &RS.ELBDM_Mass2,              SID, TID, NonFatal, &RT.ELBDM_Mass2,               1, NonFatal );
    LoadField( "ELBDM_PlanckConst",       &RS.ELBDM_PlanckConst,       SID, TID, NonFatal, &RT.ELBDM_PlanckConst,        1, NonFatal );
 #  ifdef QUARTIC_SELF_INTERACTION
    LoadField( "ELBDM_Lambda",            &RS.ELBDM_Lambda,            SID, TID, NonFatal, &RT.ELBDM_Lambda,             1, NonFatal );

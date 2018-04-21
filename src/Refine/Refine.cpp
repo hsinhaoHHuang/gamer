@@ -370,7 +370,7 @@ void Refine( const int lv, const UseLBFunc_t UseLBFunc )
 #           warning : WAIT MHD !!!
 
 #           elif ( MODEL == ELBDM )
-            if ( v != REAL  &&  v != IMAG )  Monotonicity[v] = EnsureMonotonicity_Yes;
+            if ( v != REAL1  &&  v != IMAG1 && v != REAL2 && v != IMAG2 )  Monotonicity[v] = EnsureMonotonicity_Yes;
             else                             Monotonicity[v] = EnsureMonotonicity_No;
 
 #           else
@@ -388,8 +388,10 @@ void Refine( const int lv, const UseLBFunc_t UseLBFunc )
 #           else
             for (int k=0; k<CSize_Flu; k++)
             for (int j=0; j<CSize_Flu; j++)
-            for (int i=0; i<CSize_Flu; i++)
-               Flu_CData[REAL][k][j][i] = ATAN2( Flu_CData[IMAG][k][j][i], Flu_CData[REAL][k][j][i] );
+            for (int i=0; i<CSize_Flu; i++){
+               Flu_CData[REAL1][k][j][i] = ATAN2( Flu_CData[IMAG1][k][j][i], Flu_CData[REAL1][k][j][i] );
+               Flu_CData[REAL2][k][j][i] = ATAN2( Flu_CData[IMAG2][k][j][i], Flu_CData[REAL2][k][j][i] );
+            }
 #           endif
 
 //          interpolate density
@@ -398,9 +400,13 @@ void Refine( const int lv, const UseLBFunc_t UseLBFunc )
                          &EnsureMonotonicity_Yes );
 
 //          interpolate phase
-            Interpolate( &Flu_CData[REAL][0][0][0], CSize_Flu3, CStart_Flu, CRange, &Flu_FData[REAL][0][0][0],
+            Interpolate( &Flu_CData[REAL1][0][0][0], CSize_Flu3, CStart_Flu, CRange, &Flu_FData[REAL1][0][0][0],
                          FSize3, FStart, 1, OPT__REF_FLU_INT_SCHEME, PhaseUnwrapping_Yes,
                          &EnsureMonotonicity_No );
+            Interpolate( &Flu_CData[REAL2][0][0][0], CSize_Flu3, CStart_Flu, CRange, &Flu_FData[REAL2][0][0][0],
+                         FSize3, FStart, 1, OPT__REF_FLU_INT_SCHEME, PhaseUnwrapping_Yes,
+                         &EnsureMonotonicity_No );
+         
          }
 
          else // if ( OPT__INT_PHASE )
@@ -414,13 +420,14 @@ void Refine( const int lv, const UseLBFunc_t UseLBFunc )
          if ( OPT__INT_PHASE )
          {
 //          retrieve real and imaginary parts
-            real Amp, Phase, Rho;
+            real Amp, Phase1, Phase2, Rho;
 
             for (int k=0; k<FSize; k++)
             for (int j=0; j<FSize; j++)
             for (int i=0; i<FSize; i++)
             {
-               Phase = Flu_FData[REAL][k][j][i];
+               Phase1 = Flu_FData[REAL1][k][j][i];
+               Phase2 = Flu_FData[REAL2][k][j][i];
                Rho   = Flu_FData[DENS][k][j][i];
 
 //             be careful about the negative density introduced from the round-off errors
@@ -431,8 +438,10 @@ void Refine( const int lv, const UseLBFunc_t UseLBFunc )
                }
 
                Amp                      = SQRT( Rho );
-               Flu_FData[REAL][k][j][i] = Amp*COS( Phase );
-               Flu_FData[IMAG][k][j][i] = Amp*SIN( Phase );
+               Flu_FData[REAL1][k][j][i] = Amp*COS( Phase1 );
+               Flu_FData[IMAG1][k][j][i] = Amp*SIN( Phase1 );
+               Flu_FData[REAL2][k][j][i] = Amp*COS( Phase2 );
+               Flu_FData[IMAG2][k][j][i] = Amp*SIN( Phase2 );
             }
          }
 
@@ -474,8 +483,10 @@ void Refine( const int lv, const UseLBFunc_t UseLBFunc )
                {
                   const real Rescale = SQRT( (real)MIN_DENS / DensOld );
 
-                  Flu_FData[REAL][k][j][i] *= Rescale;
-                  Flu_FData[IMAG][k][j][i] *= Rescale;
+                  Flu_FData[REAL1][k][j][i] *= Rescale;
+                  Flu_FData[IMAG1][k][j][i] *= Rescale;
+                  Flu_FData[REAL2][k][j][i] *= Rescale;
+                  Flu_FData[IMAG2][k][j][i] *= Rescale;
                }
 #              endif
 
@@ -558,16 +569,18 @@ void Refine( const int lv, const UseLBFunc_t UseLBFunc )
 
 //          rescale real and imaginary parts to get the correct density in ELBDM if OPT__INT_PHASE is off
 #           if ( MODEL == ELBDM )
-            real Real, Imag, Rho_Wrong, Rho_Corr, Rescale;
+            real Real1, Imag1, Real2, Imag2, Rho_Wrong, Rho_Corr, Rescale;
 
             if ( !OPT__INT_PHASE )
             for (int k=0; k<PATCH_SIZE; k++)
             for (int j=0; j<PATCH_SIZE; j++)
             for (int i=0; i<PATCH_SIZE; i++)
             {
-               Real      = amr->patch[FFluSg][lv+1][SonPID]->fluid[REAL][k][j][i];
-               Imag      = amr->patch[FFluSg][lv+1][SonPID]->fluid[IMAG][k][j][i];
-               Rho_Wrong = Real*Real + Imag*Imag;
+               Real1      = amr->patch[FFluSg][lv+1][SonPID]->fluid[REAL1][k][j][i];
+               Imag1      = amr->patch[FFluSg][lv+1][SonPID]->fluid[IMAG1][k][j][i];
+               Real2      = amr->patch[FFluSg][lv+1][SonPID]->fluid[REAL2][k][j][i];
+               Imag2      = amr->patch[FFluSg][lv+1][SonPID]->fluid[IMAG2][k][j][i];
+               Rho_Wrong = Real1*Real1 + Imag1*Imag1 + Real2*Real2 + Imag2*Imag2;
                Rho_Corr  = amr->patch[FFluSg][lv+1][SonPID]->fluid[DENS][k][j][i];
 
 //             be careful about the negative density introduced from the round-off errors
@@ -579,8 +592,10 @@ void Refine( const int lv, const UseLBFunc_t UseLBFunc )
                else
                   Rescale = SQRT( Rho_Corr/Rho_Wrong );
 
-               amr->patch[FFluSg][lv+1][SonPID]->fluid[REAL][k][j][i] *= Rescale;
-               amr->patch[FFluSg][lv+1][SonPID]->fluid[IMAG][k][j][i] *= Rescale;
+               amr->patch[FFluSg][lv+1][SonPID]->fluid[REAL1][k][j][i] *= Rescale;
+               amr->patch[FFluSg][lv+1][SonPID]->fluid[IMAG1][k][j][i] *= Rescale;
+               amr->patch[FFluSg][lv+1][SonPID]->fluid[REAL2][k][j][i] *= Rescale;
+               amr->patch[FFluSg][lv+1][SonPID]->fluid[IMAG2][k][j][i] *= Rescale;
             }
 #           endif
          } // for (int LocalID=0; LocalID<8; LocalID++)
@@ -722,10 +737,15 @@ void ELBDM_GetPhase_DebugOnly( real *CData, const int CSize )
    const int CSize_1v = CSize*CSize*CSize;
 
    real *const CData_Dens = CData + DENS*CSize_1v;
-   real *const CData_Real = CData + REAL*CSize_1v;
-   real *const CData_Imag = CData + IMAG*CSize_1v;
+   real *const CData_Real1 = CData + REAL1*CSize_1v;
+   real *const CData_Imag1 = CData + IMAG1*CSize_1v;
+   real *const CData_Real2 = CData + REAL2*CSize_1v;
+   real *const CData_Imag2 = CData + IMAG2*CSize_1v;
 
-   for (int t=0; t<CSize_1v; t++)   CData_Real[t] = ATAN2( CData_Imag[t], CData_Real[t] );
+   for (int t=0; t<CSize_1v; t++){
+      CData_Real1[t] = ATAN2( CData_Imag1[t], CData_Real1[t] );
+      CData_Real2[t] = ATAN2( CData_Imag2[t], CData_Real2[t] );
+   }
 
 } // FUNCTION :
 #endif // #if ( MODEL == ELBDM  &&  defined GAMER_DEBUG )

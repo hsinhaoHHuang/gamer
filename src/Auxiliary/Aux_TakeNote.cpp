@@ -283,8 +283,6 @@ void Aux_TakeNote()
       fprintf( Note, "GPU_ARCH                        MAXWELL\n" );
 #     elif ( GPU_ARCH == PASCAL )
       fprintf( Note, "GPU_ARCH                        PASCAL\n" );
-#     elif ( GPU_ARCH == VOLTA )
-      fprintf( Note, "GPU_ARCH                        VOLTA\n" );
 #     else
       fprintf( Note, "GPU_ARCH                        UNKNOWN\n" );
 #     endif
@@ -306,14 +304,6 @@ void Aux_TakeNote()
       fprintf( Note, "SUPPORT_GSL                     ON\n" );
 #     else
       fprintf( Note, "SUPPORT_GSL                     OFF\n" );
-#     endif
-
-#     if   ( RANDOM_NUMBER == RNG_GNU_EXT )
-      fprintf( Note, "RANDOM_NUMBER                   RNG_GNU_EXT\n" );
-#     elif ( RANDOM_NUMBER == RNG_CPP11 )
-      fprintf( Note, "RANDOM_NUMBER                   RNG_CPP11\n" );
-#     else
-      fprintf( Note, "RANDOM_NUMBER                   UNKNOWN\n" );
 #     endif
 
       fprintf( Note, "***********************************************************************************\n" );
@@ -811,9 +801,9 @@ void Aux_TakeNote()
 
 #     elif ( MODEL == ELBDM )
       if ( OPT__UNIT ) {
-//    since the mass unit in cosmological simulation has the 1/h dependence, the actual ELBDM_MASS adopted in the
-//    cosmological simulation also depends on 1/h
-//    --> however, Planck constant also depends on 1/h^2 --> ELBDM_ETA depends on h
+//    since the mass unit in cosmological simulation has the 1/h dependence, the actual ELBDM_MASS1 and ELBDM_MASS2 adopted in the
+//    cosmological simulation also depend on 1/h
+//    --> however, Planck constant also depends on 1/h^2 --> ELBDM_ETA1 and ELBDM_ETA2 depend on h
 //    --> since Planck constant is a real constant which cannot be changed, it's more appropriate to express
 //        ELBDM particle mass as ev/c^2*h (not ev/c^2/h), just like the length unit Mpc/h
 //    --> for a given simulation result, we can always reinterpret h to give different box size and ELBDM particle mass
@@ -821,17 +811,23 @@ void Aux_TakeNote()
 //    --> also note that this data reinterpretation is purely based on redefining basic units and is different from the
 //        scaling symmetry in ELBDM
 #     ifdef COMOVING
-      fprintf( Note, "ELBDM_MASS                      %13.7e %s\n",  ELBDM_MASS*UNIT_M/(HUBBLE0*Const_eV/SQR(Const_c)), "h*ev/c^2" );
+      fprintf( Note, "ELBDM_MASS1                      %13.7e %s\n",  ELBDM_MASS1*UNIT_M/(HUBBLE0*Const_eV/SQR(Const_c)), "h*ev/c^2" );
       fprintf( Note, "                              = %13.7e %s (assuming h = %13.7e)\n",
-                                                                     ELBDM_MASS*UNIT_M/(Const_eV/SQR(Const_c)), "ev/c^2", HUBBLE0 );
+                                                                     ELBDM_MASS1*UNIT_M/(Const_eV/SQR(Const_c)), "ev/c^2", HUBBLE0 );
+      fprintf( Note, "ELBDM_MASS2                      %13.7e %s\n",  ELBDM_MASS2*UNIT_M/(HUBBLE0*Const_eV/SQR(Const_c)), "h*ev/c^2" );
+      fprintf( Note, "                              = %13.7e %s (assuming h = %13.7e)\n",
+                                                                     ELBDM_MASS2*UNIT_M/(Const_eV/SQR(Const_c)), "ev/c^2", HUBBLE0 );
 #     else
-      fprintf( Note, "ELBDM_MASS                      %13.7e %s\n",  ELBDM_MASS*UNIT_M/(Const_eV/SQR(Const_c)), "ev/c^2" );
+      fprintf( Note, "ELBDM_MASS1                      %13.7e %s\n",  ELBDM_MASS1*UNIT_M/(Const_eV/SQR(Const_c)), "ev/c^2" );
+      fprintf( Note, "ELBDM_MASS2                      %13.7e %s\n",  ELBDM_MASS2*UNIT_M/(Const_eV/SQR(Const_c)), "ev/c^2" );
 #     endif
       }
       else
-      fprintf( Note, "ELBDM_MASS                      %13.7e\n",     ELBDM_MASS           );
+      fprintf( Note, "ELBDM_MASS1                      %13.7e\n",     ELBDM_MASS1           );
+      fprintf( Note, "ELBDM_MASS2                      %13.7e\n",     ELBDM_MASS2           );
       fprintf( Note, "ELBDM_PLANCK_CONST              %13.7e\n",     ELBDM_PLANCK_CONST   );
-      fprintf( Note, "ELBDM_ETA                       %13.7e\n",     ELBDM_ETA            );
+      fprintf( Note, "ELBDM_ETA1                       %13.7e\n",     ELBDM_ETA1            );
+      fprintf( Note, "ELBDM_ETA2                       %13.7e\n",     ELBDM_ETA2            );
 #     ifdef QUARTIC_SELF_INTERACTION
       fprintf( Note, "ELBDM_LAMBDA                    %13.7e\n",     ELBDM_LAMBDA         );
 #     endif

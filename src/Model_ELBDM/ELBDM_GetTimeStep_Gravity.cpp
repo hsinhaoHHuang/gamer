@@ -37,7 +37,7 @@ double ELBDM_GetTimeStep_Gravity( const int lv )
    MaxPot = GetMaxPot( lv );
 
 // get the time-step
-   dt = DT__GRAVITY*2.0*M_PI/(ELBDM_ETA*MaxPot);
+   dt = DT__GRAVITY*2.0*M_PI/(ELBDM_ETA1*MaxPot);
 
    return dt;
 

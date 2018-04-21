@@ -44,10 +44,12 @@ const TestProbID_t
    TESTPROB_HYDRO_KELVIN_HELMHOLTZ_INSTABILITY =    8,
    TESTPROB_HYDRO_RIEMANN                      =    9,
    TESTPROB_HYDRO_COLLIDING_JETS               =   10,
-   TESTPROB_HYDRO_PLUMMER                      =   11,
 
-   TESTPROB_ELBDM_EXTPOT                       = 1000;
-
+   TESTPROB_ELBDM_EXTPOT                       = 1000,
+   TESTPROB_ELBDM_JEANS_INSTABILITY_COMOVING   = 1001,
+   TESTPROB_ELBDM_JEANS_INSTABILITY_PHYSICAL   = 1002,
+   TESTPROB_ELBDM_SOLITON                      = 1003;
+   TESTPROB_ELBDM_TWOMASS                      = 1004;
 
 // program initialization options
 typedef int OptInit_t;

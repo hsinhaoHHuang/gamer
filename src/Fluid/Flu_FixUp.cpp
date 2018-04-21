@@ -207,7 +207,7 @@ void Flu_FixUp( const int lv )
 
 //                do not apply the flux correction if there are any unphysical results
 #                 if   ( MODEL == HYDRO  ||  MODEL == MHD )
-                  if ( CorrVal[DENS] <= MIN_DENS  ||  Pres <= MIN_PRES  ||  !Aux_IsFinite(Pres)
+                  if ( CorrVal[DENS] <= MIN_DENS  ||  Pres <= MIN_PRES  ||  !isfinite(Pres)
 #                      if   ( DUAL_ENERGY == DE_ENPY )
                        ||  ( (*DE_StatusPtr1D == DE_UPDATED_BY_DUAL || *DE_StatusPtr1D == DE_UPDATED_BY_MIN_PRES)
                               && CorrVal[ENPY] <= (real)2.0*TINY_NUMBER )
@@ -257,24 +257,32 @@ void Flu_FixUp( const int lv )
 //                rescale the real and imaginary parts to be consistent with the corrected amplitude
 //                --> must NOT use CorrVal[REAL] and CorrVal[IMAG] below since NFLUX_TOTAL == 1 for ELBDM
 #                 if ( MODEL == ELBDM  &&  defined CONSERVE_MASS )
-                  real Re, Im, Rho_Corr, Rho_Wrong, Rescale;
+                  real Re1, Im1, Re2, Im2,  Rho_Corr, Rho_Wrong, Rescale;
 
-                  Re        = *FluidPtr1D[REAL];
-                  Im        = *FluidPtr1D[IMAG];
+                  Re1        = *FluidPtr1D[REAL1];
+                  Im1        = *FluidPtr1D[IMAG1];
+                  Re2        = *FluidPtr1D[REAL2];
+                  Im2        = *FluidPtr1D[IMAG2];
                   Rho_Corr  = *FluidPtr1D[DENS];
-                  Rho_Wrong = SQR(Re) + SQR(Im);
+                  Rho_Wrong = SQR(Re1) + SQR(Im1) + SQR(Re2) + SQR(Im2);
+                  
 
 //                be careful about the negative density introduced from the round-off errors
-                  if ( Rho_Wrong <= (real)0.0  ||  Rho_Corr <= (real)0.0 )
+                  if ( Rho_Wrong <= (real)0.0 ||  Rho_Corr <= (real)0.0 )
                   {
                      *FluidPtr1D[DENS] = (real)0.0;
                      Rescale           = (real)0.0;
                   }
+                  
                   else
+                  {
                      Rescale = SQRT( Rho_Corr/Rho_Wrong );
+                  }
 
-                  *FluidPtr1D[REAL] *= Rescale;
-                  *FluidPtr1D[IMAG] *= Rescale;
+                  *FluidPtr1D[REAL1] *= Rescale;
+                  *FluidPtr1D[IMAG1] *= Rescale;
+                  *FluidPtr1D[REAL2] *= Rescale;
+                  *FluidPtr1D[IMAG2] *= Rescale;
 #                 endif
 
 

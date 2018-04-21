@@ -227,16 +227,20 @@ void Init_ResetParameter()
 
 // ELBDM parameters
 #  if ( MODEL == ELBDM )
-   ELBDM_ETA = ELBDM_MASS / ELBDM_PLANCK_CONST;
-
-   PRINT_WARNING( ELBDM_ETA, FORMAT_FLT, "" );
+   ELBDM_ETA1 = ELBDM_MASS1 / ELBDM_PLANCK_CONST;
+   ELBDM_ETA2 = ELBDM_MASS2 / ELBDM_PLANCK_CONST;
+   PRINT_WARNING( ELBDM_ETA1, FORMAT_FLT, "" );
+   PRINT_WARNING( ELBDM_ETA2, FORMAT_FLT, "" );
 
 #  ifdef COMOVING
    if ( MPI_Rank == 0 )
    {
-      const double JeansK = pow( 6.0*A_INIT*SQR(ELBDM_ETA), 0.25 );
-      Aux_Message( stderr, "          --> corresponding initial Jean's wavenumber (wavelength) = %13.7e h/Mpc (%13.7e Mpc/h))\n",
-                   JeansK, 2.0*M_PI/JeansK );
+      const double JeansK1 = pow( 6.0*A_INIT*SQR(ELBDM_ETA1), 0.25 );
+      Aux_Message( stderr, "          --> corresponding initial Jean's wavenumber1 (wavelength) = %13.7e h/Mpc (%13.7e Mpc/h))\n",
+                   JeansK1, 2.0*M_PI/JeansK1 );
+      const double JeansK2 = pow( 6.0*A_INIT*SQR(ELBDM_ETA2), 0.25 );
+      Aux_Message( stderr, "          --> corresponding initial Jean's wavenumber2 (wavelength) = %13.7e h/Mpc (%13.7e Mpc/h))\n",
+                   JeansK2, 2.0*M_PI/JeansK2 );
    }
 #  endif
 
@@ -719,6 +723,17 @@ void Init_ResetParameter()
    }
 
 
+// HDF5 is not supported if "SUPPORT_HDF5" is disabled
+#  ifndef SUPPORT_HDF5
+   if ( OPT__OUTPUT_TOTAL == OUTPUT_FORMAT_HDF5 )
+   {
+      OPT__OUTPUT_TOTAL = OUTPUT_FORMAT_CBINARY;
+
+      PRINT_WARNING( OPT__OUTPUT_TOTAL, FORMAT_INT, "since SUPPORT_HDF5 is disabled" );
+   }
+#  endif
+
+
 // always turn on "OPT__CK_PARTICLE" when debugging particles
 #  ifdef DEBUG_PARTICLE
    if ( !OPT__CK_PARTICLE )
@@ -834,7 +849,7 @@ void Init_ResetParameter()
    }
 
 
-// star-formation options
+// SF_CREATE_STAR_MIN_LEVEL
 #  ifdef STAR_FORMATION
    if ( SF_CREATE_STAR_MIN_LEVEL < 0 )
    {
@@ -842,19 +857,7 @@ void Init_ResetParameter()
 
       PRINT_WARNING( SF_CREATE_STAR_MIN_LEVEL, FORMAT_INT, "" );
    }
-
-   if ( SF_CREATE_STAR_DET_RANDOM < 0 )
-   {
-#     ifdef BITWISE_REPRODUCIBILITY
-         SF_CREATE_STAR_DET_RANDOM = 1;
-         PRINT_WARNING( SF_CREATE_STAR_DET_RANDOM, FORMAT_INT, "since BITWISE_REPRODUCIBILITY is enabled" );
-#     else
-         SF_CREATE_STAR_DET_RANDOM = 0;
-         PRINT_WARNING( SF_CREATE_STAR_DET_RANDOM, FORMAT_INT, "since BITWISE_REPRODUCIBILITY is disabled" );
-#     endif
-
-   }
-#  endif // #ifdef STAR_FORMATION
+#  endif
 
 
 // convert to code units
@@ -869,6 +872,17 @@ void Init_ResetParameter()
    SF_CREATE_STAR_MIN_STAR_MASS *= Const_Msun / UNIT_M;
 
    PRINT_WARNING( SF_CREATE_STAR_MIN_STAR_MASS, FORMAT_FLT, "to be consistent with the code units" );
+
+
+// enable SF_CREATE_STAR_DET_RANDOM to achieve bitwise reproducibility
+#  ifdef BITWISE_REPRODUCIBILITY
+   if ( !SF_CREATE_STAR_DET_RANDOM )
+   {
+      SF_CREATE_STAR_DET_RANDOM = true;
+
+      PRINT_WARNING( SF_CREATE_STAR_DET_RANDOM, FORMAT_INT, "since BITWISE_REPRODUCIBILITY is enabled" );
+   }
+#  endif
 #  endif // #ifdef STAR_FORMATION
 
 

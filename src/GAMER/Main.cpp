@@ -101,7 +101,7 @@ double               DT__PHASE, FlagTable_EngyDensity[NLEVEL-1][2];
 bool                 OPT__FLAG_ENGY_DENSITY, OPT__INT_PHASE;
 bool                 ELBDM_TAYLOR3_AUTO;
 double               ELBDM_TAYLOR3_COEFF;
-double               ELBDM_MASS, ELBDM_PLANCK_CONST, ELBDM_ETA, MIN_DENS;
+double               ELBDM_MASS1,ELBDM_MASS2, ELBDM_PLANCK_CONST, ELBDM_ETA1,ELBDM_ETA2, MIN_DENS;
 #ifdef QUARTIC_SELF_INTERACTION
 double               ELBDM_LAMBDA;
 #endif
@@ -180,7 +180,7 @@ int                  CHE_GPU_NPGROUP;
 #ifdef STAR_FORMATION
 SF_CreateStarScheme_t SF_CREATE_STAR_SCHEME;
 int                   SF_CREATE_STAR_RSEED;
-int                   SF_CREATE_STAR_DET_RANDOM;
+bool                  SF_CREATE_STAR_DET_RANDOM;
 int                   SF_CREATE_STAR_MIN_LEVEL;
 double                SF_CREATE_STAR_MIN_GAS_DENS;
 double                SF_CREATE_STAR_MASS_EFF;

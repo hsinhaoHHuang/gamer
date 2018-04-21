@@ -189,8 +189,7 @@ void Init_Load_Parameter()
 #  ifdef STAR_FORMATION
    ReadPara->Add( "SF_CREATE_STAR_SCHEME",         &SF_CREATE_STAR_SCHEME,         0,              0,             1              );
    ReadPara->Add( "SF_CREATE_STAR_RSEED",          &SF_CREATE_STAR_RSEED,          123,            0,             NoMax_int      );
-// do not check SF_CREATE_STAR_DET_RANDOM since its default depends on the makefile option BITWISE_REPRODUCIBILITY
-   ReadPara->Add( "SF_CREATE_STAR_DET_RANDOM",     &SF_CREATE_STAR_DET_RANDOM,    -1,              NoMin_int,     NoMax_int      );
+   ReadPara->Add( "SF_CREATE_STAR_DET_RANDOM",     &SF_CREATE_STAR_DET_RANDOM,     false,          Useless_bool,  Useless_bool   );
    ReadPara->Add( "SF_CREATE_STAR_MIN_LEVEL",      &SF_CREATE_STAR_MIN_LEVEL,      0,              NoMin_int,     TOP_LEVEL      );
    ReadPara->Add( "SF_CREATE_STAR_MIN_GAS_DENS",   &SF_CREATE_STAR_MIN_GAS_DENS,   1.0e1,          0.0,           NoMax_double   );
    ReadPara->Add( "SF_CREATE_STAR_MASS_EFF",       &SF_CREATE_STAR_MASS_EFF,       1.0e-2,         Eps_double,    1.0            );
@@ -220,7 +219,8 @@ void Init_Load_Parameter()
 
 // fluid solver in ELBDM
 #  if ( MODEL == ELBDM )
-   ReadPara->Add( "ELBDM_MASS",                 &ELBDM_MASS,                     -1.0,             Eps_double,    NoMax_double   );
+   ReadPara->Add( "ELBDM_MASS1",                &ELBDM_MASS1,                     -1.0,             Eps_double,    NoMax_double   );
+   ReadPara->Add( "ELBDM_MASS2",                &ELBDM_MASS2,                     -1.0,             Eps_double,    NoMax_double   );
 // do not check ELBDM_PLANCK_CONST since it may be reset by Init_Unit()
    ReadPara->Add( "ELBDM_PLANCK_CONST",         &ELBDM_PLANCK_CONST,             -1.0,             NoMin_double,  NoMax_double   );
 #  ifdef QUARTIC_SELF_INTERACTION

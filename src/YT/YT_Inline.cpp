@@ -75,8 +75,10 @@ void YT_Inline()
 
 #  elif ( MODEL == ELBDM )
    sprintf( FieldLabel[DENS], "Dens" );
-   sprintf( FieldLabel[REAL], "Real" );
-   sprintf( FieldLabel[IMAG], "Imag" );
+   sprintf( FieldLabel[REAL1], "Real1" );
+   sprintf( FieldLabel[IMAG1], "Imag1" );
+   sprintf( FieldLabel[REAL2], "Real2" );
+   sprintf( FieldLabel[IMAG2], "Imag2" );
 
 #  else
 #  error : unsupported MODEL !!
