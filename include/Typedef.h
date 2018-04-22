@@ -48,7 +48,7 @@ const TestProbID_t
    TESTPROB_ELBDM_EXTPOT                       = 1000,
    TESTPROB_ELBDM_JEANS_INSTABILITY_COMOVING   = 1001,
    TESTPROB_ELBDM_JEANS_INSTABILITY_PHYSICAL   = 1002,
-   TESTPROB_ELBDM_SOLITON                      = 1003;
+   TESTPROB_ELBDM_SOLITON                      = 1003,
    TESTPROB_ELBDM_TWOMASS                      = 1004;
 
 // program initialization options

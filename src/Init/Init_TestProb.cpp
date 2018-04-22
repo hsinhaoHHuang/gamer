@@ -59,7 +59,7 @@ void Init_TestProb()
       case TESTPROB_ELBDM_JEANS_INSTABILITY_COMOVING :   Init_TestProb_ELBDM_JeansInstabilityComoving();    break;
 //    case TESTPROB_ELBDM_JEANS_INSTABILITY_PHYSICAL :   Init_TestProb_ELBDM_JeansInstabilityPhysical();    break;
       case TESTPROB_ELBDM_SOLITON :                      Init_TestProb_ELBDM_Soliton();                     break;
-      case TESTPROB_ELBDM_TWOMASS:                       Inti_TestProb_ELBDM_TwoMass();                     break;
+      case TESTPROB_ELBDM_TWOMASS:                       Init_TestProb_ELBDM_TwoMass();                     break;
 
       default: Aux_Error( ERROR_INFO, "unsupported TESTPROB_ID (%d) !!\n", TESTPROB_ID );
    } // switch( TESTPROB_ID )
