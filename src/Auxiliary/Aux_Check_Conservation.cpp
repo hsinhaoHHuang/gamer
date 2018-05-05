@@ -73,10 +73,10 @@ void Aux_Check_Conservation( const char *comment )
    const double _2Eta12           = 0.5/SQR(ELBDM_ETA1);
    const double _2Eta22           = 0.5/SQR(ELBDM_ETA2);
 
-   real GradR[3], GradI[3], _dh2;
+   real GradR1[3], GradI1[3], GradR2[3],GradI2[3], _dh2;
    int  ip, im, jp, jm, kp, km;
 
-   real (*Flu_ELBDM)[2][Size_Flu][Size_Flu][Size_Flu] = new real [NPG*8][2][Size_Flu][Size_Flu][Size_Flu];
+   real (*Flu_ELBDM)[4][Size_Flu][Size_Flu][Size_Flu] = new real [NPG*8][4][Size_Flu][Size_Flu][Size_Flu];
 
 #  else
 #  error : ERROR : unsupported MODEL !!
@@ -119,7 +119,7 @@ void Aux_Check_Conservation( const char *comment )
          const real MinDens_No = -1.0;
          const real MinPres_No = -1.0;
 
-         Prepare_PatchData( lv, Time[lv], Flu_ELBDM[0][0][0][0], NGhost, NPG, &PID0, _REAL1|_IMAG1,
+         Prepare_PatchData( lv, Time[lv], Flu_ELBDM[0][0][0][0], NGhost, NPG, &PID0, _REAL1|_IMAG1|_REAL2|_IMAG2,
                             IntScheme, UNIT_PATCH, NSIDE_06, IntPhase_No, OPT__BC_FLU, BC_POT_NONE,
                             MinDens_No, MinPres_No, DE_Consistency_No );
 #        endif
@@ -189,16 +189,26 @@ void Aux_Check_Conservation( const char *comment )
                for (int j=NGhost; j<Size_Flu-NGhost; j++)   { jp = j+1; jm = j-1;
                for (int i=NGhost; i<Size_Flu-NGhost; i++)   { ip = i+1; im = i-1;
 
-                  GradR[0] = _dh2*( Flu_ELBDM[t][0][k ][j ][ip] - Flu_ELBDM[t][0][k ][j ][im] );
-                  GradR[1] = _dh2*( Flu_ELBDM[t][0][k ][jp][i ] - Flu_ELBDM[t][0][k ][jm][i ] );
-                  GradR[2] = _dh2*( Flu_ELBDM[t][0][kp][j ][i ] - Flu_ELBDM[t][0][km][j ][i ] );
+                  GradR1[0] = _dh2*( Flu_ELBDM[t][0][k ][j ][ip] - Flu_ELBDM[t][0][k ][j ][im] );
+                  GradR1[1] = _dh2*( Flu_ELBDM[t][0][k ][jp][i ] - Flu_ELBDM[t][0][k ][jm][i ] );
+                  GradR1[2] = _dh2*( Flu_ELBDM[t][0][kp][j ][i ] - Flu_ELBDM[t][0][km][j ][i ] );
 
-                  GradI[0] = _dh2*( Flu_ELBDM[t][1][k ][j ][ip] - Flu_ELBDM[t][1][k ][j ][im] );
-                  GradI[1] = _dh2*( Flu_ELBDM[t][1][k ][jp][i ] - Flu_ELBDM[t][1][k ][jm][i ] );
-                  GradI[2] = _dh2*( Flu_ELBDM[t][1][kp][j ][i ] - Flu_ELBDM[t][1][km][j ][i ] );
+                  GradI1[0] = _dh2*( Flu_ELBDM[t][1][k ][j ][ip] - Flu_ELBDM[t][1][k ][j ][im] );
+                  GradI1[1] = _dh2*( Flu_ELBDM[t][1][k ][jp][i ] - Flu_ELBDM[t][1][k ][jm][i ] );
+                  GradI1[2] = _dh2*( Flu_ELBDM[t][1][kp][j ][i ] - Flu_ELBDM[t][1][km][j ][i ] );
 
-                  Fluid_lv[1] += _2Eta12*( SQR(GradR[0]) + SQR(GradR[1]) + SQR(GradR[2]) +
-                                          SQR(GradI[0]) + SQR(GradI[1]) + SQR(GradI[2])   );
+                  GradR2[0] = _dh2*( Flu_ELBDM[t][2][k ][j ][ip] - Flu_ELBDM[t][2][k ][j ][im] );
+                  GradR2[1] = _dh2*( Flu_ELBDM[t][2][k ][jp][i ] - Flu_ELBDM[t][2][k ][jm][i ] );
+                  GradR2[2] = _dh2*( Flu_ELBDM[t][2][kp][j ][i ] - Flu_ELBDM[t][2][km][j ][i ] );
+
+                  GradI2[0] = _dh2*( Flu_ELBDM[t][3][k ][j ][ip] - Flu_ELBDM[t][3][k ][j ][im] );
+                  GradI2[1] = _dh2*( Flu_ELBDM[t][3][k ][jp][i ] - Flu_ELBDM[t][3][k ][jm][i ] );
+                  GradI2[2] = _dh2*( Flu_ELBDM[t][3][kp][j ][i ] - Flu_ELBDM[t][3][km][j ][i ] );
+
+                  Fluid_lv[1] += _2Eta12*( SQR(GradR1[0]) + SQR(GradR1[1]) + SQR(GradR1[2]) +
+                                          SQR(GradI1[0]) + SQR(GradI1[1]) + SQR(GradI1[2])   );
+                  Fluid_lv[1] += _2Eta22*( SQR(GradR2[0]) + SQR(GradR2[1]) + SQR(GradR2[2]) +
+                                          SQR(GradI2[0]) + SQR(GradI2[1]) + SQR(GradI2[2])   );
                }}}
 
 #              else

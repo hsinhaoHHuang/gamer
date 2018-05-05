@@ -202,7 +202,7 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
 //
 // Return      :  None
 //-------------------------------------------------------------------------------------------------------
-void Init_TestProb_Template()
+void Init_TestProb_ELBDM_TwoMass()
 {
 
    if ( MPI_Rank == 0 )    Aux_Message( stdout, "%s ...\n", __FUNCTION__ );

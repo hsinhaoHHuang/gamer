@@ -28,7 +28,7 @@ double ELBDM_GetTimeStep_Fluid( const int lv )
    const double dh = amr->dh[lv];
    double dt;
 
-   dt = 4.0/M_PI*ELBDM_ETA1*SQR(dh);
+   dt = 4.0/M_PI*MIN(ELBDM_ETA1,ELBDM_ETA2)*SQR(dh);
 /*
 #  ifdef GRAVITY
    dt = 4.0/3.0/M_PI*ELBDM_ETA*SQR(dh);      // 3D k-space rotation angle
