@@ -63,7 +63,7 @@ void CPU_FluidSolver_CTU( const real Flu_Array_In[][NCOMP_TOTAL][ FLU_NXT*FLU_NX
 void CPU_ELBDMSolver( real Flu_Array_In [][FLU_NIN    ][ FLU_NXT*FLU_NXT*FLU_NXT ],
                       real Flu_Array_Out[][FLU_NOUT   ][ PS2*PS2*PS2 ],
                       real Flux_Array[][9][NFLUX_TOTAL][ PS2*PS2 ],
-                      const int NPatchGroup, const real dt, const real dh, const real Eta, const bool StoreFlux,
+                      const int NPatchGroup, const real dt, const real dh, const real Eta1,const real Eta2, const bool StoreFlux,
                       const real Taylor3_Coeff, const bool XYZ, const real MinDens );
 
 #else
@@ -200,7 +200,7 @@ void CPU_FluidSolver( real h_Flu_Array_In [][FLU_NIN    ][ FLU_NXT*FLU_NXT*FLU_N
 
 #  elif ( MODEL == ELBDM )
 //    evaluate the optimized Taylor expansion coefficient
-      if ( ELBDM_Taylor3_Auto )  ELBDM_Taylor3_Coeff = ELBDM_SetTaylor3Coeff( dt, dh, ELBDM_Eta1, ELBDM_Eta2 );
+      if ( ELBDM_Taylor3_Auto )  ELBDM_Taylor3_Coeff = ELBDM_SetTaylor3Coeff( dt, dh, ELBDM_Eta1 );
 
       CPU_ELBDMSolver( h_Flu_Array_In, h_Flu_Array_Out, h_Flux_Array, NPatchGroup, dt, dh, ELBDM_Eta1, ELBDM_Eta2, StoreFlux,
                        ELBDM_Taylor3_Coeff, XYZ, MinDens );

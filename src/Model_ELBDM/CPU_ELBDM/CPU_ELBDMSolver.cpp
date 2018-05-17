@@ -185,6 +185,7 @@ void CPU_AdvanceX( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ], real Flux_Array[][NFLUX_
    const real _dh      = (real)1.0/dh;
    const real dT1      = (real)0.5*dt/Eta1;
    const real dT2      = (real)0.5*dt/Eta2;
+   const real dT       = MIN( dT1, dT2);
    const real _Eta12_dh= (real)0.5*_dh/Eta1;
    const real _Eta22_dh= (real)0.5*_dh/Eta2;
    const real Coeff1   = dT*_dh*_dh;
