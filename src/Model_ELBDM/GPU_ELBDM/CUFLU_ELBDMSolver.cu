@@ -40,7 +40,7 @@
 static __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU_NXT ],
                                       real g_Fluid_Out[][FLU_NOUT][ PS2*PS2*PS2 ],
                                       real g_Flux     [][9][NFLUX_TOTAL][ PS2*PS2 ],
-                                      const real dt, const real _dh, const real Eta, const bool StoreFlux,
+                                      const real dt, const real _dh, const real Eta1, const real Eta2, const bool StoreFlux,
                                       const real Taylor3_Coeff, const uint j_gap, const uint k_gap,
                                       real s_In[][FLU_BLOCK_SIZE_Y][FLU_NXT], real s_Half[][FLU_BLOCK_SIZE_Y][FLU_NXT],
                                       real s_Flux[][PS2+1], const bool FinalOut, const int XYZ, const real MinDens );
@@ -80,7 +80,7 @@ static __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_
 __global__ void CUFLU_ELBDMSolver( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU_NXT ],
                                    real g_Fluid_Out[][FLU_NOUT][ PS2*PS2*PS2 ],
                                    real g_Flux     [][9][NFLUX_TOTAL][ PS2*PS2 ],
-                                   const real dt, const real _dh, const real Eta, const bool StoreFlux,
+                                   const real dt, const real _dh, const real Eta1, const real Eta2, const bool StoreFlux,
                                    const real Taylor3_Coeff, const bool XYZ, const real MinDens )
 {
 
@@ -95,21 +95,21 @@ __global__ void CUFLU_ELBDMSolver( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT
 
    if ( XYZ )
    {
-      CUFLU_Advance( g_Fluid_In, g_Fluid_Out, g_Flux, dt, _dh, Eta, StoreFlux, Taylor3_Coeff,
+      CUFLU_Advance( g_Fluid_In, g_Fluid_Out, g_Flux, dt, _dh, Eta1, Eta2, StoreFlux, Taylor3_Coeff,
                                   0,              0, s_In, s_Half, s_Flux, false, 0, MinDens );
-      CUFLU_Advance( g_Fluid_In, g_Fluid_Out, g_Flux, dt, _dh, Eta, StoreFlux, Taylor3_Coeff,
+      CUFLU_Advance( g_Fluid_In, g_Fluid_Out, g_Flux, dt, _dh, Eta1, Eta2, StoreFlux, Taylor3_Coeff,
                      FLU_GHOST_SIZE,              0, s_In, s_Half, s_Flux, false, 3, MinDens );
-      CUFLU_Advance( g_Fluid_In, g_Fluid_Out, g_Flux, dt, _dh, Eta, StoreFlux, Taylor3_Coeff,
+      CUFLU_Advance( g_Fluid_In, g_Fluid_Out, g_Flux, dt, _dh, Eta1, Eta2, StoreFlux, Taylor3_Coeff,
                      FLU_GHOST_SIZE, FLU_GHOST_SIZE, s_In, s_Half, s_Flux,  true, 6, MinDens );
    }
 
    else
    {
-      CUFLU_Advance( g_Fluid_In, g_Fluid_Out, g_Flux, dt, _dh, Eta, StoreFlux, Taylor3_Coeff,
+      CUFLU_Advance( g_Fluid_In, g_Fluid_Out, g_Flux, dt, _dh, Eta1, Eta2, StoreFlux, Taylor3_Coeff,
                                   0,              0, s_In, s_Half, s_Flux, false, 6, MinDens );
-      CUFLU_Advance( g_Fluid_In, g_Fluid_Out, g_Flux, dt, _dh, Eta, StoreFlux, Taylor3_Coeff,
+      CUFLU_Advance( g_Fluid_In, g_Fluid_Out, g_Flux, dt, _dh, Eta1, Eta2, StoreFlux, Taylor3_Coeff,
                                   0, FLU_GHOST_SIZE, s_In, s_Half, s_Flux, false, 3, MinDens );
-      CUFLU_Advance( g_Fluid_In, g_Fluid_Out, g_Flux, dt, _dh, Eta, StoreFlux, Taylor3_Coeff,
+      CUFLU_Advance( g_Fluid_In, g_Fluid_Out, g_Flux, dt, _dh, Eta1, Eta2, StoreFlux, Taylor3_Coeff,
                      FLU_GHOST_SIZE, FLU_GHOST_SIZE, s_In, s_Half, s_Flux,  true, 0, MinDens );
    }
 
@@ -150,15 +150,17 @@ __global__ void CUFLU_ELBDMSolver( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT
 __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU_NXT ],
                                real g_Fluid_Out[][FLU_NOUT][ PS2*PS2*PS2 ],
                                real g_Flux     [][9][NFLUX_TOTAL][ PS2*PS2 ],
-                               const real dt, const real _dh, const real Eta, const bool StoreFlux, const real Taylor3_Coeff,
+                               const real dt, const real _dh, const real Eta1, const real Eta2, const bool StoreFlux, const real Taylor3_Coeff,
                                const uint j_gap, const uint k_gap, real s_In[][FLU_BLOCK_SIZE_Y][FLU_NXT],
                                real s_Half[][FLU_BLOCK_SIZE_Y][FLU_NXT], real s_Flux[][PS2+1], const bool FinalOut,
                                const int XYZ, const real MinDens )
 {
 
-   const real _Eta         = (real)1.0/Eta;
-   const real dT           = (real)0.5*dt*_Eta;
-   const real _Eta2_dh     = (real)0.5*_dh*_Eta;
+   const real _Eta1         = (real)1.0/Eta1;
+   const real _Eta2         = (real)1.0/Eta2;
+   const real dT           = (real)0.5*dt*MIN(_Eta1,_ETA2);
+   const real _Eta12_dh     = (real)0.5*_dh*_Eta1;
+   const real _Eta22_dh     =(real)0.5*_dh*_Eta2;
    const real Coeff1       = dT*_dh*_dh;
 #  ifdef CONSERVE_MASS
    const real Coeff2       = Taylor3_Coeff*SQR(Coeff1);
@@ -182,7 +184,8 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
          uint NColumnOnce = MIN( NColumnTotal, FLU_BLOCK_SIZE_Y );
 
    double Amp_New;            // use double precision to reduce the round-off error in the mass conservation
-   real   Re_Old, Im_Old, Re_New, Im_New;
+   real   Re1_Old, Im1_Old, Re1_New, Im1_New;
+   real   Re2_Old, Im2_Old, Re2_New, Im2_New;
    uint   Idx1, Idx2, Idx3, delta_k;
 
 #  ifdef CONSERVE_MASS
@@ -192,7 +195,8 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
    const uint txp         = tx + 1;
 
    double Amp_Old, Amp_Corr;  // use double precision to reduce the round-off error in the mass conservation
-   real   R, I, dR, dI;
+   real   R1, I1, dR1, dI1;
+   real   R2, I2, dR2, dR2;
    uint   Idx;
    uint   si, sj;                                           // array indices used in the shared memory array
    uint   f, fp1;                                           // array indices used in the s_Flux array
@@ -240,17 +244,23 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
          }
 
 //       1.2 load the interior data into shared memory
-         Re_Old = g_Fluid_In[bx][0][Idx1];
-         Im_Old = g_Fluid_In[bx][1][Idx1];
+         Re1_Old = g_Fluid_In[bx][0][Idx1];
+         Im1_Old = g_Fluid_In[bx][1][Idx1];
+         Re2_Old = g_Fluid_In[bx][2][Idx1];
+         Im2_Old = g_Fluid_In[bx][3][Idx1];
 
-         s_In[0][ty][i] = Re_Old;
-         s_In[1][ty][i] = Im_Old;
+         s_In[0][ty][i] = Re1_Old;
+         s_In[1][ty][i] = Im1_Old;
+         s_In[2][ty][i] = Re2_Old;
+         s_In[3][ty][i] = Im2_Old;
 
 //       1.3 load the ghost-zone data into shared memory
          if ( LoadGhost )
          {
             s_In[0][ty][LoadGhost_i] = g_Fluid_In[bx][0][ (int)Idx1 + LoadGhost_dIdx1 ];
             s_In[1][ty][LoadGhost_i] = g_Fluid_In[bx][1][ (int)Idx1 + LoadGhost_dIdx1 ];
+            s_In[2][ty][LoadGhost_i] = g_Fluid_In[bx][2][ (int)Idx1 + LoadGhost_dIdx1 ];
+            s_In[3][ty][LoadGhost_i] = g_Fluid_In[bx][3][ (int)Idx1 + LoadGhost_dIdx1 ];
          }
       } // if ( tid < NColumnOnce*PS2 )
 
@@ -269,6 +279,8 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
 
          s_Half[0][sj][si] = s_In[0][sj][si] - (real)0.5*Coeff1*LAP1( s_In[1][sj], si ) - Coeff2*LAP2( s_In[0][sj], si );
          s_Half[1][sj][si] = s_In[1][sj][si] + (real)0.5*Coeff1*LAP1( s_In[0][sj], si ) - Coeff2*LAP2( s_In[1][sj], si );
+         s_Half[2][sj][si] = s_In[2][sj][si] - (real)0.5*Coeff1*LAP1( s_In[2][sj], si ) - Coeff2*LAP2( s_In[2][sj], si );
+         s_Half[3][sj][si] = s_In[3][sj][si] + (real)0.5*Coeff1*LAP1( s_In[3][sj], si ) - Coeff2*LAP2( s_In[3][sj], si );
 
          Idx += NThread;
       } // while ( Idx < NColumnOnce*NHalf )
@@ -289,17 +301,25 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
          fm1 = f - 1;
          fp2 = f + 2;
 
-         R  = real(1./28.)*( -s_Half[0][sj][fm1]+(real)15*s_Half[0][sj][f]+(real)15*s_Half[0][sj][fp1]-s_Half[0][sj][fp2] );
-         I  = real(1./28.)*( -s_Half[1][sj][fm1]+(real)15*s_Half[1][sj][f]+(real)15*s_Half[1][sj][fp1]-s_Half[1][sj][fp2] );
-         dR = real(1./12.)*( +s_Half[0][sj][fm1]-(real)15*s_Half[0][sj][f]+(real)15*s_Half[0][sj][fp1]-s_Half[0][sj][fp2] );
-         dI = real(1./12.)*( +s_Half[1][sj][fm1]-(real)15*s_Half[1][sj][f]+(real)15*s_Half[1][sj][fp1]-s_Half[1][sj][fp2] );
+         R1  = real(1./28.)*( -s_Half[0][sj][fm1]+(real)15*s_Half[0][sj][f]+(real)15*s_Half[0][sj][fp1]-s_Half[0][sj][fp2] );
+         I1  = real(1./28.)*( -s_Half[1][sj][fm1]+(real)15*s_Half[1][sj][f]+(real)15*s_Half[1][sj][fp1]-s_Half[1][sj][fp2] );
+         dR1 = real(1./12.)*( +s_Half[0][sj][fm1]-(real)15*s_Half[0][sj][f]+(real)15*s_Half[0][sj][fp1]-s_Half[0][sj][fp2] );
+         dI1 = real(1./12.)*( +s_Half[1][sj][fm1]-(real)15*s_Half[1][sj][f]+(real)15*s_Half[1][sj][fp1]-s_Half[1][sj][fp2] );
+         R2  = real(1./28.)*( -s_Half[2][sj][fm1]+(real)15*s_Half[2][sj][f]+(real)15*s_Half[2][sj][fp1]-s_Half[2][sj][fp2] );
+         I2  = real(1./28.)*( -s_Half[3][sj][fm1]+(real)15*s_Half[3][sj][f]+(real)15*s_Half[3][sj][fp1]-s_Half[3][sj][fp2] );
+         dR2 = real(1./12.)*( +s_Half[2][sj][fm1]-(real)15*s_Half[2][sj][f]+(real)15*s_Half[2][sj][fp1]-s_Half[2][sj][fp2] );
+         dI2 = real(1./12.)*( +s_Half[3][sj][fm1]-(real)15*s_Half[3][sj][f]+(real)15*s_Half[3][sj][fp1]-s_Half[3][sj][fp2] );
 
 #        else
 
-         R  = real(0.5)*( + s_Half[0][sj][f] + s_Half[0][sj][fp1] );
-         I  = real(0.5)*( + s_Half[1][sj][f] + s_Half[1][sj][fp1] );
-         dR =           ( - s_Half[0][sj][f] + s_Half[0][sj][fp1] );
-         dI =           ( - s_Half[1][sj][f] + s_Half[1][sj][fp1] );
+         R1  = real(0.5)*( + s_Half[0][sj][f] + s_Half[0][sj][fp1] );
+         I1  = real(0.5)*( + s_Half[1][sj][f] + s_Half[1][sj][fp1] );
+         dR1 =           ( - s_Half[0][sj][f] + s_Half[0][sj][fp1] );
+         dI1 =           ( - s_Half[1][sj][f] + s_Half[1][sj][fp1] );
+         R2  = real(0.5)*( + s_Half[2][sj][f] + s_Half[2][sj][fp1] );
+         I2  = real(0.5)*( + s_Half[3][sj][f] + s_Half[3][sj][fp1] );
+         dR2 =           ( - s_Half[2][sj][f] + s_Half[2][sj][fp1] );
+         dI2 =           ( - s_Half[3][sj][f] + s_Half[3][sj][fp1] );
 #        endif
 
          s_Flux[sj][si] = (real)2.0*( R*dI - I*dR );
@@ -313,11 +333,13 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
 //    4a. full-step solution (equivalent to the 3rd-order Taylor expansion)
       if ( tid < NColumnOnce*PS2 )
       {
-         Re_New   = Re_Old - Coeff1*LAP1( s_Half[1][ty], i );
-         Im_New   = Im_Old + Coeff1*LAP1( s_Half[0][ty], i );
+         Re1_New   = Re1_Old - Coeff1*LAP1( s_Half[1][ty], i );
+         Im1_New   = Im1_Old + Coeff1*LAP1( s_Half[0][ty], i );
+         Re2_New   = Re2_Old - Coeff1*LAP1( s_Half[3][ty], i );
+         Im2_New   = Im2_Old + Coeff1*LAP1( s_Half[4][ty], i );
 
-         Amp_Old  = SQR( Re_Old ) + SQR( Im_Old );
-         Amp_New  = SQR( Re_New ) + SQR( Im_New );
+         Amp_Old  = SQR( Re1_Old ) + SQR( Im1_Old ) +  SQR( Re2_Old ) + SQR( Im2_Old );
+         Amp_New  = SQR( Re1_New ) + SQR( Im1_New ) +  SQR( Re2_New ) + SQR( Im2_New );
          Amp_Corr = Amp_Old - dT_dh2*( s_Flux[ty][txp] - s_Flux[ty][tx] );
 
 //       be careful about the negative density and the vacuum (where we might have Amp_New == 0.0)
@@ -328,8 +350,10 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
             Re_New *= SQRT( Amp_Corr / Amp_New );
             Im_New *= SQRT( Amp_Corr / Amp_New );
             */
-            Re_New *= sqrt( Amp_Corr / Amp_New );  // use double precision to improve the mass conservation further
-            Im_New *= sqrt( Amp_Corr / Amp_New );
+            Re1_New *= sqrt( Amp_Corr / Amp_New );  // use double precision to improve the mass conservation further
+            Im1_New *= sqrt( Amp_Corr / Amp_New );
+            Re2_New *= sqrt( Amp_Corr / Amp_New );
+            Im2_New *= sqrt( Amp_Corr / Amp_New );
             Amp_New = Amp_Corr;
          }
       } // if if ( tid < NColumnOnce*PS2 )
@@ -341,9 +365,11 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
 //    4b. full-step solution if CONSERVE_MASS is not defined (equivalent to the 3rd-order Taylor expansion)
       if ( tid < NColumnOnce*PS2 )
       {
-         Re_New  = Re_Old - Coeff1*LAP1( s_In[1][ty], i ) - Coeff2*LAP2( s_In[0][ty], i ) + Coeff3*LAP3( s_In[1][ty], i );
-         Im_New  = Im_Old + Coeff1*LAP1( s_In[0][ty], i ) - Coeff2*LAP2( s_In[1][ty], i ) - Coeff3*LAP3( s_In[0][ty], i );
-         Amp_New = SQR( Re_New ) + SQR( Im_New );
+         Re1_New  = Re1_Old - Coeff1*LAP1( s_In[1][ty], i ) - Coeff2*LAP2( s_In[0][ty], i ) + Coeff3*LAP3( s_In[1][ty], i );
+         Im1_New  = Im1_Old + Coeff1*LAP1( s_In[0][ty], i ) - Coeff2*LAP2( s_In[1][ty], i ) - Coeff3*LAP3( s_In[0][ty], i );
+         Re2_New  = Re2_Old - Coeff1*LAP1( s_In[3][ty], i ) - Coeff2*LAP2( s_In[2][ty], i ) + Coeff3*LAP3( s_In[3][ty], i );
+         Im2_New  = Im2_Old + Coeff1*LAP1( s_In[2][ty], i ) - Coeff2*LAP2( s_In[3][ty], i ) - Coeff3*LAP3( s_In[2][ty], i );
+         Amp_New = SQR( Re_New ) + SQR( Im_New ) + SQR( Re2_New ) + SQR( Im_New );
       }
 
 
@@ -362,8 +388,10 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
             {
                const real Rescale = SQRT( MinDens / (real)Amp_New );
 
-               Re_New *= Rescale;
-               Im_New *= Rescale;
+               Re1_New *= Rescale;
+               Im1_New *= Rescale;
+               Re2_New *= Rescale;
+               Im2_New *= Rescale;
                Amp_New = MinDens;
             }
 
@@ -375,14 +403,18 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
             }
 
             g_Fluid_Out[bx][0][Idx2] = Amp_New;
-            g_Fluid_Out[bx][1][Idx2] = Re_New;
-            g_Fluid_Out[bx][2][Idx2] = Im_New;
+            g_Fluid_Out[bx][1][Idx2] = Re1_New;
+            g_Fluid_Out[bx][2][Idx2] = Im1_New;
+            g_Fluid_Out[bx][3][Idx2] = Re2_New;
+            g_Fluid_Out[bx][4][Idx2] = Im2_New;
          }
 
          else
          {
-            g_Fluid_In[bx][0][Idx1] = Re_New;
-            g_Fluid_In[bx][1][Idx1] = Im_New;
+            g_Fluid_In[bx][0][Idx1] = Re1_New;
+            g_Fluid_In[bx][1][Idx1] = Im1_New;
+            g_Fluid_In[bx][2][Idx1] = Re2_New;
+            g_Fluid_In[bx][3][Idx1] = Im2_New;
          }
 
 

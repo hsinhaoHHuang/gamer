@@ -9,6 +9,14 @@ static bool   var_bool;
 static double var_double;
 static int    var_int;
 static char   var_str[MAX_STRING];
+
+static int    Soliton_N;
+static int    Soliton_RSeed;
+static int    Soliton_FixedScale;
+static int    Soliton_DensProf_NBin;
+static double *Soliton_DensProf = NULL;
+static double *Soliton_Scale    = NULL;
+static double (*Soliton_Center)[3] = NULL;
 // =======================================================================================
 
 
@@ -31,37 +39,34 @@ void Validate()
 
 
 // examples
-/*
+
 // errors
-#  if ( MODEL != HYDRO )
-   Aux_Error( ERROR_INFO, "MODEL != HYDRO !!\n" );
+#  if ( MODEL != ELBDM )
+   Aux_Error( ERROR_INFO, "MODEL != ELBDM !!\n" );
 #  endif
 
 #  ifndef GRAVITY
    Aux_Error( ERROR_INFO, "GRAVITY must be enabled !!\n" );
 #  endif
 
-#  ifdef PARTICLE
-   Aux_Error( ERROR_INFO, "PARTICLE must be disabled !!\n" );
+#  ifdef COMOVING
+   Aux_Error( ERROR_INFO, "COMOVING must be disabled !!\n" );
 #  endif
 
 #  ifdef GRAVITY
-   if ( OPT__BC_FLU[0] == BC_FLU_PERIODIC  ||  OPT__BC_POT == BC_POT_PERIODIC )
-      Aux_Error( ERROR_INFO, "do not use periodic BC for this test !!\n" );
+   if ( OPT__BC_POT != BC_POT_ISOLATED )
+      Aux_Error( ERROR_INFO, "must adopt isolated BC for gravity --> reset OPT__BC_POT !!\n" );
 #  endif
 
 
 // warnings
    if ( MPI_Rank == 0 )
    {
-#     ifndef DUAL_ENERGY
-         Aux_Message( stderr, "WARNING : it's recommended to enable DUAL_ENERGY for this test !!\n" );
-#     endif
+      if(!OPT__INIT_RESTRICT)
+      Aux_Message( stderr, "WARNING : it's recommended to enable OPT__INIT_RESTRICT !!\n" );
 
-      if ( FLAG_BUFFER_SIZE < 5 )
-         Aux_Message( stderr, "WARNING : it's recommended to set FLAG_BUFFER_SIZE >= 5 for this test !!\n" );
    } // if ( MPI_Rank == 0 )
-*/
+
 
 
    if ( MPI_Rank == 0 )    Aux_Message( stdout, "   Validating test problem %d ... done\n", TESTPROB_ID );
@@ -71,7 +76,7 @@ void Validate()
 
 
 // replace HYDRO by the target model (e.g., MHD/ELBDM) and also check other compilation flags if necessary (e.g., GRAVITY/PARTICLE)
-#if ( MODEL == HYDRO )
+#if ( MODEL == ELBDM && defined GRAVITY )
 //-------------------------------------------------------------------------------------------------------
 // Function    :  SetParameter
 // Description :  Load and set the problem-specific runtime parameters
@@ -103,10 +108,11 @@ void SetParameter()
 // ********************************************************************************************************************************
 // ReadPara->Add( "KEY_IN_THE_FILE",   &VARIABLE,              DEFAULT,       MIN,              MAX               );
 // ********************************************************************************************************************************
-   ReadPara->Add( "var_bool",          &var_bool,              true,          Useless_bool,     Useless_bool      );
-   ReadPara->Add( "var_double",        &var_double,            1.0,           Eps_double,       NoMax_double      );
-   ReadPara->Add( "var_int",           &var_int,               2,             0,                5                 );
-   ReadPara->Add( "var_str",            var_str,               Useless_str,   Useless_str,      Useless_str       );
+   ReadPara->Add( "Soliton_N",         &Soliton_N,             -1,            1,                NoMax_int         );
+   ReadPara->Add( "Soliton_RSeed",     &Soliton_RSeed,         0,             NoMin_int,        NoMax_int         );
+   ReadPara->Add( "Soliton_FixedScale",&Soliton_FixedScale,    1.0,           NoMin_double,     NoMax_double      );
+   ReadPara->Add( "Soliton_EmptyRegion",&Soliton_EmptyRegion,  0.0,           NoMin_double,     NoMax_double      );
+  // ReadPara->Add( "var_str",            var_str,               Useless_str,   Useless_str,      Useless_str       );
 
    ReadPara->Read( FileName );
 
@@ -115,15 +121,51 @@ void SetParameter()
 // (1-2) set the default values
 
 // (1-3) check the runtime parameters
-
+   if (Soliton_RSeed >= 0 && Soliton_EmptyRegion <0.0 )
+      Aux_Error(ERROR_INFO, "Soliton_EmptyRegion(%14.7e)<0.0 !!\n",Soliton_EmptyRegion);
 
 // (2) set the problem-specific derived parameters
+   Soliton_Scale  = new double[Soliton_N];
+   Soliton_Center = new double[Soliton_N][3];
+
+   if(Soliton_FixedScale > 0.0)
+   {
+     for(int t=0; t<Soliton_N;t++) Soliton_Scale[t] = Soliton_FixedScale;
+   }
+   else
+   {
+      Aux_Error(ERROR_INFO, "for Soliton_FixedScale <= 0.0, please hard code the scale factor !!\n" );
+   }
+   
+
+   if(Soliton_RSeed >= 0)
+   {
+      const double Coord_Min[3]={Soliton_EmptyRegion, Soliton_Empty_Region, Soliton_EmptyRegion };
+      const double Coord_Max[3]={amr->BoxSize[0]-Soliton_EmptyRegion, amr->BoxSize[1]-Soliton_EmptyRegion, amr->Boxsize[2]-Soliton_EmptyRegion };
+      srand(Soliton_RSeed);
+
+      for(int t=0;t<Soliton_N;t++)
+      for(int d=0;d<3;d++)
+         Soliton_Center[t][d] = ( (double)rand()/RAND_MAX)*(Coord_Max[d]-Coord_Min[d]) + Coord_Min[d];
+
+   }
+   else
+   {
+      if(Soliton_N == 1)
+      {
+        for(int d=0;d<3;d++) Soliton_Center[0][d] = 0.5*amr->BoxSize[d];
+      }
+      else
+      {
+         Aux_Error(ERROR_INFO,"please hard code the center of each soliton !!\n");
+               
+      }
 
 
 // (3) reset other general-purpose parameters
 //     --> a helper macro PRINT_WARNING is defined in TestProb.h
    const long   End_Step_Default = __INT_MAX__;
-   const double End_T_Default    = __FLT_MAX__;
+   const double End_T_Default    = 1.0e3;
 
    if ( END_STEP < 0 ) {
       END_STEP = End_Step_Default;
@@ -141,10 +183,9 @@ void SetParameter()
    {
       Aux_Message( stdout, "=============================================================================\n" );
       Aux_Message( stdout, "  test problem ID           = %d\n",     TESTPROB_ID );
-      Aux_Message( stdout, "  var_bool                  = %d\n",     var_bool );
-      Aux_Message( stdout, "  var_double                = %13.7e\n", var_double );
-      Aux_Message( stdout, "  var_int                   = %d\n",     var_int );
-      Aux_Message( stdout, "  var_str                   = %s\n",     var_str );
+      Aux_Message( stdout, "  total number of solitons  = %d\n",     Soliton_N );
+      Aux_Message( stdout, "  random seed for setting the center coord. = %d\n",   Soliton_RSeed   );
+      Aux_Message( stdout, "  size of the soliton-free zone     = %13.7e\n", Soliton_EmptyRegion   );
       Aux_Message( stdout, "=============================================================================\n" );
    }
 
@@ -178,22 +219,47 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
                 const int lv, double AuxArray[] )
 {
 
-   /*
-// HYDRO example
-   fluid[DENS] = 1.0;
-   fluid[MOMX] = 0.0;
-   fluid[MOMY] = 0.0;
-   fluid[MOMZ] = 0.0;
-   fluid[ENGY] = 1.0 + 0.5*( SQR(fluid[MOMX]) + SQR(fluid[MOMY]) + SQR(fluid[MOMZ]) ) / fluid[DENS];
-   */
+   double r;
+   double Dens;
+   fluid[DENS] = 0.0;
+   for(int t=0;t<Soliton_N;t++){
+     r= sqrt( SQR(x-Soliton_Center[t][0]) + SQR(y-Soliton_Center[t][1]) + SQR(z-Soliton_Center[t][2]) );
+     r*= Soliton_Scale[t];
+     Dens = exp(-r*r/(2*sigma*sigma))/sqrt(2*M_PI*sigma);
+
+    if ( Dens == NULL_REAL )
+    {
+       Dens = 0.0;
+    } 
+    fluid[DENS] += Dens*SQR( Soliton_Scale[t] )*SQR( Soliton_Scale[t] ); 
+   }
+
+   fluid[REAL1] = sqrt( fluid[DENS]/2.0 );
+   fluid[IMAG1] = 0.0;
+   fluid[REAL2] = sqrt( fluid[DENS]/2.0 );
+   fluid[IMAG2] = 0.0;
 
 } // FUNCTION : SetGridIC
-#endif // #if ( MODEL == HYDRO )
 
 
+void End_Soliton()
+{
+   delete []Soliton_Scale;
+   delete []Soliton_Center;
+}
 
+void BC( real fluid[], const double x, const double y, const double z, const double Time, const int lv, double AuxArray[] )
+{
+   fluid[REAL1] = (real)0.0;
+   fluid[IMAG1] = (real)0.0;
+   fluid[REAL2] = (real)0.0;
+   fluid[IMAG2] = (real)0.0;
+}
+
+
+#endif // #if ( MODEL == ELBDM && defined GRAVITY )
 //-------------------------------------------------------------------------------------------------------
-// Function    :  Init_TestProb_Template
+// Function    :  Init_TestProb_ELBDM_TwoMass
 // Description :  Test problem initializer
 //
 // Note        :  None
@@ -213,7 +279,7 @@ void Init_TestProb_ELBDM_TwoMass()
 
 
 // replace HYDRO by the target model (e.g., MHD/ELBDM) and also check other compilation flags if necessary (e.g., GRAVITY/PARTICLE)
-#  if ( MODEL == HYDRO )
+#  if ( MODEL == ELBDM && defined GRAVITY )
 // set the problem-specific runtime parameters
    SetParameter();
 
@@ -227,11 +293,11 @@ void Init_TestProb_ELBDM_TwoMass()
    Init_Function_User_Ptr   = SetGridIC;
    Flag_User_Ptr            = NULL;       // option: OPT__FLAG_USER;        example: Refine/Flag_User.cpp
    Mis_GetTimeStep_User_Ptr = NULL;       // option: OPT__DT_USER;          example: Miscellaneous/Mis_GetTimeStep_User.cpp
-   BC_User_Ptr              = NULL;       // option: OPT__BC_FLU_*=4;       example: TestProblem/ELBDM/ExtPot/Init_TestProb_ELBDM_ExtPot.cpp --> BC()
+   BC_User_Ptr              = BC;       // option: OPT__BC_FLU_*=4;       example: TestProblem/ELBDM/ExtPot/Init_TestProb_ELBDM_ExtPot.cpp --> BC()
    Flu_ResetByUser_Func_Ptr = NULL;       // option: OPT__RESET_FLUID;      example: Fluid/Flu_ResetByUser.cpp
    Output_User_Ptr          = NULL;       // option: OPT__OUTPUT_USER;      example: TestProblem/Hydro/AcousticWave/Init_TestProb_Hydro_AcousticWave.cpp --> OutputError()
    Aux_Record_User_Ptr      = NULL;       // option: OPT__RECORD_USER;      example: Auxiliary/Aux_Record_User.cpp
-   End_User_Ptr             = NULL;       // option: none;                  example: TestProblem/Hydro/ClusterMerger_vs_Flash/Init_TestProb_ClusterMerger_vs_Flash.cpp --> End_ClusterMerger()
+   End_User_Ptr             = End_Soliton;       // option: none;                  example: TestProblem/Hydro/ClusterMerger_vs_Flash/Init_TestProb_ClusterMerger_vs_Flash.cpp --> End_ClusterMerger()
 #  ifdef GRAVITY
    Init_ExternalAcc_Ptr     = NULL;       // option: OPT__GRAVITY_TYPE=2/3; example: SelfGravity/Init_ExternalAcc.cpp
    Init_ExternalPot_Ptr     = NULL;       // option: OPT__EXTERNAL_POT;     example: TestProblem/ELBDM/ExtPot/Init_TestProb_ELBDM_ExtPot.cpp --> Init_ExtPot()
