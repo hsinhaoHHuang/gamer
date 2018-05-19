@@ -23,8 +23,8 @@
 // Return      :  "true"  if the flag criterion is     fulfilled
 //                "false" if the flag criterion is NOT fulfilled
 //-------------------------------------------------------------------------------------------------------
-bool ELBDM_Flag_EngyDensity( const int i, const int j, const int k, const real Real_Array[], 
-                             const real Imag_Array[], const double Angle_2pi, const double Eps )
+bool ELBDM_Flag_EngyDensity( const int i, const int j, const int k, const real Real1_Array[], 
+                             const real Imag1_Array[], const real Real2_Array[], const real Imag2_Array[], const double Angle_2pi, const double Eps )
 {
 
 // check
@@ -39,12 +39,14 @@ bool ELBDM_Flag_EngyDensity( const int i, const int j, const int k, const real R
    const int    ijk[3]    = { i, j, k };
    const int    Idx       = k*PS1*PS1 + j*PS1 + i;
    const int    dIdx[3]   = { 1, PS1, PS1*PS1 };
-   const real   Real      = Real_Array[Idx];
-   const real   Imag      = Imag_Array[Idx];
-   const real   Deno      = Real*Real + Imag*Imag + Eps;
+   const real   Real1     = Real1_Array[Idx];
+   const real   Imag1     = Imag1_Array[Idx];
+   const real   Real2     = Real2_Array[Idx];
+   const real   Imag2     = Imag2_Array[Idx];
+   const real   Deno      = Real1*Real1 + Imag1*Imag1 + Real2*Real2 + Imag2*Imag2 + Eps;
 
    int  Idx_p, Idx_m;
-   real _dh, Grad_Real[3], Grad_Imag[3], Nume, EngyDensity;
+   real _dh, Grad_Real1[3], Grad_Imag1[3], Grad_Real2[3], Grad_Imag2[3], Nume, EngyDensity;
    bool Flag;
 
 
@@ -58,15 +60,19 @@ bool ELBDM_Flag_EngyDensity( const int i, const int j, const int k, const real R
          default    : Idx_m = Idx-dIdx[d];   Idx_p = Idx+dIdx[d];    _dh = (real)0.5;  break;
       } 
 
-      Grad_Real[d] = _dh*( Real_Array[Idx_p] - Real_Array[Idx_m] );
-      Grad_Imag[d] = _dh*( Imag_Array[Idx_p] - Imag_Array[Idx_m] );
+      Grad_Real1[d] = _dh*( Real1_Array[Idx_p] - Real1_Array[Idx_m] );
+      Grad_Imag1[d] = _dh*( Imag1_Array[Idx_p] - Imag1_Array[Idx_m] );
+      Grad_Real2[d] = _dh*( Real2_Array[Idx_p] - Real2_Array[Idx_m] );
+      Grad_Imag2[d] = _dh*( Imag2_Array[Idx_p] - Imag2_Array[Idx_m] );
 
    } // for (int d=0; d<3; d++)
 
 
 // evaluate energy density and check the flag criterion
-   Nume        = Grad_Real[0]*Grad_Real[0] + Grad_Real[1]*Grad_Real[1] + Grad_Real[2]*Grad_Real[2] +
-                 Grad_Imag[0]*Grad_Imag[0] + Grad_Imag[1]*Grad_Imag[1] + Grad_Imag[2]*Grad_Imag[2];
+   Nume        = Grad_Real1[0]*Grad_Real1[0] + Grad_Real1[1]*Grad_Real1[1] + Grad_Real1[2]*Grad_Real1[2] +
+                 Grad_Imag1[0]*Grad_Imag1[0] + Grad_Imag1[1]*Grad_Imag1[1] + Grad_Imag1[2]*Grad_Imag1[2] +
+                 Grad_Real2[0]*Grad_Real2[0] + Grad_Real2[1]*Grad_Real2[1] + Grad_Real2[2]*Grad_Real2[2] +
+                 Grad_Imag2[0]*Grad_Imag2[0] + Grad_Imag2[1]*Grad_Imag2[1] + Grad_Imag2[2]*Grad_Imag2[2];
    EngyDensity = Nume/Deno;
    Flag        = EngyDensity > Threshold;
 

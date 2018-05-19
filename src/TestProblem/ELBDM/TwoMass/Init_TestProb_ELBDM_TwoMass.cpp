@@ -5,14 +5,11 @@
 
 // problem-specific global variables
 // =======================================================================================
-static bool   var_bool;
-static double var_double;
-static int    var_int;
-static char   var_str[MAX_STRING];
 
 static int    Soliton_N;
 static int    Soliton_RSeed;
-static int    Soliton_FixedScale;
+static double Soliton_FixedScale;
+static double Soliton_EmptyRegion;
 static int    Soliton_DensProf_NBin;
 static double *Soliton_DensProf = NULL;
 static double *Soliton_Scale    = NULL;
@@ -140,8 +137,8 @@ void SetParameter()
 
    if(Soliton_RSeed >= 0)
    {
-      const double Coord_Min[3]={Soliton_EmptyRegion, Soliton_Empty_Region, Soliton_EmptyRegion };
-      const double Coord_Max[3]={amr->BoxSize[0]-Soliton_EmptyRegion, amr->BoxSize[1]-Soliton_EmptyRegion, amr->Boxsize[2]-Soliton_EmptyRegion };
+      const double Coord_Min[3]={Soliton_EmptyRegion, Soliton_EmptyRegion, Soliton_EmptyRegion };
+      const double Coord_Max[3]={amr->BoxSize[0]-Soliton_EmptyRegion, amr->BoxSize[1]-Soliton_EmptyRegion, amr->BoxSize[2]-Soliton_EmptyRegion };
       srand(Soliton_RSeed);
 
       for(int t=0;t<Soliton_N;t++)
@@ -159,8 +156,8 @@ void SetParameter()
       {
          Aux_Error(ERROR_INFO,"please hard code the center of each soliton !!\n");
                
-      }
-
+      } 
+   }
 
 // (3) reset other general-purpose parameters
 //     --> a helper macro PRINT_WARNING is defined in TestProb.h
@@ -217,8 +214,7 @@ void SetParameter()
 //-------------------------------------------------------------------------------------------------------
 void SetGridIC( real fluid[], const double x, const double y, const double z, const double Time,
                 const int lv, double AuxArray[] )
-{
-
+{/*
    double r;
    double Dens;
    fluid[DENS] = 0.0;
@@ -238,17 +234,17 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
    fluid[IMAG1] = 0.0;
    fluid[REAL2] = sqrt( fluid[DENS]/2.0 );
    fluid[IMAG2] = 0.0;
-
+*/
 } // FUNCTION : SetGridIC
 
 
-void End_Soliton()
+void End_S()
 {
    delete []Soliton_Scale;
    delete []Soliton_Center;
 }
 
-void BC( real fluid[], const double x, const double y, const double z, const double Time, const int lv, double AuxArray[] )
+void BCo( real fluid[], const double x, const double y, const double z, const double Time, const int lv, double AuxArray[] )
 {
    fluid[REAL1] = (real)0.0;
    fluid[IMAG1] = (real)0.0;
@@ -293,11 +289,11 @@ void Init_TestProb_ELBDM_TwoMass()
    Init_Function_User_Ptr   = SetGridIC;
    Flag_User_Ptr            = NULL;       // option: OPT__FLAG_USER;        example: Refine/Flag_User.cpp
    Mis_GetTimeStep_User_Ptr = NULL;       // option: OPT__DT_USER;          example: Miscellaneous/Mis_GetTimeStep_User.cpp
-   BC_User_Ptr              = BC;       // option: OPT__BC_FLU_*=4;       example: TestProblem/ELBDM/ExtPot/Init_TestProb_ELBDM_ExtPot.cpp --> BC()
+   BC_User_Ptr              = BCo;       // option: OPT__BC_FLU_*=4;       example: TestProblem/ELBDM/ExtPot/Init_TestProb_ELBDM_ExtPot.cpp --> BC()
    Flu_ResetByUser_Func_Ptr = NULL;       // option: OPT__RESET_FLUID;      example: Fluid/Flu_ResetByUser.cpp
    Output_User_Ptr          = NULL;       // option: OPT__OUTPUT_USER;      example: TestProblem/Hydro/AcousticWave/Init_TestProb_Hydro_AcousticWave.cpp --> OutputError()
    Aux_Record_User_Ptr      = NULL;       // option: OPT__RECORD_USER;      example: Auxiliary/Aux_Record_User.cpp
-   End_User_Ptr             = End_Soliton;       // option: none;                  example: TestProblem/Hydro/ClusterMerger_vs_Flash/Init_TestProb_ClusterMerger_vs_Flash.cpp --> End_ClusterMerger()
+   End_User_Ptr             = End_S;       // option: none;                  example: TestProblem/Hydro/ClusterMerger_vs_Flash/Init_TestProb_ClusterMerger_vs_Flash.cpp --> End_ClusterMerger()
 #  ifdef GRAVITY
    Init_ExternalAcc_Ptr     = NULL;       // option: OPT__GRAVITY_TYPE=2/3; example: SelfGravity/Init_ExternalAcc.cpp
    Init_ExternalPot_Ptr     = NULL;       // option: OPT__EXTERNAL_POT;     example: TestProblem/ELBDM/ExtPot/Init_TestProb_ELBDM_ExtPot.cpp --> Init_ExtPot()
