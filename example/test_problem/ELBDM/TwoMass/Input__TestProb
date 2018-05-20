@@ -1,0 +1,9 @@
+# problem-specific runtime parameters
+Height1                     1.0      # Height of the first wavepacket
+Width1                      1.0      # Width of the first wavepacket
+Height2                     1.0      # Height of the second wavepacket
+Width2                      1.0      # Width of the second wavepacket
+Center_RSeed                0        # random seed for setting the centra (<0 -> hard-coding if Soliton_N>1) [0]
+Soliton_EmptyRegion         0.0      # center-free region [0.0]
+                                     # -> center only reside in [Soliton_EmptyRegion : BOX_SIZE-Soliton_EmptyRegion]
+                                     # -> useful only when Soliton_RSeed >= 0
