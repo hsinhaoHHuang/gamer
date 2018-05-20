@@ -67,7 +67,7 @@ int CUPOT_ELBDMGravitySolver_SetConstMem( double ExtPot_AuxArray_h[] )
 __global__ void CUPOT_ELBDMGravitySolver(       real g_Flu_Array[][GRA_NIN][ PS1*PS1*PS1 ],
                                           const real g_Pot_Array[][ GRA_NXT*GRA_NXT*GRA_NXT ],
                                           const double g_Corner_Array[][3],
-                                          const real EtaDt, const real dh, const real Lambda, const bool ExtPot,
+                                          const real Eta1Dt, const real Eta2Dt, const real dh, const real Lambda, const bool ExtPot,
                                           const double Time )
 {
 
@@ -80,7 +80,7 @@ __global__ void CUPOT_ELBDMGravitySolver(       real g_Flu_Array[][GRA_NIN][ PS1
                        + __umul24( ty+GRA_GHOST_SIZE, GRA_NXT )
                        +           tx+GRA_GHOST_SIZE;
 
-   real   Re, Im, Phase, Cos_Phase, Sin_Phase, Pot;
+   real   Re1, Im1, Re2, Im2, Phase1, Phase2, Cos_Phase1, Sin_Phase1, Cos_Phase2, Sin_Phase2, Pot;
    double x, y, z;
 
 
@@ -92,24 +92,31 @@ __global__ void CUPOT_ELBDMGravitySolver(       real g_Flu_Array[][GRA_NIN][ PS1
 
    for (uint k=tz; k<PS1; k+=GRA_BLOCK_SIZE_Z)
    {
-      Re        = g_Flu_Array[bx][0][Idx_Flu];
-      Im        = g_Flu_Array[bx][1][Idx_Flu];
+      Re1        = g_Flu_Array[bx][0][Idx_Flu];
+      Im1        = g_Flu_Array[bx][1][Idx_Flu];
+      Re2        = g_Flu_Array[bx][2][Idx_Flu];
+      Im2        = g_Flu_Array[bx][3][Idx_Flu];
       Pot       = g_Pot_Array[bx]   [Idx_Pot];
 
 #     ifdef QUARTIC_SELF_INTERACTION
-      Pot      += Lambda*( SQR(Re) + SQR(Im) );
+      Pot      += Lambda*( SQR(Re1) + SQR(Im1) + SQR(Re2) + SQR(Im2) );
 #     endif
 
       if ( ExtPot ) {
       z         = g_Corner_Array[bx][2] + (double)(k*dh);
       Pot      += CUPOT_ExternalPot( x, y, z, Time, ExtPot_AuxArray_d ); }
 
-      Phase     = EtaDt * Pot;
-      Cos_Phase = COS( Phase );
-      Sin_Phase = SIN( Phase );
+      Phase1     = Eta1Dt * Pot;
+      Phase2     = Eta2Dt * Pot;
+      Cos_Phase1 = COS( Phase1 );
+      Sin_Phase1 = SIN( Phase1 );
+      Cos_Phase2 = COS( Phase2 );
+      Sin_Phase2 = SIN( Phase2 );
 
-      g_Flu_Array[bx][0][Idx_Flu] = Cos_Phase*Re + Sin_Phase*Im;
-      g_Flu_Array[bx][1][Idx_Flu] = Cos_Phase*Im - Sin_Phase*Re;
+      g_Flu_Array[bx][0][Idx_Flu] = Cos_Phase1*Re1 + Sin_Phase1*Im1;
+      g_Flu_Array[bx][1][Idx_Flu] = Cos_Phase1*Im1 - Sin_Phase1*Re1;
+      g_Flu_Array[bx][2][Idx_Flu] = Cos_Phase2*Re2 + Sin_Phase2*Im2;
+      g_Flu_Array[bx][3][Idx_Flu] = Cos_Phase2*Im2 - Sin_Phase2*Re2;
 
       Idx_Flu += GRA_BLOCK_SIZE_Z*PS1*PS1;
       Idx_Pot += GRA_BLOCK_SIZE_Z*GRA_NXT*GRA_NXT;

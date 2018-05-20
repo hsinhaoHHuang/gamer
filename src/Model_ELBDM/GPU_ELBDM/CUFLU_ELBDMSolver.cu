@@ -322,7 +322,7 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
          dI2 =           ( - s_Half[3][sj][f] + s_Half[3][sj][fp1] );
 #        endif
 
-         s_Flux[sj][si] = (real)2.0*( R*dI - I*dR );
+         s_Flux[sj][si] = (real)2.0*( R1*dI1 - I1*dR1 + R2*dI2 - I2*dR2 );
 
          Idx += NThread;
       } // while ( Idx < NColumnOnce*(PS2+1) )

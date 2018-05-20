@@ -138,13 +138,15 @@ void CPU_ELBDMSolver( real Flu_Array_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU_NXT ],
 //    evaluate the new density (and apply the minimum density check)
       for (int t=0; t<PS2*PS2*PS2; t++)
       {
-         Amp = SQR( Flu_Array_Out[P][1][t] ) + SQR( Flu_Array_Out[P][2][t] );
+         Amp = SQR( Flu_Array_Out[P][1][t] ) + SQR( Flu_Array_Out[P][2][t] ) + SQR( Flu_Array_Out[P][3][t] ) + SQR( Flu_Array_Out[P][4][t] );
 
          if ( Amp < MinDens )
          {
             Rescale                 = SQRT( MinDens / Amp );
             Flu_Array_Out[P][1][t] *= Rescale;
             Flu_Array_Out[P][2][t] *= Rescale;
+            Flu_Array_Out[P][3][t] *= Rescale;
+            Flu_Array_Out[P][4][t] *= Rescale;
             Amp                     = MinDens;
          }
 
@@ -211,8 +213,8 @@ void CPU_AdvanceX( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ], real Flux_Array[][NFLUX_
 
 #  ifdef CONSERVE_MASS
    const real dT_dh2 = dT*_dh*_dh;
-   real   R1, I1, R2, I2, dR1, dI1, dR1, dR2, Flux1[PS2+1], Flux2[PS2+1];
-   double Amp_Old1, Amp_Old2, Amp_New1, Amp_New2, Amp_Corr1, Amp_Corr2;  // use double precision to reduce the round-off error in the mass conservation
+   real   R1, I1, R2, I2, dR1, dI1, dR1, dR2, Flux[PS2+1] ;
+   double Amp_Old, Amp_New, Amp_Corr;  // use double precision to reduce the round-off error in the mass conservation
    int    Idx2, Idx3;
 #  endif
 
@@ -288,38 +290,31 @@ void CPU_AdvanceX( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ], real Flux_Array[][NFLUX_
          dI2 =           ( - Im_Half2[i] + Im_Half2[i+1] );
 #        endif
 
-         Flux1[ Idx2 ++ ] = (real)2.0*( R1*dI1 - I1*dR1 );
-         Flux2[ Idx2 ++ ] = (real)2.0*( R2*dI2 - I2*dR2 );
+         Flux[ Idx2 ++ ] = (real)2.0*( R1*dI1 - I1*dR1 + R2*dI2 - I2*dR2 );
       }
 
 //    4.2. correct the amplitude
       Idx2 = 0;
       for (int i=FLU_GHOST_SIZE; i<FLU_NXT-FLU_GHOST_SIZE; i++)
       {
-         Amp_Old1  = SQR( Re_Old1[i] ) + SQR( Im_Old1[i] );
-         Amp_New1  = SQR( Re_New1[i] ) + SQR( Im_New1[i] );
-         Amp_Corr1 = Amp_Old1 - dT_dh2*( Flux1[Idx2+1] - Flux1[Idx2] );
-         Amp_Old2  = SQR( Re_Old2[i] ) + SQR( Im_Old2[i] );
-         Amp_New2  = SQR( Re_New2[i] ) + SQR( Im_New2[i] );
-         Amp_Corr2 = Amp_Old2 - dT_dh2*( Flux2[Idx2+1] - Flux2[Idx2] );
+         Amp_Old  = SQR( Re_Old1[i] ) + SQR( Im_Old1[i] ) +  SQR( Re_Old2[i] ) + SQR( Im_Old2[i] );
+         Amp_New  = SQR( Re_New1[i] ) + SQR( Im_New1[i] ) +  SQR( Re_New2[i] ) + SQR( Im_New2[i] );
+         Amp_Corr = Amp_Old - dT_dh2*( Flux1[Idx2+1] - Flux1[Idx2]);
 
 //       be careful about the negative density and the vacuum (where we might have Amp_New == 0.0)
 //       if ( Amp_Corr > (real)0.0  &&  Amp_New > (real)0.0 )
-         if ( Amp_Corr1 >       0.0  &&  Amp_New1 >       0.0 )
+         if ( Amp_Corr >       0.0  &&  Amp_New >       0.0 )
          {
             /*
             Re_New[i] *= SQRT( Amp_Corr / Amp_New );
             Im_New[i] *= SQRT( Amp_Corr / Amp_New );
             */
-            Re_New1[i] *= sqrt( Amp_Corr1 / Amp_New1 );  // use double precision to improve the mass conservation further
-            Im_New1[i] *= sqrt( Amp_Corr1 / Amp_New1 );
+            Re_New1[i] *= sqrt( Amp_Corr / Amp_New );  // use double precision to improve the mass conservation further
+            Im_New1[i] *= sqrt( Amp_Corr / Amp_New );
+            Re_New2[i] *= sqrt( Amp_Corr / Amp_New );
+            Im_New2[i] *= sqrt( Amp_Corr / Amp_New );
          }
 
-         if (Amp_Corr2 >       0.0  &&  Amp_New2 >      0.0 )
-         {
-            Re_New2[i] *= sqrt( Amp_Corr2 / Amp_New2 );
-            Im_New2[i] *= sqrt( Amp_Corr2 / Amp_New2 );
-         }
 
          Idx2 ++;
       }
@@ -364,6 +359,8 @@ void TransposeXY( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ] )
 
          u_xy[0][Idx2] = u[0][Idx1];
          u_xy[1][Idx2] = u[1][Idx1];
+         u_xy[2][Idx2] = u[2][Idx1];
+         u_xy[3][Idx2] = u[3][Idx1];
       }
 
       for (int v=0; v<FLU_NIN; v++)    memcpy( &u[v][to1D(k,0,0)], u_xy[v], FLU_NXT*FLU_NXT*sizeof(real) );
@@ -397,12 +394,18 @@ void TransposeXZ( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ] )
 
          u_temp[0] = u[0][Idx1];
          u_temp[1] = u[1][Idx1];
+         u_temp[2] = u[2][Idx1];
+         u_temp[3] = u[3][Idx1];
 
          u[0][Idx1] = u[0][Idx2];
          u[1][Idx1] = u[1][Idx2];
+         u[2][Idx1] = u[2][Idx2];
+         u[3][Idx1] = u[3][Idx2];
 
          u[0][Idx2] = u_temp[0];
          u[1][Idx2] = u_temp[1];
+         u[2][Idx2] = u_temp[2];
+         u[3][Idx2] = u_temp[3];
       }
 
       Idx1 = to1D(k,j,k);
