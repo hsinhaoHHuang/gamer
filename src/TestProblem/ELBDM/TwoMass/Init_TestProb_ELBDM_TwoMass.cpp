@@ -6,14 +6,13 @@
 // problem-specific global variables
 // =======================================================================================
 
-static int    Soliton_N;
-static int    Soliton_RSeed;
-static double Soliton_FixedScale;
-static double Soliton_EmptyRegion;
-static int    Soliton_DensProf_NBin;
-static double *Soliton_DensProf = NULL;
-static double *Soliton_Scale    = NULL;
-static double (*Soliton_Center)[3] = NULL;
+static double Height1;
+static double Width1;
+static double Height2;
+static double Width2;
+static int    Center_RSeed;
+static double EmptyRegion;
+static double (*Center)[3] = NULL;
 // =======================================================================================
 
 
@@ -33,9 +32,6 @@ void Validate()
 {
 
    if ( MPI_Rank == 0 )    Aux_Message( stdout, "   Validating test problem %d ...\n", TESTPROB_ID );
-
-
-// examples
 
 // errors
 #  if ( MODEL != ELBDM )
@@ -105,11 +101,12 @@ void SetParameter()
 // ********************************************************************************************************************************
 // ReadPara->Add( "KEY_IN_THE_FILE",   &VARIABLE,              DEFAULT,       MIN,              MAX               );
 // ********************************************************************************************************************************
-   ReadPara->Add( "Soliton_N",         &Soliton_N,             -1,            1,                NoMax_int         );
-   ReadPara->Add( "Soliton_RSeed",     &Soliton_RSeed,         0,             NoMin_int,        NoMax_int         );
-   ReadPara->Add( "Soliton_FixedScale",&Soliton_FixedScale,    1.0,           NoMin_double,     NoMax_double      );
-   ReadPara->Add( "Soliton_EmptyRegion",&Soliton_EmptyRegion,  0.0,           NoMin_double,     NoMax_double      );
-  // ReadPara->Add( "var_str",            var_str,               Useless_str,   Useless_str,      Useless_str       );
+   ReadPara->Add( "Height1",           &Height1,               1.0,           1.0,              NoMax_double      );
+   ReadPara->Add( "Width1",            &Width1,                1.0,           1.0,              NoMax_double      );
+   ReadPara->Add( "Height2",           &Height2,               1.0,           1.0,              NoMax_double      );
+   ReadPara->Add( "Width1",            &Width2,                1.0,           1.0,              NoMax_double      );
+   ReadPara->Add( "Center_RSeed",      &Center_RSeed,          0,             NoMin_int,        NoMax_int         );
+   ReadPara->Add( "EmptyRegion",       &EmptyRegion,           0.0,           NoMin_double,     NoMax_double      );
 
    ReadPara->Read( FileName );
 
@@ -118,45 +115,30 @@ void SetParameter()
 // (1-2) set the default values
 
 // (1-3) check the runtime parameters
-   if (Soliton_RSeed >= 0 && Soliton_EmptyRegion <0.0 )
-      Aux_Error(ERROR_INFO, "Soliton_EmptyRegion(%14.7e)<0.0 !!\n",Soliton_EmptyRegion);
+   if ( Center_RSeed >= 0 && EmptyRegion <0.0 )
+      Aux_Error(ERROR_INFO, "EmptyRegion(%14.7e)<0.0 !!\n",EmptyRegion);
 
 // (2) set the problem-specific derived parameters
-   Soliton_Scale  = new double[Soliton_N];
-   Soliton_Center = new double[Soliton_N][3];
+   Center = new double[2][3];
 
-   if(Soliton_FixedScale > 0.0)
-   {
-     for(int t=0; t<Soliton_N;t++) Soliton_Scale[t] = Soliton_FixedScale;
-   }
-   else
-   {
-      Aux_Error(ERROR_INFO, "for Soliton_FixedScale <= 0.0, please hard code the scale factor !!\n" );
-   }
-   
 
-   if(Soliton_RSeed >= 0)
+   if(Center_RSeed >= 0)
    {
-      const double Coord_Min[3]={Soliton_EmptyRegion, Soliton_EmptyRegion, Soliton_EmptyRegion };
-      const double Coord_Max[3]={amr->BoxSize[0]-Soliton_EmptyRegion, amr->BoxSize[1]-Soliton_EmptyRegion, amr->BoxSize[2]-Soliton_EmptyRegion };
-      srand(Soliton_RSeed);
+      const double Coord_Min[3]={ EmptyRegion, EmptyRegion, EmptyRegion };
+      const double Coord_Max[3]={amr->BoxSize[0]-EmptyRegion, amr->BoxSize[1]-EmptyRegion, amr->BoxSize[2]-EmptyRegion };
+      srand(Center_RSeed);
 
-      for(int t=0;t<Soliton_N;t++)
+      for(int t=0;t<2;t++)
       for(int d=0;d<3;d++)
-         Soliton_Center[t][d] = ( (double)rand()/RAND_MAX)*(Coord_Max[d]-Coord_Min[d]) + Coord_Min[d];
+         Center[t][d] = ( (double)rand()/RAND_MAX)*(Coord_Max[d]-Coord_Min[d]) + Coord_Min[d];
 
    }
    else
    {
-      if(Soliton_N == 1)
-      {
-        for(int d=0;d<3;d++) Soliton_Center[0][d] = 0.5*amr->BoxSize[d];
-      }
-      else
-      {
-         Aux_Error(ERROR_INFO,"please hard code the center of each soliton !!\n");
+      
+         Aux_Error(ERROR_INFO,"please hard code the center position !!\n");
                
-      } 
+       
    }
 
 // (3) reset other general-purpose parameters
@@ -180,9 +162,12 @@ void SetParameter()
    {
       Aux_Message( stdout, "=============================================================================\n" );
       Aux_Message( stdout, "  test problem ID           = %d\n",     TESTPROB_ID );
-      Aux_Message( stdout, "  total number of solitons  = %d\n",     Soliton_N );
-      Aux_Message( stdout, "  random seed for setting the center coord. = %d\n",   Soliton_RSeed   );
-      Aux_Message( stdout, "  size of the soliton-free zone     = %13.7e\n", Soliton_EmptyRegion   );
+      Aux_Message( stdout, "  Height of the first wavepacket  = %f\n",     Height1 );
+      Aux_Message( stdout, "  Width of the first wavepacket  = %f\n",     Width1 );
+      Aux_Message( stdout, "  Height of the second wavepacket  = %f\n",     Height2 );
+      Aux_Message( stdout, "  Width of the second wavepacket  = %f\n",    Width2 );
+      Aux_Message( stdout, "  random seed for setting the center coord. = %d\n",   Center_RSeed   );
+      Aux_Message( stdout, "  size of the center-free zone     = %13.7e\n", EmptyRegion   );
       Aux_Message( stdout, "=============================================================================\n" );
    }
 
@@ -214,34 +199,21 @@ void SetParameter()
 //-------------------------------------------------------------------------------------------------------
 void SetGridIC( real fluid[], const double x, const double y, const double z, const double Time,
                 const int lv, double AuxArray[] )
-{/*
-   double r;
-   double Dens;
-   fluid[DENS] = 0.0;
-   for(int t=0;t<Soliton_N;t++){
-     r= sqrt( SQR(x-Soliton_Center[t][0]) + SQR(y-Soliton_Center[t][1]) + SQR(z-Soliton_Center[t][2]) );
-     r*= Soliton_Scale[t];
-     Dens = exp(-r*r/(2*sigma*sigma))/sqrt(2*M_PI*sigma);
-
-    if ( Dens == NULL_REAL )
-    {
-       Dens = 0.0;
-    } 
-    fluid[DENS] += Dens*SQR( Soliton_Scale[t] )*SQR( Soliton_Scale[t] ); 
-   }
-
-   fluid[REAL1] = sqrt( fluid[DENS]/2.0 );
+{
+   
+   fluid[REAL1] = Height1* exp(-( SQR(x-Center[1][0]) + SQR(y-Center[1][1]) + SQR(z-Center[1][2]) )/(2.0*Width1*Width1) )/sqrt(2.0*M_PI*Width1)  ;
    fluid[IMAG1] = 0.0;
-   fluid[REAL2] = sqrt( fluid[DENS]/2.0 );
+   fluid[REAL2] = Height2* exp(-( SQR(x-Center[2][0]) + SQR(y-Center[2][1]) + SQR(z-Center[2][2]) )/(2.0*Width2*Width2) )/sqrt(2.0*M_PI*Width2)  ;
    fluid[IMAG2] = 0.0;
-*/
+   fluid[DENS]  = SQR( fluid[REAL1] ) + SQR( fluid[IMAG1] ) + SQR( fluid[REAL2] ) + SQR( fluid[IMAG2] );
+
+
 } // FUNCTION : SetGridIC
 
 
-void End_S()
+void End()
 {
-   delete []Soliton_Scale;
-   delete []Soliton_Center;
+   delete []Center;
 }
 
 void BCo( real fluid[], const double x, const double y, const double z, const double Time, const int lv, double AuxArray[] )
@@ -293,7 +265,7 @@ void Init_TestProb_ELBDM_TwoMass()
    Flu_ResetByUser_Func_Ptr = NULL;       // option: OPT__RESET_FLUID;      example: Fluid/Flu_ResetByUser.cpp
    Output_User_Ptr          = NULL;       // option: OPT__OUTPUT_USER;      example: TestProblem/Hydro/AcousticWave/Init_TestProb_Hydro_AcousticWave.cpp --> OutputError()
    Aux_Record_User_Ptr      = NULL;       // option: OPT__RECORD_USER;      example: Auxiliary/Aux_Record_User.cpp
-   End_User_Ptr             = End_S;       // option: none;                  example: TestProblem/Hydro/ClusterMerger_vs_Flash/Init_TestProb_ClusterMerger_vs_Flash.cpp --> End_ClusterMerger()
+   End_User_Ptr             = End;       // option: none;                  example: TestProblem/Hydro/ClusterMerger_vs_Flash/Init_TestProb_ClusterMerger_vs_Flash.cpp --> End_ClusterMerger()
 #  ifdef GRAVITY
    Init_ExternalAcc_Ptr     = NULL;       // option: OPT__GRAVITY_TYPE=2/3; example: SelfGravity/Init_ExternalAcc.cpp
    Init_ExternalPot_Ptr     = NULL;       // option: OPT__EXTERNAL_POT;     example: TestProblem/ELBDM/ExtPot/Init_TestProb_ELBDM_ExtPot.cpp --> Init_ExtPot()
