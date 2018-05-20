@@ -67,8 +67,8 @@ real GetMaxPhaseDerivative( const int lv )
 
    real (*Flu_Array)[NCOMP_FLUID][Size_Flu][Size_Flu][Size_Flu] = NULL;
 
-   real dS_dt, MaxdS_dt, _dh, _dh2, _dh_sqr, Re1, Im1, Re2, Im2, GradS[3];
-   real LapAmp_Amp, Vel_Sqr;                 // laplacian(amplitude)/amplitude, -grad(phase)^2
+   real dS1_dt, dS2_dt, MaxdS_dt, _dh, _dh2, _dh_sqr, Re1, Im1, Re2, Im2, GradS1[3], GradS2[3];
+   real LapAmp_Amp, Vel_Sqr1, Vel_Sqr2;                 // laplacian(amplitude)/amplitude, -grad(phase)^2
    real _Dens, _Amp;                         // 0.5/Dens/dh, 1.0/amplitude
    int  im, ip, jm, jp, km, kp, I, J, K;
 
@@ -87,10 +87,10 @@ real GetMaxPhaseDerivative( const int lv )
 
 
 #  ifdef GRAVITY
-#  pragma omp parallel private( Flu_Array, dS_dt, Re1, Im1, GradS, LapAmp_Amp, Vel_Sqr, _Dens, _Amp, Pot_Array, Pot, \
+#  pragma omp parallel private( Flu_Array, dS1_dt, dS2_dt, Re1, Im1, Re2, Im2, GradS1, GradS2, LapAmp_Amp, Vel_Sqr1, Vel_Sqr2, _Dens, _Amp, Pot_Array, Pot, \
                                 im, ip, jm, jp, km, kp, I, J, K )
 #  else
-#  pragma omp parallel private( Flu_Array, dS_dt, Re1, Im1, GradS, LapAmp_Amp, Vel_Sqr, _Dens, _Amp, \
+#  pragma omp parallel private( Flu_Array, dS1_dt, dS2_dt, Re1, Im1, Re2, Im2, GradS1, GradS2, LapAmp_Amp, Vel_Sqr1, Vel_Sqr2, _Dens, _Amp, \
                                 im, ip, jm, jp, km, kp, I, J, K )
 #  endif
    {
@@ -150,33 +150,50 @@ real GetMaxPhaseDerivative( const int lv )
             _Amp       = (real)1.0 / Flu_Array[0][AMP][k][j][i];
             _Dens      = _dh2*_Amp*_Amp;
 
-            GradS[0]   = _Dens*(  Flu_Array[0][REAL1][k][j][i]*( Flu_Array[0][IMAG1][k ][j ][ip] -
+            GradS1[0]   = _Dens*(  Flu_Array[0][REAL1][k][j][i]*( Flu_Array[0][IMAG1][k ][j ][ip] -
                                                                 Flu_Array[0][IMAG1][k ][j ][im] )
                                  -Flu_Array[0][IMAG1][k][j][i]*( Flu_Array[0][REAL1][k ][j ][ip] -
                                                                 Flu_Array[0][REAL1][k ][j ][im] )  );
-            GradS[1]   = _Dens*(  Flu_Array[0][REAL1][k][j][i]*( Flu_Array[0][IMAG1][k ][jp][i ] -
+            GradS1[1]   = _Dens*(  Flu_Array[0][REAL1][k][j][i]*( Flu_Array[0][IMAG1][k ][jp][i ] -
                                                                 Flu_Array[0][IMAG1][k ][jm][i ] )
                                  -Flu_Array[0][IMAG1][k][j][i]*( Flu_Array[0][REAL1][k ][jp][i ] -
                                                                 Flu_Array[0][REAL1][k ][jm][i ] )  );
-            GradS[2]   = _Dens*(  Flu_Array[0][REAL1][k][j][i]*( Flu_Array[0][IMAG1][kp][j ][i ] -
+            GradS1[2]   = _Dens*(  Flu_Array[0][REAL1][k][j][i]*( Flu_Array[0][IMAG1][kp][j ][i ] -
                                                                 Flu_Array[0][IMAG1][km][j ][i ] )
                                  -Flu_Array[0][IMAG1][k][j][i]*( Flu_Array[0][REAL1][kp][j ][i ] -
                                                               Flu_Array[0][REAL1][km][j ][i ] )  );
+            GradS2[0]   = _Dens*(  Flu_Array[0][REAL2][k][j][i]*( Flu_Array[0][IMAG2][k ][j ][ip] -
+                                                                Flu_Array[0][IMAG2][k ][j ][im] )
+                                 -Flu_Array[0][IMAG2][k][j][i]*( Flu_Array[0][REAL2][k ][j ][ip] -
+                                                                Flu_Array[0][REAL2][k ][j ][im] )  );
+            GradS2[1]   = _Dens*(  Flu_Array[0][REAL2][k][j][i]*( Flu_Array[0][IMAG2][k ][jp][i ] -
+                                                                Flu_Array[0][IMAG2][k ][jm][i ] )
+                                 -Flu_Array[0][IMAG2][k][j][i]*( Flu_Array[0][REAL2][k ][jp][i ] -
+                                                                Flu_Array[0][REAL2][k ][jm][i ] )  );
+            GradS2[2]   = _Dens*(  Flu_Array[0][REAL2][k][j][i]*( Flu_Array[0][IMAG2][kp][j ][i ] -
+                                                                Flu_Array[0][IMAG2][km][j ][i ] )
+                                 -Flu_Array[0][IMAG2][k][j][i]*( Flu_Array[0][REAL2][kp][j ][i ] -
+                                                              Flu_Array[0][REAL2][km][j ][i ] )  );
 
             LapAmp_Amp = _dh_sqr*( Flu_Array[0][AMP][kp][j ][i ] + Flu_Array[0][AMP][km][j ][i ] +
                                    Flu_Array[0][AMP][k ][jp][i ] + Flu_Array[0][AMP][k ][jm][i ] +
                                    Flu_Array[0][AMP][k ][j ][ip] + Flu_Array[0][AMP][k ][j ][im] -
                                    (real)6.0*Flu_Array[0][AMP][k][j][i] ) * _Amp;
-            Vel_Sqr    = -( GradS[0]*GradS[0] + GradS[1]*GradS[1] + GradS[2]*GradS[2] );
-            dS_dt      = LapAmp_Amp + Vel_Sqr;
+            Vel_Sqr1    = -( GradS1[0]*GradS1[0] + GradS1[1]*GradS1[1] + GradS1[2]*GradS1[2] );
+            Vel_Sqr2    = -( GradS2[0]*GradS2[0] + GradS2[1]*GradS2[1] + GradS2[2]*GradS2[2] );
+            dS1_dt      = LapAmp_Amp + Vel_Sqr1;
+            dS2_dt      = LapAmp_Amp + Vel_Sqr2;
 
 #           ifdef GRAVITY
             Pot        = PotCoeff1*Pot_Array[0][K][J][I];
-            dS_dt     += Pot;
+            dS1_dt     += PotCoeff1*Pot_Array[0][K][J][I];
+            dS2_dt     += PotCoeff2*Pot_Array[0][K][J][I];
 #           endif
 
-            dS_dt      = FABS( dS_dt );
-            MaxdS_dt   = MAX( MaxdS_dt, dS_dt );
+            dS1_dt      = FABS( dS1_dt );
+            dS2_dt      = FABS( dS2_dt );
+            dS1_dt     = MAX( dS1_dt, dS2_dt );
+            MaxdS_dt   = MAX( MaxdS_dt, dS1_dt );
 
          }}} // i,j,k
       } // for (int PID0=0; PID0<amr->NPatchComma[lv][1]; PID0+=NPG*8)
@@ -202,7 +219,7 @@ real GetMaxPhaseDerivative( const int lv )
       Aux_Message( stderr, "WARNING : MaxdS_dt == 0.0 at lv %d !!\n", lv );
 
 
-   return MaxdS_dt_AllRank*0.5/ELBDM_ETA1;
+   return MaxdS_dt_AllRank*0.5/MIN( ELBDM_ETA1, ELBDM_ETA2 );
 
 } // FUNCTION : GetMaxPhaseDerivative
 
