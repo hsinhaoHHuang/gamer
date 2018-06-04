@@ -171,18 +171,18 @@ SIMU_OPTION += -DTIMING
 
 # serial mode (in which no MPI libraries are required)
 # --> must disable LOAD_BALANCE
-#SIMU_OPTION += -DSERIAL
+SIMU_OPTION += -DSERIAL
 
 # load-balance parallelization: HILBERT
 # --> must disable SERIAL
-SIMU_OPTION += -DLOAD_BALANCE=HILBERT
+#SIMU_OPTION += -DLOAD_BALANCE=HILBERT
 
 # overlap MPI communication with computation
 # --> NOT supported yet; must enable LOAD_BALANCE
 #SIMU_OPTION += -DOVERLAP_MPI
 
 # enable OpenMP parallelization
-SIMU_OPTION += -DOPENMP
+#SIMU_OPTION += -DOPENMP
 
 # work on the NAOC Laohu GPU cluster
 #SIMU_OPTION += -DLAOHU

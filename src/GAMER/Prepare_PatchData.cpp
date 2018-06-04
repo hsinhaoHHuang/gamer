@@ -179,7 +179,7 @@ void Prepare_PatchData( const int lv, const double PrepTime, real *h_Input_Array
    if ( IntPhase )
    {
 #     if ( MODEL == ELBDM )
-      if (  !(TVar & _REAL1)  ||  !(TVar & _IMAG1) || !(TVar & _REAL2) || !(TVar & _IMAG2)  )
+      if ( ( !(TVar & _REAL1)  || !(TVar & _IMAG1) ) && ( !(TVar & _REAL2) || !(TVar & _IMAG2) ) )
       Aux_Error( ERROR_INFO, "real and/or imag parts are not found for phase interpolation in ELBDM !!\n" );
 #     else
       Aux_Error( ERROR_INFO, "\"interpolation on phase\" is useful only in ELBDM !!\n" );

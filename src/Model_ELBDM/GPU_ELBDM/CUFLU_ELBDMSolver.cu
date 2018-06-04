@@ -158,15 +158,20 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
 
    const real _Eta1         = (real)1.0/Eta1;
    const real _Eta2         = (real)1.0/Eta2;
-   const real dT           = (real)0.5*dt*MIN(_Eta1,_ETA2);
-   const real _Eta12_dh     = (real)0.5*_dh*_Eta1;
-   const real _Eta22_dh     =(real)0.5*_dh*_Eta2;
-   const real Coeff1       = dT*_dh*_dh;
+   const real dT1           = (real)0.5*dt*_Eta1;
+   const real dT2           = (real)0.5*dt*_Eta2;
+   const real _Eta2_dh     = (real)0.5*_dh*MIN(_Eta1,_Eta2);
+  // const real _Eta22_dh     =(real)0.5*_dh*_Eta2;
+   const real Coeff11       = dT1*_dh*_dh;
+   const real Coeff12       = dT2*_dh*_dh;
 #  ifdef CONSERVE_MASS
-   const real Coeff2       = Taylor3_Coeff*SQR(Coeff1);
+   const real Coeff21       = Taylor3_Coeff*SQR(Coeff11);
+   const real Coeff22       = Taylor3_Coeff*SQR(Coeff12);
 #  else
-   const real Coeff2       = (real)0.5*SQR(Coeff1);
-   const real Coeff3       = Taylor3_Coeff*CUBE(Coeff1);
+   const real Coeff21       = (real)0.5*SQR(Coeff11);
+   const real Coeff21       = (real)0.5*SQR(Coeff12);
+   const real Coeff31       = Taylor3_Coeff*CUBE(Coeff11);
+   const real Coeff32       = Taylor3_Coeff*CUBE(Coeff12);
 #  endif
 
    const uint bx           = blockIdx.x;
@@ -277,10 +282,10 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
          si = Idx % NHalf + 2*LAP_GHOST;
          sj = Idx / NHalf;
 
-         s_Half[0][sj][si] = s_In[0][sj][si] - (real)0.5*Coeff1*LAP1( s_In[1][sj], si ) - Coeff2*LAP2( s_In[0][sj], si );
-         s_Half[1][sj][si] = s_In[1][sj][si] + (real)0.5*Coeff1*LAP1( s_In[0][sj], si ) - Coeff2*LAP2( s_In[1][sj], si );
-         s_Half[2][sj][si] = s_In[2][sj][si] - (real)0.5*Coeff1*LAP1( s_In[2][sj], si ) - Coeff2*LAP2( s_In[2][sj], si );
-         s_Half[3][sj][si] = s_In[3][sj][si] + (real)0.5*Coeff1*LAP1( s_In[3][sj], si ) - Coeff2*LAP2( s_In[3][sj], si );
+         s_Half[0][sj][si] = s_In[0][sj][si] - (real)0.5*Coeff11*LAP1( s_In[1][sj], si ) - Coeff21*LAP2( s_In[0][sj], si );
+         s_Half[1][sj][si] = s_In[1][sj][si] + (real)0.5*Coeff11*LAP1( s_In[0][sj], si ) - Coeff21*LAP2( s_In[1][sj], si );
+         s_Half[2][sj][si] = s_In[2][sj][si] - (real)0.5*Coeff12*LAP1( s_In[2][sj], si ) - Coeff22*LAP2( s_In[2][sj], si );
+         s_Half[3][sj][si] = s_In[3][sj][si] + (real)0.5*Coeff12*LAP1( s_In[3][sj], si ) - Coeff22*LAP2( s_In[3][sj], si );
 
          Idx += NThread;
       } // while ( Idx < NColumnOnce*NHalf )
@@ -333,10 +338,10 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
 //    4a. full-step solution (equivalent to the 3rd-order Taylor expansion)
       if ( tid < NColumnOnce*PS2 )
       {
-         Re1_New   = Re1_Old - Coeff1*LAP1( s_Half[1][ty], i );
-         Im1_New   = Im1_Old + Coeff1*LAP1( s_Half[0][ty], i );
-         Re2_New   = Re2_Old - Coeff1*LAP1( s_Half[3][ty], i );
-         Im2_New   = Im2_Old + Coeff1*LAP1( s_Half[4][ty], i );
+         Re1_New   = Re1_Old - Coeff11*LAP1( s_Half[1][ty], i );
+         Im1_New   = Im1_Old + Coeff11*LAP1( s_Half[0][ty], i );
+         Re2_New   = Re2_Old - Coeff12*LAP1( s_Half[3][ty], i );
+         Im2_New   = Im2_Old + Coeff12*LAP1( s_Half[4][ty], i );
 
          Amp_Old  = SQR( Re1_Old ) + SQR( Im1_Old ) +  SQR( Re2_Old ) + SQR( Im2_Old );
          Amp_New  = SQR( Re1_New ) + SQR( Im1_New ) +  SQR( Re2_New ) + SQR( Im2_New );
@@ -365,11 +370,11 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
 //    4b. full-step solution if CONSERVE_MASS is not defined (equivalent to the 3rd-order Taylor expansion)
       if ( tid < NColumnOnce*PS2 )
       {
-         Re1_New  = Re1_Old - Coeff1*LAP1( s_In[1][ty], i ) - Coeff2*LAP2( s_In[0][ty], i ) + Coeff3*LAP3( s_In[1][ty], i );
-         Im1_New  = Im1_Old + Coeff1*LAP1( s_In[0][ty], i ) - Coeff2*LAP2( s_In[1][ty], i ) - Coeff3*LAP3( s_In[0][ty], i );
-         Re2_New  = Re2_Old - Coeff1*LAP1( s_In[3][ty], i ) - Coeff2*LAP2( s_In[2][ty], i ) + Coeff3*LAP3( s_In[3][ty], i );
-         Im2_New  = Im2_Old + Coeff1*LAP1( s_In[2][ty], i ) - Coeff2*LAP2( s_In[3][ty], i ) - Coeff3*LAP3( s_In[2][ty], i );
-         Amp_New = SQR( Re_New ) + SQR( Im_New ) + SQR( Re2_New ) + SQR( Im_New );
+         Re1_New  = Re1_Old - Coeff11*LAP1( s_In[1][ty], i ) - Coeff21*LAP2( s_In[0][ty], i ) + Coeff31*LAP3( s_In[1][ty], i );
+         Im1_New  = Im1_Old + Coeff11*LAP1( s_In[0][ty], i ) - Coeff21*LAP2( s_In[1][ty], i ) - Coeff31*LAP3( s_In[0][ty], i );
+         Re2_New  = Re2_Old - Coeff12*LAP1( s_In[3][ty], i ) - Coeff22*LAP2( s_In[2][ty], i ) + Coeff32*LAP3( s_In[3][ty], i );
+         Im2_New  = Im2_Old + Coeff12*LAP1( s_In[2][ty], i ) - Coeff22*LAP2( s_In[3][ty], i ) - Coeff32*LAP3( s_In[2][ty], i );
+         Amp_New = SQR( Re1_New ) + SQR( Im1_New ) + SQR( Re2_New ) + SQR( Im2_New );
       }
 
 

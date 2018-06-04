@@ -144,7 +144,7 @@ bool Flag_Check( const int lv, const int PID, const int i, const int j, const in
 #  if ( MODEL == ELBDM )
    if ( OPT__FLAG_ENGY_DENSITY )
    {
-      Flag |= ELBDM_Flag_EngyDensity( i, j, k, &Fluid[REAL1][0][0][0], &Fluid[IMAG2][0][0][0],&Fluid[REAL2][0][0][0], &Fluid[IMAG2][0][0][0],
+      Flag |= ELBDM_Flag_EngyDensity( i, j, k, &Fluid[REAL1][0][0][0], &Fluid[IMAG1][0][0][0],&Fluid[REAL2][0][0][0], &Fluid[IMAG2][0][0][0],
                                       FlagTable_EngyDensity[lv][0], FlagTable_EngyDensity[lv][1] );
       if ( Flag )    return Flag;
    }

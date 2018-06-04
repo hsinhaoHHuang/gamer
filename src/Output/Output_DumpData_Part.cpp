@@ -117,7 +117,7 @@ void Output_DumpData_Part( const OptOutputPart_t Part, const bool BaseOnly, cons
 #           warning : WAIT MHD !!!
 
 #           elif ( MODEL == ELBDM )
-            fprintf( File, "%14s%14s%14s", "Density", "Real", "Imag" );
+            fprintf( File, "%14s%14s%14s%14s%14s", "Density", "Real1", "Imag1", "Real2", "Imag2" );
 
 #           else
 #           error : ERROR : unsupported MODEL !!

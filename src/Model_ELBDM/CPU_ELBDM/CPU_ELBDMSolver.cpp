@@ -39,8 +39,8 @@ static void TransposeXZ( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ] );
 //                   --> Nevertheless, the symmetry in different directions will be broken if CONSERVE_MASS is on
 //                2. The implementation is very similar to the function "CPU_FluidSolver_RTVD"
 //
-// Parameter   :  Flu_Array_In   : Array storing the input variables (only REAL/IMAG)
-//                Flu_Array_Out  : Array to store the output variables (DENS/REAL/IMAG)
+// Parameter   :  Flu_Array_In   : Array storing the input variables (only REAL1/IMAG1/REAL2/IMAG2)
+//                Flu_Array_Out  : Array to store the output variables (DENS/REAL1/IMAG1/REAL2/IMAG2)
 //                Flux_Array     : Array to store the output flux
 //                NPatchGroup    : Number of patch groups to be evaluated
 //                dt             : Time interval to advance solution
@@ -187,11 +187,13 @@ void CPU_AdvanceX( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ], real Flux_Array[][NFLUX_
    const real _dh      = (real)1.0/dh;
    const real dT1      = (real)0.5*dt/Eta1;
    const real dT2      = (real)0.5*dt/Eta2;
-   const real dT       = MIN( dT1, dT2);
-   const real _Eta12_dh= (real)0.5*_dh/Eta1;
-   const real _Eta22_dh= (real)0.5*_dh/Eta2;
-   const real Coeff1   = dT*_dh*_dh;
-   const real Coeff2   = Taylor3_Coeff*Coeff1*Coeff1;
+//   const real dT       = MIN( dT1, dT2);
+   const real _Eta2_dh= (real)0.5*_dh/MAX(Eta1,Eta2);
+   //const real _Eta22_dh= (real)0.5*_dh/Eta2;
+   const real Coeff11   = dT1*_dh*_dh;
+   const real Coeff12   = dT2*_dh*_dh;
+   const real Coeff21   = Taylor3_Coeff*Coeff11*Coeff11;
+   const real Coeff22   = Taylor3_Coeff*Coeff12*Coeff12;
    const int j_start   = j_gap;
    const int k_start   = k_gap;
    const int j_end     = FLU_NXT - j_gap;
@@ -245,10 +247,10 @@ void CPU_AdvanceX( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ], real Flux_Array[][NFLUX_
       for (int i=2; i<FLU_NXT-2; i++)
 #     endif
       {
-         Re_Half1[i] = Re_Old1[i] - (real)0.5*Coeff1*LAP1( Im_Old1, i ) - Coeff2*LAP2( Re_Old1, i );
-         Im_Half1[i] = Im_Old1[i] + (real)0.5*Coeff1*LAP1( Re_Old1, i ) - Coeff2*LAP2( Im_Old1, i );
-         Re_Half2[i] = Re_Old2[i] - (real)0.5*Coeff1*LAP1( Im_Old2, i ) - Coeff2*LAP2( Re_Old2, i );
-         Im_Half2[i] = Im_Old2[i] + (real)0.5*Coeff1*LAP1( Re_Old2, i ) - Coeff2*LAP2( Im_Old2, i );
+         Re_Half1[i] = Re_Old1[i] - (real)0.5*Coeff11*LAP1( Im_Old1, i ) - Coeff21*LAP2( Re_Old1, i );
+         Im_Half1[i] = Im_Old1[i] + (real)0.5*Coeff11*LAP1( Re_Old1, i ) - Coeff21*LAP2( Im_Old1, i );
+         Re_Half2[i] = Re_Old2[i] - (real)0.5*Coeff12*LAP1( Im_Old2, i ) - Coeff22*LAP2( Re_Old2, i );
+         Im_Half2[i] = Im_Old2[i] + (real)0.5*Coeff12*LAP1( Re_Old2, i ) - Coeff22*LAP2( Im_Old2, i );
       }
 
 
@@ -256,10 +258,10 @@ void CPU_AdvanceX( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ], real Flux_Array[][NFLUX_
 //    ------------------------------------------------------------------------------------------------------------
       for (int i=FLU_GHOST_SIZE; i<FLU_NXT-FLU_GHOST_SIZE; i++)
       {
-         Re_New1[i] = Re_Old1[i] - Coeff1*LAP1( Im_Half1, i );
-         Im_New1[i] = Im_Old2[i] + Coeff1*LAP1( Re_Half1, i );
-         Re_New2[i] = Re_Old2[i] - Coeff1*LAP1( Im_Half2, i );
-         Im_New2[i] = Im_Old2[i] + Coeff1*LAP1( Re_Half2, i );
+         Re_New1[i] = Re_Old1[i] - Coeff11*LAP1( Im_Half1, i );
+         Im_New1[i] = Im_Old1[i] + Coeff11*LAP1( Re_Half1, i );
+         Re_New2[i] = Re_Old2[i] - Coeff12*LAP1( Im_Half2, i );
+         Im_New2[i] = Im_Old2[i] + Coeff12*LAP1( Re_Half2, i );
       }
 
 
@@ -299,7 +301,7 @@ void CPU_AdvanceX( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ], real Flux_Array[][NFLUX_
       {
          Amp_Old  = SQR( Re_Old1[i] ) + SQR( Im_Old1[i] ) +  SQR( Re_Old2[i] ) + SQR( Im_Old2[i] );
          Amp_New  = SQR( Re_New1[i] ) + SQR( Im_New1[i] ) +  SQR( Re_New2[i] ) + SQR( Im_New2[i] );
-         Amp_Corr = Amp_Old - dT_dh2*( Flux1[Idx2+1] - Flux1[Idx2]);
+         Amp_Corr = Amp_Old - dT_dh2*( Flux[Idx2+1] - Flux[Idx2]);
 
 //       be careful about the negative density and the vacuum (where we might have Amp_New == 0.0)
 //       if ( Amp_Corr > (real)0.0  &&  Amp_New > (real)0.0 )

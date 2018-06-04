@@ -38,9 +38,9 @@ void Validate()
    Aux_Error( ERROR_INFO, "MODEL != ELBDM !!\n" );
 #  endif
 
-#  ifndef GRAVITY
-   Aux_Error( ERROR_INFO, "GRAVITY must be enabled !!\n" );
-#  endif
+//#  ifndef GRAVITY
+//   Aux_Error( ERROR_INFO, "GRAVITY must be enabled !!\n" );
+//#  endif
 
 #  ifdef COMOVING
    Aux_Error( ERROR_INFO, "COMOVING must be disabled !!\n" );
@@ -69,7 +69,7 @@ void Validate()
 
 
 // replace HYDRO by the target model (e.g., MHD/ELBDM) and also check other compilation flags if necessary (e.g., GRAVITY/PARTICLE)
-#if ( MODEL == ELBDM && defined GRAVITY )
+#if ( MODEL == ELBDM ) // && defined GRAVITY )
 //-------------------------------------------------------------------------------------------------------
 // Function    :  SetParameter
 // Description :  Load and set the problem-specific runtime parameters
@@ -101,10 +101,10 @@ void SetParameter()
 // ********************************************************************************************************************************
 // ReadPara->Add( "KEY_IN_THE_FILE",   &VARIABLE,              DEFAULT,       MIN,              MAX               );
 // ********************************************************************************************************************************
-   ReadPara->Add( "Height1",           &Height1,               1.0,           1.0,              NoMax_double      );
-   ReadPara->Add( "Width1",            &Width1,                1.0,           1.0,              NoMax_double      );
-   ReadPara->Add( "Height2",           &Height2,               1.0,           1.0,              NoMax_double      );
-   ReadPara->Add( "Width1",            &Width2,                1.0,           1.0,              NoMax_double      );
+   ReadPara->Add( "Height1",           &Height1,               1.0,           0.0,              NoMax_double      );
+   ReadPara->Add( "Width1",            &Width1,                1.0,           0.0,              NoMax_double      );
+   ReadPara->Add( "Height2",           &Height2,               1.0,           0.0,              NoMax_double      );
+   ReadPara->Add( "Width2",            &Width2,                1.0,           0.0,              NoMax_double      );
    ReadPara->Add( "Center_RSeed",      &Center_RSeed,          0,             NoMin_int,        NoMax_int         );
    ReadPara->Add( "EmptyRegion",       &EmptyRegion,           0.0,           NoMin_double,     NoMax_double      );
 
@@ -136,7 +136,15 @@ void SetParameter()
    else
    {
       
-         Aux_Error(ERROR_INFO,"please hard code the center position !!\n");
+         Center[0][0]=0.25*amr->BoxSize[0];   
+         Center[0][1]=0.25*amr->BoxSize[1];   
+         Center[0][2]=0.25*amr->BoxSize[2];
+
+         Center[1][0]=0.75*amr->BoxSize[0];   
+         Center[1][1]=0.75*amr->BoxSize[1];   
+         Center[1][2]=0.75*amr->BoxSize[2];   
+   
+ //      Aux_Error(ERROR_INFO,"please hard code the center position !!\n");
                
        
    }
@@ -201,9 +209,9 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
                 const int lv, double AuxArray[] )
 {
    
-   fluid[REAL1] = Height1* exp(-( SQR(x-Center[1][0]) + SQR(y-Center[1][1]) + SQR(z-Center[1][2]) )/(2.0*Width1*Width1) )/sqrt(2.0*M_PI*Width1)  ;
+   fluid[REAL1] = Height1* exp(-( SQR(x-Center[0][0]) + SQR(y-Center[0][1]) + SQR(z-Center[0][2]) )/(2.0*Width1*Width1) ) ;
    fluid[IMAG1] = 0.0;
-   fluid[REAL2] = Height2* exp(-( SQR(x-Center[2][0]) + SQR(y-Center[2][1]) + SQR(z-Center[2][2]) )/(2.0*Width2*Width2) )/sqrt(2.0*M_PI*Width2)  ;
+   fluid[REAL2] = Height2* exp(-( SQR(x-Center[1][0]) + SQR(y-Center[1][1]) + SQR(z-Center[1][2]) )/(2.0*Width2*Width2) ) ;
    fluid[IMAG2] = 0.0;
    fluid[DENS]  = SQR( fluid[REAL1] ) + SQR( fluid[IMAG1] ) + SQR( fluid[REAL2] ) + SQR( fluid[IMAG2] );
 
@@ -247,7 +255,7 @@ void Init_TestProb_ELBDM_TwoMass()
 
 
 // replace HYDRO by the target model (e.g., MHD/ELBDM) and also check other compilation flags if necessary (e.g., GRAVITY/PARTICLE)
-#  if ( MODEL == ELBDM && defined GRAVITY )
+#  if ( MODEL == ELBDM ) //&& defined GRAVITY )
 // set the problem-specific runtime parameters
    SetParameter();
 
