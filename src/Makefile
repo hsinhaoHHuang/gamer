@@ -36,7 +36,7 @@ COMPILE_VERBOSE := 0
 SIMU_OPTION += -DMODEL=ELBDM
 
 # enable gravity
-SIMU_OPTION += -DGRAVITY
+#SIMU_OPTION += -DGRAVITY
 
 # enable particles
 # --> must enable GRAVITY
@@ -182,7 +182,7 @@ SIMU_OPTION += -DSERIAL
 #SIMU_OPTION += -DOVERLAP_MPI
 
 # enable OpenMP parallelization
-#SIMU_OPTION += -DOPENMP
+SIMU_OPTION += -DOPENMP
 
 # work on the NAOC Laohu GPU cluster
 #SIMU_OPTION += -DLAOHU

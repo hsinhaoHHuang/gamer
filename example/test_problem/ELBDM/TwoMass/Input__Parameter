@@ -15,14 +15,14 @@
 
 # simulation scale
 BOX_SIZE                      384.0       # box size along the longest side (in Mpc/h if COMOVING is adopted)
-NX0_TOT_X                     64          # number of base-level cells along x
-NX0_TOT_Y                     64          # number of base-level cells along y
-NX0_TOT_Z                     64          # number of base-level cells along z
+NX0_TOT_X                     128          # number of base-level cells along x
+NX0_TOT_Y                     128          # number of base-level cells along y
+NX0_TOT_Z                     128          # number of base-level cells along z
 MPI_NRANK                     8           # total number of MPI ranks (must = MPI_NRANK_X[0]*MPI_NRANK_X[1]*MPI_NRANK_X[2])
 MPI_NRANK_X                   2           # number of MPI ranks along x
 MPI_NRANK_Y                   2           # number of MPI ranks along y
 MPI_NRANK_Z                   2           # number of MPI ranks along z
-OMP_NTHREAD                   3           # number of OpenMP threads (<=0=auto -> omp_get_max_threads) [-1] ##OPENMP ONLY##
+OMP_NTHREAD                  -1           # number of OpenMP threads (<=0=auto -> omp_get_max_threads) [-1] ##OPENMP ONLY##
 END_T                        -1.0         # end physical time (<0=auto -> must be set by test problems or restart) [-1.0]
 END_STEP                     -1           # end step (<0=auto -> must be set by test problems or restart) [-1]
 
@@ -96,7 +96,7 @@ OPT__MINIMIZE_MPI_BARRIER     0           # minimize MPI barriers to improve loa
 
 # fluid solver in ELBDM (MODEL==ELBDM only)
 ELBDM_MASS1                   1.0         # particle mass in ev/c^2 (input unit is fixed even when OPT__UNIT or COMOVING is on)
-ELBDM_MASS2                   1.0         # particle mass in ev/c^2 (input unit is fixed even when OPT__UNIT or COMOVING is on)
+ELBDM_MASS2                   4.0         # particle mass in ev/c^2 (input unit is fixed even when OPT__UNIT or COMOVING is on)
 ELBDM_PLANCK_CONST            1.0         # reduced Planck constant (will be overwritten if OPT__UNIT or COMOVING is on)
 ELBDM_LAMBDA                  1.0         # quartic self-interaction coefficient [1.0] ##QUARTIC_SELF_INTERACTION ONLY##
 ELBDM_TAYLOR3_COEFF           0.166666667 # 3rd Taylor expansion coefficient [1.0/6.0] ##USELESS if ELBDM_TAYLOR3_AUTO is on##
@@ -157,7 +157,7 @@ OPT__OUTPUT_BASE              0           # only output the base-level data [0] 
 OPT__OUTPUT_POT               0           # output gravitational potential [0] ##OPT__OUTPUT_TOTAL ONLY##
 OPT__OUTPUT_MODE              2           # (1=const step, 2=const dt, 3=dump table) -> edit "Input__DumpTable" for 3
 OUTPUT_STEP                   5           # output data every OUTPUT_STEP step ##OPT__OUTPUT_MODE==1 ONLY##
-OUTPUT_DT                     20.0        # output data every OUTPUT_DT time interval ##OPT__OUTPUT_MODE==2 ONLY##
+OUTPUT_DT                     200.0        # output data every OUTPUT_DT time interval ##OPT__OUTPUT_MODE==2 ONLY##
 OUTPUT_PART_X                 192.0       # x coordinate for OPT__OUTPUT_PART [-1.0]
 OUTPUT_PART_Y                 192.0       # y coordinate for OPT__OUTPUT_PART [-1.0]
 OUTPUT_PART_Z                 192.0       # z coordinate for OPT__OUTPUT_PART [-1.0]

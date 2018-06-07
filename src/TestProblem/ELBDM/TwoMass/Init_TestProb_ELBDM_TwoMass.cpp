@@ -102,10 +102,10 @@ void SetParameter()
 // ReadPara->Add( "KEY_IN_THE_FILE",   &VARIABLE,              DEFAULT,       MIN,              MAX               );
 // ********************************************************************************************************************************
    ReadPara->Add( "Height1",           &Height1,               1.0,           0.0,              NoMax_double      );
-   ReadPara->Add( "Width1",            &Width1,                1.0,           0.0,              NoMax_double      );
+   ReadPara->Add( "Width1",            &Width1,                30.0,           0.0,              NoMax_double      );
    ReadPara->Add( "Height2",           &Height2,               1.0,           0.0,              NoMax_double      );
-   ReadPara->Add( "Width2",            &Width2,                1.0,           0.0,              NoMax_double      );
-   ReadPara->Add( "Center_RSeed",      &Center_RSeed,          0,             NoMin_int,        NoMax_int         );
+   ReadPara->Add( "Width2",            &Width2,                30.0,           0.0,              NoMax_double      );
+   ReadPara->Add( "Center_RSeed",      &Center_RSeed,          -1,             NoMin_int,        NoMax_int         );
    ReadPara->Add( "EmptyRegion",       &EmptyRegion,           0.0,           NoMin_double,     NoMax_double      );
 
    ReadPara->Read( FileName );
@@ -152,7 +152,7 @@ void SetParameter()
 // (3) reset other general-purpose parameters
 //     --> a helper macro PRINT_WARNING is defined in TestProb.h
    const long   End_Step_Default = __INT_MAX__;
-   const double End_T_Default    = 1.0e3;
+   const double End_T_Default    = 1.0e4;
 
    if ( END_STEP < 0 ) {
       END_STEP = End_Step_Default;
