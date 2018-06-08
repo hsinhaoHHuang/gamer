@@ -102,9 +102,9 @@ void SetParameter()
 // ReadPara->Add( "KEY_IN_THE_FILE",   &VARIABLE,              DEFAULT,       MIN,              MAX               );
 // ********************************************************************************************************************************
    ReadPara->Add( "Height1",           &Height1,               1.0,           0.0,              NoMax_double      );
-   ReadPara->Add( "Width1",            &Width1,                30.0,           0.0,              NoMax_double      );
+   ReadPara->Add( "Width1",            &Width1,                10.0,           0.0,              NoMax_double      );
    ReadPara->Add( "Height2",           &Height2,               1.0,           0.0,              NoMax_double      );
-   ReadPara->Add( "Width2",            &Width2,                30.0,           0.0,              NoMax_double      );
+   ReadPara->Add( "Width2",            &Width2,                10.0,           0.0,              NoMax_double      );
    ReadPara->Add( "Center_RSeed",      &Center_RSeed,          -1,             NoMin_int,        NoMax_int         );
    ReadPara->Add( "EmptyRegion",       &EmptyRegion,           0.0,           NoMin_double,     NoMax_double      );
 
@@ -136,13 +136,13 @@ void SetParameter()
    else
    {
       
-         Center[0][0]=0.25*amr->BoxSize[0];   
-         Center[0][1]=0.25*amr->BoxSize[1];   
-         Center[0][2]=0.25*amr->BoxSize[2];
+         Center[0][0]=0.5*amr->BoxSize[0]-2.0*Width1;   
+         Center[0][1]=0.5*amr->BoxSize[1]-2.0*Width1;   
+         Center[0][2]=0.5*amr->BoxSize[2]-2.0*Width1;
 
-         Center[1][0]=0.75*amr->BoxSize[0];   
-         Center[1][1]=0.75*amr->BoxSize[1];   
-         Center[1][2]=0.75*amr->BoxSize[2];   
+         Center[1][0]=0.5*amr->BoxSize[0]+2.0*Width2;   
+         Center[1][1]=0.5*amr->BoxSize[1]+2.0*Width2;   
+         Center[1][2]=0.5*amr->BoxSize[2]+2.0*Width2;   
    
  //      Aux_Error(ERROR_INFO,"please hard code the center position !!\n");
                

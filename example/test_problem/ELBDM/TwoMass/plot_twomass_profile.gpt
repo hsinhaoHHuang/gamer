@@ -9,9 +9,9 @@ FILE_OUT_PREFIX = 'Fig__TwoMassProfile'
 ELBDM_ETA1      = 1.0
 ELBDM_ETA2      = 4.0
 Height1         = 1.0
-Width1          = 30.0 
+Width1          = 5.0 
 Height2         = 1.0
-Width2          = 30.0
+Width2          = 5.0
 BOX_SIZE        = 384.0    # simulation box size (BOX_SIZE)
 START_ID        = 0
 END_ID          = 50
@@ -75,7 +75,8 @@ do for [ID=START_ID:END_ID:DELTA_ID] {
 
 #  plot
    center = 0.5*BOX_SIZE
-   P      = 0.25*BOX_SIZE*3**0.5
+   P1     = 2.0*Width1*3**0.5
+   P2     = 2.0*Width2*3**0.5
    t1     = TIME/ELBDM_ETA1
    t2     = TIME/ELBDM_ETA2
    A1     = Width1**4+t1**2
@@ -94,10 +95,10 @@ do for [ID=START_ID:END_ID:DELTA_ID] {
        ,FILE_IN  u (($4-center)*3**0.5):($9     )  w p pt 8 lc 7 title 'Imag1' \
        ,FILE_IN  u (($4-center)*3**0.5):($10     ) w p pt 9 lc 8 title 'Real2' \
        ,FILE_IN  u (($4-center)*3**0.5):($11     ) w p pt 10 lc 9 title 'Imag2'\
-       ,C1*exp(-(x+P)**2*B1)*cos((x+P)**2*D1-E1)      w l      lc 10 title 'Ana R1'\
-       ,C1*exp(-(x+P)**2*B1)*sin((x+P)**2*D1-E1)      w l      lc 11 title 'Ana I1'\
-       ,C2*exp(-(x-P)**2*B2)*cos((x-P)**2*D2-E2)      w l      lc 12 title 'Ana R2'\
-       ,C2*exp(-(x-P)**2*B2)*sin((x-P)**2*D2-E2)      w l      lc 13 title 'Ana I2'         
+       ,C1*exp(-(x+P1)**2*B1)*cos((x+P1)**2*D1-E1)      w l      lc 10 title 'Ana R1'\
+       ,C1*exp(-(x+P1)**2*B1)*sin((x+P1)**2*D1-E1)      w l      lc 11 title 'Ana I1'\
+       ,C2*exp(-(x-P1)**2*B2)*cos((x-P1)**2*D2-E2)      w l      lc 12 title 'Ana R2'\
+       ,C2*exp(-(x-P1)**2*B2)*sin((x-P1)**2*D2-E2)      w l      lc 13 title 'Ana I2'         
 
 
    if ( GPVAL_TERM eq 'x11' ) { if ( PAUSE <= 0.0 ) { pause mouse }   else { pause PAUSE } };
