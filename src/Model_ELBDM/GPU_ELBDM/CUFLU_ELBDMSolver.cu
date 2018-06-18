@@ -161,7 +161,6 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
    const real dT1           = (real)0.5*dt*_Eta1;
    const real dT2           = (real)0.5*dt*_Eta2;
    const real _Eta2_dh     = (real)0.5*_dh*MIN(_Eta1,_Eta2);
-  // const real _Eta22_dh     =(real)0.5*_dh*_Eta2;
    const real Coeff11       = dT1*_dh*_dh;
    const real Coeff12       = dT2*_dh*_dh;
 #  ifdef CONSERVE_MASS
@@ -169,7 +168,7 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
    const real Coeff22       = Taylor3_Coeff*SQR(Coeff12);
 #  else
    const real Coeff21       = (real)0.5*SQR(Coeff11);
-   const real Coeff21       = (real)0.5*SQR(Coeff12);
+   const real Coeff22       = (real)0.5*SQR(Coeff12);
    const real Coeff31       = Taylor3_Coeff*CUBE(Coeff11);
    const real Coeff32       = Taylor3_Coeff*CUBE(Coeff12);
 #  endif

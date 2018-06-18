@@ -8,8 +8,10 @@
 
 static double Height1;
 static double Width1;
+static double Velocity1;
 static double Height2;
 static double Width2;
+static double Velocity2;
 static int    Center_RSeed;
 static double EmptyRegion;
 static double (*Center)[3] = NULL;
@@ -102,9 +104,11 @@ void SetParameter()
 // ReadPara->Add( "KEY_IN_THE_FILE",   &VARIABLE,              DEFAULT,       MIN,              MAX               );
 // ********************************************************************************************************************************
    ReadPara->Add( "Height1",           &Height1,               1.0,           0.0,              NoMax_double      );
-   ReadPara->Add( "Width1",            &Width1,                10.0,           0.0,              NoMax_double      );
+   ReadPara->Add( "Width1",            &Width1,                30.0,           0.0,              NoMax_double      );
+   ReadPara->Add( "Velocity1",         &Velocity1,             0.0,          NoMin_double,     NoMax_double      );
    ReadPara->Add( "Height2",           &Height2,               1.0,           0.0,              NoMax_double      );
-   ReadPara->Add( "Width2",            &Width2,                10.0,           0.0,              NoMax_double      );
+   ReadPara->Add( "Width2",            &Width2,                30.0,           0.0,              NoMax_double      );
+   ReadPara->Add( "Velocity2",         &Velocity2,             0.0,          NoMin_double,     NoMax_double      );
    ReadPara->Add( "Center_RSeed",      &Center_RSeed,          -1,             NoMin_int,        NoMax_int         );
    ReadPara->Add( "EmptyRegion",       &EmptyRegion,           0.0,           NoMin_double,     NoMax_double      );
 
@@ -172,8 +176,10 @@ void SetParameter()
       Aux_Message( stdout, "  test problem ID           = %d\n",     TESTPROB_ID );
       Aux_Message( stdout, "  Height of the first wavepacket  = %f\n",     Height1 );
       Aux_Message( stdout, "  Width of the first wavepacket  = %f\n",     Width1 );
+      Aux_Message( stdout, "  Velocity of the first wavepacket  = %f\n",     Velocity1 );
       Aux_Message( stdout, "  Height of the second wavepacket  = %f\n",     Height2 );
       Aux_Message( stdout, "  Width of the second wavepacket  = %f\n",    Width2 );
+      Aux_Message( stdout, "  Velocity of the second wavepacket  = %f\n",     Velocity2 );
       Aux_Message( stdout, "  random seed for setting the center coord. = %d\n",   Center_RSeed   );
       Aux_Message( stdout, "  size of the center-free zone     = %13.7e\n", EmptyRegion   );
       Aux_Message( stdout, "=============================================================================\n" );
@@ -209,10 +215,10 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
                 const int lv, double AuxArray[] )
 {
    
-   fluid[REAL1] = Height1* exp(-( SQR(x-Center[0][0]) + SQR(y-Center[0][1]) + SQR(z-Center[0][2]) )/(2.0*Width1*Width1) ) ;
-   fluid[IMAG1] = 0.0;
-   fluid[REAL2] = Height2* exp(-( SQR(x-Center[1][0]) + SQR(y-Center[1][1]) + SQR(z-Center[1][2]) )/(2.0*Width2*Width2) ) ;
-   fluid[IMAG2] = 0.0;
+   fluid[REAL1] = Height1* exp(-( SQR(x-Center[0][0]) + SQR(y-Center[0][1]) + SQR(z-Center[0][2]) )/(2.0*Width1*Width1) )* cos(Velocity1*( (x-Center[0][0])+(y-Center[0][1])+(z-Center[0][2]) ) );
+   fluid[IMAG1] = Height1* exp(-( SQR(x-Center[0][0]) + SQR(y-Center[0][1]) + SQR(z-Center[0][2]) )/(2.0*Width1*Width1) )* sin(Velocity1*( (x-Center[0][0])+(y-Center[0][1])+(z-Center[0][2]) ) );
+   fluid[REAL2] = Height2* exp(-( SQR(x-Center[1][0]) + SQR(y-Center[1][1]) + SQR(z-Center[1][2]) )/(2.0*Width2*Width2) )* cos(Velocity2*( (x-Center[1][0])+(y-Center[1][1])+(z-Center[1][2]) ) );
+   fluid[IMAG2] = Height2* exp(-( SQR(x-Center[1][0]) + SQR(y-Center[1][1]) + SQR(z-Center[1][2]) )/(2.0*Width2*Width2) )* sin(Velocity2*( (x-Center[1][0])+(y-Center[1][1])+(z-Center[1][2]) ) );
    fluid[DENS]  = SQR( fluid[REAL1] ) + SQR( fluid[IMAG1] ) + SQR( fluid[REAL2] ) + SQR( fluid[IMAG2] );
 
 
@@ -224,13 +230,13 @@ void End()
    delete []Center;
 }
 
-void BCo( real fluid[], const double x, const double y, const double z, const double Time, const int lv, double AuxArray[] )
+/*void BCo( real fluid[], const double x, const double y, const double z, const double Time, const int lv, double AuxArray[] )
 {
    fluid[REAL1] = (real)0.0;
    fluid[IMAG1] = (real)0.0;
    fluid[REAL2] = (real)0.0;
    fluid[IMAG2] = (real)0.0;
-}
+}*/
 
 
 #endif // #if ( MODEL == ELBDM && defined GRAVITY )
@@ -269,7 +275,7 @@ void Init_TestProb_ELBDM_TwoMass()
    Init_Function_User_Ptr   = SetGridIC;
    Flag_User_Ptr            = NULL;       // option: OPT__FLAG_USER;        example: Refine/Flag_User.cpp
    Mis_GetTimeStep_User_Ptr = NULL;       // option: OPT__DT_USER;          example: Miscellaneous/Mis_GetTimeStep_User.cpp
-   BC_User_Ptr              = BCo;       // option: OPT__BC_FLU_*=4;       example: TestProblem/ELBDM/ExtPot/Init_TestProb_ELBDM_ExtPot.cpp --> BC()
+   BC_User_Ptr              = NULL;       // option: OPT__BC_FLU_*=4;       example: TestProblem/ELBDM/ExtPot/Init_TestProb_ELBDM_ExtPot.cpp --> BC()
    Flu_ResetByUser_Func_Ptr = NULL;       // option: OPT__RESET_FLUID;      example: Fluid/Flu_ResetByUser.cpp
    Output_User_Ptr          = NULL;       // option: OPT__OUTPUT_USER;      example: TestProblem/Hydro/AcousticWave/Init_TestProb_Hydro_AcousticWave.cpp --> OutputError()
    Aux_Record_User_Ptr      = NULL;       // option: OPT__RECORD_USER;      example: Auxiliary/Aux_Record_User.cpp

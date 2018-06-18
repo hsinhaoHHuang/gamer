@@ -9,9 +9,11 @@ FILE_OUT_PREFIX = 'Fig__TwoMassProfile'
 ELBDM_ETA1      = 1.0
 ELBDM_ETA2      = 4.0
 Height1         = 1.0
-Width1          = 15.0 
+Width1          = 30.0
+Velocity1       = 0.0 
 Height2         = 1.0
-Width2          = 15.0
+Width2          = 30.0
+Velocity2       = 0.0
 BOX_SIZE        = 384.0    # simulation box size (BOX_SIZE)
 START_ID        = 0
 END_ID          = 50
@@ -75,10 +77,12 @@ do for [ID=START_ID:END_ID:DELTA_ID] {
 
 #  plot
    center = 0.5*BOX_SIZE
-   P1     = 2.0*Width1*3**0.5
-   P2     = 2.0*Width2*3**0.5
    t1     = TIME/ELBDM_ETA1
    t2     = TIME/ELBDM_ETA2
+   P1     = -2.0*Width1*3**0.5
+   P2     = 2.0*Width2*3**0.5
+   R1     = Velocity1*t1*3**0.5
+   R2     = Velocity2*t2*3**0.5
    A1     = Width1**4+t1**2
    A2     = Width2**4+t2**2
    B1     = 0.5*Width1**2/A1
@@ -89,16 +93,18 @@ do for [ID=START_ID:END_ID:DELTA_ID] {
    D2     = 0.5*t2/A2
    E1     = 1.5*atan(t1/Width1**2)
    E2     = 1.5*atan(t2/Width2**2)
+   F1     = 1.5*t1*Velocity1*Velocity1
+   F2     = 1.5*t2*Velocity2*Velocity2
 
-   plot FILE_IN  u (($4-center)*3**0.5):($7**0.5)  w p pt 6 lc 5 title 'Dens^{1/2}' \
+   plot FILE_IN  u (($4-center)*3**0.5):($7**0.5)  w p pt 6 lc 4 title 'Dens^{1/2}' \
        ,FILE_IN  u (($4-center)*3**0.5):($8     )  w p pt 7 lc 6 title 'Real1' \
        ,FILE_IN  u (($4-center)*3**0.5):($9     )  w p pt 8 lc 7 title 'Imag1' \
        ,FILE_IN  u (($4-center)*3**0.5):($10     ) w p pt 9 lc 8 title 'Real2' \
        ,FILE_IN  u (($4-center)*3**0.5):($11     ) w p pt 10 lc 9 title 'Imag2'\
-       ,C1*exp(-(x+P1)**2*B1)*cos((x+P1)**2*D1-E1)      w l      lc 10 title 'Ana R1'\
-       ,C1*exp(-(x+P1)**2*B1)*sin((x+P1)**2*D1-E1)      w l      lc 11 title 'Ana I1'\
-       ,C2*exp(-(x-P1)**2*B2)*cos((x-P1)**2*D2-E2)      w l      lc 12 title 'Ana R2'\
-       ,C2*exp(-(x-P1)**2*B2)*sin((x-P1)**2*D2-E2)      w l      lc 13 title 'Ana I2'         
+       ,C1*exp(-(x-P1-R1)**2*B1)*(cos((x-P1-R1)**2*D1-E1)*cos(Velocity1*(x-P1)*3**0.5-F1)-sin((x-P1-R1)**2*D1-E1)*sin(Velocity1*(x-P1)*3**0.5-F1))      w l      lc rgb '#00FF00' title 'Ana R1'\
+       ,C1*exp(-(x-P1-R1)**2*B1)*(sin((x-P1-R1)**2*D1-E1)*cos(Velocity1*(x-P1)*3**0.5-F1)+cos((x-P1-R1)**2*D1-E1)*sin(Velocity1*(x-P1)*3**0.5-F1))      w l      lc rgb '#FFFF00' title 'Ana I1'\
+       ,C2*exp(-(x-P2-R2)**2*B2)*(cos((x-P2-R2)**2*D2-E2)*cos(Velocity2*(x-P2)*3**0.5-F2)-sin((x-P2-R2)**2*D2-E2)*sin(Velocity2*(x-P2)*3**0.5-F2))      w l      lc rgb '#C0C0C0' title 'Ana R2'\
+       ,C2*exp(-(x-P2-R2)**2*B2)*(sin((x-P2-R2)**2*D2-E2)*cos(Velocity2*(x-P2)*3**0.5-F2)+cos((x-P2-R2)**2*D2-E2)*sin(Velocity2*(x-P2)*3**0.5-F2))      w l      lc rgb '#FF00FF' title 'Ana I2'         
 
 
    if ( GPVAL_TERM eq 'x11' ) { if ( PAUSE <= 0.0 ) { pause mouse }   else { pause PAUSE } };
