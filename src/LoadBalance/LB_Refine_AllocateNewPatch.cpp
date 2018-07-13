@@ -777,6 +777,7 @@ int AllocateSonPatch( const int FaLv, const int *Cr, const int PScale, const int
 #  if ( MODEL == ELBDM )
    if ( OPT__INT_PHASE )
    {
+            Aux_Error( ERROR_INFO, "OPT__INT_PHASE is not supported !!\n");/*
 //    get the wrapped phase (store in the REAL component)
       for (int t=0; t<CSize_Flu1v; t++)   CData_Real1[t] = ATAN2( CData_Imag1[t], CData_Real1[t] );
       for (int t=0; t<CSize_Flu1v; t++)   CData_Real2[t] = ATAN2( CData_Imag2[t], CData_Real2[t] );
@@ -789,7 +790,7 @@ int AllocateSonPatch( const int FaLv, const int *Cr, const int PScale, const int
       Interpolate( CData_Real1, CSize_Flu_Temp, CStart_Flu, CRange, &FData_Flu[REAL1][0][0][0],
                    FSize_Temp, FStart, 1, OPT__REF_FLU_INT_SCHEME, PhaseUnwrapping_Yes, &EnsureMonotonicity_No );
       Interpolate( CData_Real2, CSize_Flu_Temp, CStart_Flu, CRange, &FData_Flu[REAL2][0][0][0],
-                   FSize_Temp, FStart, 1, OPT__REF_FLU_INT_SCHEME, PhaseUnwrapping_Yes, &EnsureMonotonicity_No );
+                   FSize_Temp, FStart, 1, OPT__REF_FLU_INT_SCHEME, PhaseUnwrapping_Yes, &EnsureMonotonicity_No );*/
    }
 
    else // if ( OPT__INT_PHASE )
@@ -801,6 +802,7 @@ int AllocateSonPatch( const int FaLv, const int *Cr, const int PScale, const int
 
    if ( OPT__INT_PHASE )
    {
+            Aux_Error( ERROR_INFO, "OPT__INT_PHASE is not supported !!\n");/*
 //    retrieve real and imaginary parts
       real Amp, Phase1, Phase2, Rho;
 
@@ -824,7 +826,7 @@ int AllocateSonPatch( const int FaLv, const int *Cr, const int PScale, const int
          FData_Flu[IMAG1][k][j][i] = Amp*SIN( Phase1 );
          FData_Flu[REAL2][k][j][i] = Amp*COS( Phase2 );
          FData_Flu[IMAG2][k][j][i] = Amp*SIN( Phase2 );
-      }
+      }*/
    }
 
 #  else // #if ( MODEL == ELBDM )

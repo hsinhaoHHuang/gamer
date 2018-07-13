@@ -383,6 +383,7 @@ void Refine( const int lv, const UseLBFunc_t UseLBFunc )
          if ( OPT__INT_PHASE )
          {
 //          get the wrapped phase (store in the REAL component)
+            Aux_Error( ERROR_INFO, "OPT__INT_PHASE is not supported !!\n");/*
 #           ifdef GAMER_DEBUG
             ELBDM_GetPhase_DebugOnly( &Flu_CData[0][0][0][0], CSize_Flu );
 #           else
@@ -406,7 +407,7 @@ void Refine( const int lv, const UseLBFunc_t UseLBFunc )
             Interpolate( &Flu_CData[REAL2][0][0][0], CSize_Flu3, CStart_Flu, CRange, &Flu_FData[REAL2][0][0][0],
                          FSize3, FStart, 1, OPT__REF_FLU_INT_SCHEME, PhaseUnwrapping_Yes,
                          &EnsureMonotonicity_No );
-         
+         */
          }
 
          else // if ( OPT__INT_PHASE )
@@ -419,6 +420,7 @@ void Refine( const int lv, const UseLBFunc_t UseLBFunc )
 
          if ( OPT__INT_PHASE )
          {
+            Aux_Error( ERROR_INFO, "OPT__INT_PHASE is not supported !!\n");/*
 //          retrieve real and imaginary parts
             real Amp, Phase1, Phase2, Rho;
 
@@ -442,7 +444,7 @@ void Refine( const int lv, const UseLBFunc_t UseLBFunc )
                Flu_FData[IMAG1][k][j][i] = Amp*SIN( Phase1 );
                Flu_FData[REAL2][k][j][i] = Amp*COS( Phase2 );
                Flu_FData[IMAG2][k][j][i] = Amp*SIN( Phase2 );
-            }
+            }*/
          }
 
 #        else // #if ( MODEL == ELBDM )

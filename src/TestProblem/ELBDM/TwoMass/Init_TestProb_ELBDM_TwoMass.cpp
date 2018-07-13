@@ -230,13 +230,13 @@ void End()
    delete []Center;
 }
 
-/*void BCo( real fluid[], const double x, const double y, const double z, const double Time, const int lv, double AuxArray[] )
+void BCo( real fluid[], const double x, const double y, const double z, const double Time, const int lv, double AuxArray[] )
 {
    fluid[REAL1] = (real)0.0;
    fluid[IMAG1] = (real)0.0;
    fluid[REAL2] = (real)0.0;
    fluid[IMAG2] = (real)0.0;
-}*/
+}
 
 
 #endif // #if ( MODEL == ELBDM && defined GRAVITY )
@@ -275,7 +275,7 @@ void Init_TestProb_ELBDM_TwoMass()
    Init_Function_User_Ptr   = SetGridIC;
    Flag_User_Ptr            = NULL;       // option: OPT__FLAG_USER;        example: Refine/Flag_User.cpp
    Mis_GetTimeStep_User_Ptr = NULL;       // option: OPT__DT_USER;          example: Miscellaneous/Mis_GetTimeStep_User.cpp
-   BC_User_Ptr              = NULL;       // option: OPT__BC_FLU_*=4;       example: TestProblem/ELBDM/ExtPot/Init_TestProb_ELBDM_ExtPot.cpp --> BC()
+   BC_User_Ptr              = BCo;       // option: OPT__BC_FLU_*=4;       example: TestProblem/ELBDM/ExtPot/Init_TestProb_ELBDM_ExtPot.cpp --> BC()
    Flu_ResetByUser_Func_Ptr = NULL;       // option: OPT__RESET_FLUID;      example: Fluid/Flu_ResetByUser.cpp
    Output_User_Ptr          = NULL;       // option: OPT__OUTPUT_USER;      example: TestProblem/Hydro/AcousticWave/Init_TestProb_Hydro_AcousticWave.cpp --> OutputError()
    Aux_Record_User_Ptr      = NULL;       // option: OPT__RECORD_USER;      example: Auxiliary/Aux_Record_User.cpp

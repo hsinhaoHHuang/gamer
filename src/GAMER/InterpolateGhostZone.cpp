@@ -794,6 +794,8 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData[], const in
 // c1. interpolation on phase in ELBDM
    if ( IntPhase )
    {
+      
+      Aux_Error( ERROR_INFO, "OPT__INT_Phase should be disabled !!\n" );/*
       int DensIdx=-1, Real1Idx=-1, Imag1Idx=-1, Real2Idx=-1, Imag2Idx=-1;
 
       for (int v=0; v<NVar_Flu; v++)
@@ -849,7 +851,7 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData[], const in
       Interpolate( CData_Real1, CSize, CStart, CRange, FData_Real1, FSize, FStart, 1, IntScheme,
                    PhaseUnwrapping_Yes, &EnsureMonotonicity_No );
       Interpolate( CData_Real2, CSize, CStart, CRange, FData_Real2, FSize, FStart, 1, IntScheme,
-                   PhaseUnwrapping_Yes, &EnsureMonotonicity_No );
+                   PhaseUnwrapping_Yes, &EnsureMonotonicity_No );*/
    } // if ( IntPhase )
 
 
@@ -864,6 +866,7 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData[], const in
 // retrieve real and imaginary parts when phase interpolation is adopted
    if ( IntPhase )
    {
+      Aux_Error( ERROR_INFO, "OPT__INT_Phase should be disabled !!\n" );/*
       real Amp, Phase1, Phase2, Rho;
 
       for (int t=0; t<FSize3D; t++)
@@ -886,7 +889,7 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData[], const in
          FData_Real2[t] = Amp*COS( Phase2 );
          FData_Imag2[t] = Amp*SIN( Phase2 );
 
-      }
+      }*/
    }
 
 #  else // #if ( MODEL == ELBDM )

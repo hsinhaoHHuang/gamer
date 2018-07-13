@@ -187,7 +187,8 @@ void CPU_AdvanceX( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ], real Flux_Array[][NFLUX_
    const real _dh      = (real)1.0/dh;
    const real dT1      = (real)0.5*dt/Eta1;
    const real dT2      = (real)0.5*dt/Eta2;
-   const real _Eta2_dh= (real)0.5*_dh/MAX(Eta1,Eta2);
+   const real _Eta12_dh= (real)0.5*_dh/Eta1;
+   const real _Eta22_dh= (real)0.5*_dh/Eta2;
    const real Coeff11   = dT1*_dh*_dh;
    const real Coeff12   = dT2*_dh*_dh;
    const real Coeff21   = Taylor3_Coeff*Coeff11*Coeff11;
@@ -212,8 +213,9 @@ void CPU_AdvanceX( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ], real Flux_Array[][NFLUX_
    int Idx;
 
 #  ifdef CONSERVE_MASS
-   const real dT_dh2 = dT*_dh*_dh;
-   real   R1, I1, R2, I2, dR1, dI1, dR1, dR2, Flux[PS2+1] ;
+   const real dT1_dh2 = dT1*_dh*_dh;
+   const real dT2_dh2 = dT2*_dh*_dh;
+   real   R1, I1, R2, I2, dR1, dI1, dR2, dI2, Flux1[PS2+1], Flux2[PS2+1];
    double Amp_Old, Amp_New, Amp_Corr;  // use double precision to reduce the round-off error in the mass conservation
    int    Idx2, Idx3;
 #  endif
@@ -290,7 +292,8 @@ void CPU_AdvanceX( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ], real Flux_Array[][NFLUX_
          dI2 =           ( - Im_Half2[i] + Im_Half2[i+1] );
 #        endif
 
-         Flux[ Idx2 ++ ] = (real)2.0*( R1*dI1 - I1*dR1 + R2*dI2 - I2*dR2 );
+         Flux1[ Idx2 ++ ] = (real)2.0*( R1*dI1 - I1*dR1 );
+         Flux2[ Idx2 ++ ] = (real)2.0*( R2*dI2 - I2*dR2 );
       }
 
 //    4.2. correct the amplitude
@@ -299,7 +302,7 @@ void CPU_AdvanceX( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ], real Flux_Array[][NFLUX_
       {
          Amp_Old  = SQR( Re_Old1[i] ) + SQR( Im_Old1[i] ) +  SQR( Re_Old2[i] ) + SQR( Im_Old2[i] );
          Amp_New  = SQR( Re_New1[i] ) + SQR( Im_New1[i] ) +  SQR( Re_New2[i] ) + SQR( Im_New2[i] );
-         Amp_Corr = Amp_Old - dT_dh2*( Flux[Idx2+1] - Flux[Idx2]);
+         Amp_Corr = Amp_Old - dT1_dh2*( Flux1[Idx2+1] - Flux1[Idx2] ) -dT2_dh2*( Flux2[Idx2+1] - Flux2[Idx2] );
 
 //       be careful about the negative density and the vacuum (where we might have Amp_New == 0.0)
 //       if ( Amp_Corr > (real)0.0  &&  Amp_New > (real)0.0 )
@@ -325,9 +328,9 @@ void CPU_AdvanceX( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ], real Flux_Array[][NFLUX_
       {
          Idx3 = (k-FLU_GHOST_SIZE)*PS2 + (j-FLU_GHOST_SIZE);
 
-         Flux_Array[Flux_XYZ+0][0][Idx3] = Flux[  0]*_Eta2_dh;
-         Flux_Array[Flux_XYZ+1][0][Idx3] = Flux[PS1]*_Eta2_dh;
-         Flux_Array[Flux_XYZ+2][0][Idx3] = Flux[PS2]*_Eta2_dh;
+         Flux_Array[Flux_XYZ+0][0][Idx3] = Flux1[  0]*_Eta12_dh + Flux2[  0]*_Eta22_dh;
+         Flux_Array[Flux_XYZ+1][0][Idx3] = Flux1[PS1]*_Eta12_dh + Flux2[PS1]*_Eta22_dh;
+         Flux_Array[Flux_XYZ+2][0][Idx3] = Flux1[PS2]*_Eta12_dh + Flux2[Ps2]*_Eta22_dh;
       }
 #     endif // #ifdef CONSERVE_MASS
 
