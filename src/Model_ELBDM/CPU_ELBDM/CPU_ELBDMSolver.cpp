@@ -292,8 +292,9 @@ void CPU_AdvanceX( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ], real Flux_Array[][NFLUX_
          dI2 =           ( - Im_Half2[i] + Im_Half2[i+1] );
 #        endif
 
-         Flux1[ Idx2 ++ ] = (real)2.0*( R1*dI1 - I1*dR1 );
-         Flux2[ Idx2 ++ ] = (real)2.0*( R2*dI2 - I2*dR2 );
+         Flux1[ Idx2 ] = (real)2.0*( R1*dI1 - I1*dR1 );
+         Flux2[ Idx2 ] = (real)2.0*( R2*dI2 - I2*dR2 );
+         Idx2 ++;
       }
 
 //    4.2. correct the amplitude
@@ -330,7 +331,7 @@ void CPU_AdvanceX( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ], real Flux_Array[][NFLUX_
 
          Flux_Array[Flux_XYZ+0][0][Idx3] = Flux1[  0]*_Eta12_dh + Flux2[  0]*_Eta22_dh;
          Flux_Array[Flux_XYZ+1][0][Idx3] = Flux1[PS1]*_Eta12_dh + Flux2[PS1]*_Eta22_dh;
-         Flux_Array[Flux_XYZ+2][0][Idx3] = Flux1[PS2]*_Eta12_dh + Flux2[Ps2]*_Eta22_dh;
+         Flux_Array[Flux_XYZ+2][0][Idx3] = Flux1[PS2]*_Eta12_dh + Flux2[PS2]*_Eta22_dh;
       }
 #     endif // #ifdef CONSERVE_MASS
 

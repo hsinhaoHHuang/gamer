@@ -358,10 +358,10 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
             Re_New *= SQRT( Amp_Corr / Amp_New );
             Im_New *= SQRT( Amp_Corr / Amp_New );
             */
-            Re1_New *= SQRT( Amp_Corr / Amp_New );  // use double precision to improve the mass conservation further
-            Im1_New *= SQRT( Amp_Corr / Amp_New );
-            Re2_New *= SQRT( Amp_Corr / Amp_New );
-            Im2_New *= SQRT( Amp_Corr / Amp_New );
+            Re1_New *= sqrt( Amp_Corr / Amp_New );  // use double precision to improve the mass conservation further
+            Im1_New *= sqrt( Amp_Corr / Amp_New );
+            Re2_New *= sqrt( Amp_Corr / Amp_New );
+            Im2_New *= sqrt( Amp_Corr / Amp_New );
             Amp_New = Amp_Corr;
          }
       } // if if ( tid < NColumnOnce*PS2 )

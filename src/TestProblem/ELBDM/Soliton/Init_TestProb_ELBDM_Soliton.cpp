@@ -9,7 +9,7 @@ static int      Soliton_N;                               // total number of soli
 static int      Soliton_RSeed;                           // random seed for setting Soliton_Center (<0 --> set manually)
 static double   Soliton_CoreRadiusAll;                   // core radius for all solitons (<=0.0 --> set manually)
 static double   Soliton_EmptyRegion;                     // soliton-free region from the boundary (useful only when Soliton_RSeed>=0)
-static double   Soliton_Distance;                        // normalized distance between solitons and the center ( useful only when Soliton_N == 2 )
+static double   Soliton_Distance;                        // normalized distance between solitons ( useful only when Soliton_N == 2 )
 static char     Soliton_DensProf_Filename[MAX_STRING];   // filename of the soliton density profile
 
 static int      Soliton_DensProf_NBin;                   // number of radial bins of the soliton density profile
@@ -21,10 +21,10 @@ static double  *Soliton_ScaleL     = NULL;               // L/D: length/density 
                                                          //      density of the target and reference soliton profiles
 static double  *Soliton_ScaleD      = NULL;
 static int     *Soliton_ParMass     = NULL;              // particle mass of each soliton
-static double   Velocity1X;
+static double   Velocity1X;                              // velocity of the soliton with ELBDM_MASS1 ( code_length / code_time )
 static double   Velocity1Y;
 static double   Velocity1Z;
-static double   Velocity2X;
+static double   Velocity2X;                              // velocity of the soliton with ELBDM_MASS2 ( code_length / code_time )
 static double   Velocity2Y;
 static double   Velocity2Z;
 // =======================================================================================
@@ -121,7 +121,7 @@ void SetParameter()
    ReadPara->Add( "Soliton_RSeed",             &Soliton_RSeed,              0,             NoMin_int,        NoMax_int         );
    ReadPara->Add( "Soliton_CoreRadiusAll",     &Soliton_CoreRadiusAll,      NoDef_double,  NoMin_double,     NoMax_double      );
    ReadPara->Add( "Soliton_EmptyRegion",       &Soliton_EmptyRegion,        0.0,           NoMin_double,     NoMax_double      );
-   ReadPara->Add( "Soliton_Distance",          &Soliton_Distance,           0.25,          0.0,              0.5               );
+   ReadPara->Add( "Soliton_Distance",          &Soliton_Distance,           0.25,          0.0,              1.0               );
    ReadPara->Add( "Soliton_DensProf_Filename",  Soliton_DensProf_Filename,  Useless_str,   Useless_str,      Useless_str       );
    ReadPara->Add( "Velocity1X",                &Velocity1X,                 0.0,           NoMin_double,     NoMax_double      );
    ReadPara->Add( "Velocity1Y",                &Velocity1Y,                 0.0,           NoMin_double,     NoMax_double      );
@@ -163,9 +163,13 @@ void SetParameter()
    else
    {
 //    for Soliton_FixedScale <= 0.0, comment out the following line and hard code the scale factor of each soliton
-      Aux_Error( ERROR_INFO, "for Soliton_CoreRadiusAll <= 0.0, please comment out this error check and hard code "
+      if ( Soliton_N != 2 ) Aux_Error( ERROR_INFO, "for Soliton_CoreRadiusAll <= 0.0, please comment out this error check and hard code "
                              "the core radius of each soliton !!\n" );
 //    for (int t=0; t<Soliton_N; t++)  Soliton_CoreRadius[t] = XXX;
+      Soliton_CoreRadius[0] = 10.0;
+      Soliton_CoreRadius[1] = 15.0;
+      Soliton_ParMass[0] = 0;
+      Soliton_ParMass[1] = 1;
    }
 
 // (2-3) soliton centers
@@ -190,13 +194,17 @@ void SetParameter()
       }
       else if ( Soliton_N == 2)
       {
-         for (int d=0; d<3; d++)    Soliton_Center[0][d] = (0.5-Soliton_Distance)*amr->BoxSize[d];
-         for (int d=0; d<3; d++)    Soliton_Center[1][d] = (0.5+Soliton_Distance)*amr->BoxSize[d];
+         Soliton_Center[0][0] = (0.5-0.5*Soliton_Distance)*amr->BoxSize[0];
+         Soliton_Center[0][1] = (0.5)*amr->BoxSize[1];
+         Soliton_Center[0][2] = (0.5)*amr->BoxSize[2];
+         Soliton_Center[1][0] = (0.5+0.5*Soliton_Distance)*amr->BoxSize[0];
+         Soliton_Center[1][1] = (0.5)*amr->BoxSize[1];
+         Soliton_Center[1][2] = (0.5)*amr->BoxSize[2];
       }
       else
       {
 //       for Soliton_RSeed<0, comment out the following line and hard code the center of each soliton
-         Aux_Error( ERROR_INFO, "for Soliton_RSeed < 0 and Soliton_N > 1, please comment out this error check and hard code "
+         Aux_Error( ERROR_INFO, "for Soliton_RSeed < 0 and Soliton_N > 2, please comment out this error check and hard code "
                                 "the center of each soliton !!\n" );
 
          
@@ -277,17 +285,17 @@ void SetParameter()
       Aux_Message( stdout, "  total number of solitons                  = %d\n",     Soliton_N                  );
       Aux_Message( stdout, "  random seed for setting the center coord. = %d\n",     Soliton_RSeed              );
       Aux_Message( stdout, "  size of the soliton-free zone             = %13.7e\n", Soliton_EmptyRegion        );
-      Aux_Message( stdout, "  normalized distance to the center         = %13.7e\n", Soliton_Distance           );
+      Aux_Message( stdout, "  normalized distance                       = %13.7e\n", Soliton_Distance           );
       Aux_Message( stdout, "  density profile filename                  = %s\n",     Soliton_DensProf_Filename  );
       Aux_Message( stdout, "  number of bins of the density profile     = %d\n",     Soliton_DensProf_NBin      );
       Aux_Message( stdout, "\n" );
       Aux_Message( stdout, "  Soliton info:\n" );
-      Aux_Message( stdout, "  %7s  %13s  %13s  %13s  %13s  %13s  %13s\n",
-                   "ID", "CoreRadius", "ScaleL", "ScaleD", "Center_X", "Center_Y", "Center_Z" );
+      Aux_Message( stdout, "  %7s  %13s  %13s  %13s  %13s  %13s  %13s %13s\n",
+                   "ID", "CoreRadius", "ScaleL", "ScaleD", "Center_X", "Center_Y", "Center_Z", "ParticleMass" );
       for (int t=0; t<Soliton_N; t++)
-      Aux_Message( stdout, "  %7d  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e\n",
+      Aux_Message( stdout, "  %7d  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e ELBDM_MASS%d\n",
                    t, Soliton_CoreRadius[t], Soliton_ScaleL[t], Soliton_ScaleD[t],
-                   Soliton_Center[t][0], Soliton_Center[t][1], Soliton_Center[t][2] );
+                   Soliton_Center[t][0], Soliton_Center[t][1], Soliton_Center[t][2], Soliton_ParMass[t]+1 );
       Aux_Message( stdout, "=============================================================================\n" );
    }
 
@@ -361,10 +369,10 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
 
 
 // set the real and imaginary parts
-   fluid[REAL1] = sqrt( dens1 )*cos( Velocity1X*x + Velocity1Y*y + Velocity1Z*z );
-   fluid[IMAG1] = sqrt( dens1 )*sin( Velocity1X*x + Velocity1Y*y + Velocity1Z*z );
-   fluid[REAL2] = sqrt( dens2 )*cos( Velocity2X*x + Velocity2Y*y + Velocity2Z*z );
-   fluid[IMAG2] = sqrt( dens2 )*sin( Velocity2X*x + Velocity2Y*y + Velocity2Z*z );
+   fluid[REAL1] = sqrt( dens1 )*cos( ELBDM_ETA1*( Velocity1X*x + Velocity1Y*y + Velocity1Z*z ) );
+   fluid[IMAG1] = sqrt( dens1 )*sin( ELBDM_ETA1*( Velocity1X*x + Velocity1Y*y + Velocity1Z*z ) );
+   fluid[REAL2] = sqrt( dens2 )*cos( ELBDM_ETA2*( Velocity2X*x + Velocity2Y*y + Velocity2Z*z ) );
+   fluid[IMAG2] = sqrt( dens2 )*sin( ELBDM_ETA2*( Velocity2X*x + Velocity2Y*y + Velocity2Z*z ) );
    fluid[DENS] = SQR( fluid[REAL1] ) + SQR( fluid[IMAG1] ) + SQR( fluid[REAL2] ) + SQR( fluid[IMAG2] );
 } // FUNCTION : SetGridIC
 
@@ -440,7 +448,7 @@ void Init_TestProb_ELBDM_Soliton()
    Validate();
 
 
-#  if ( MODEL == ELBDM )// &&  defined GRAVITY )
+#  if ( MODEL == ELBDM &&  defined GRAVITY )
 // set the problem-specific runtime parameters
    SetParameter();
 
