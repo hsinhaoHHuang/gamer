@@ -293,7 +293,7 @@ void SetParameter()
       Aux_Message( stdout, "  %7s  %13s  %13s  %13s  %13s  %13s  %13s %13s\n",
                    "ID", "CoreRadius", "ScaleL", "ScaleD", "Center_X", "Center_Y", "Center_Z", "ParticleMass" );
       for (int t=0; t<Soliton_N; t++)
-      Aux_Message( stdout, "  %7d  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e ELBDM_MASS%d\n",
+      Aux_Message( stdout, "  %7d  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e   ELBDM_MASS%d\n",
                    t, Soliton_CoreRadius[t], Soliton_ScaleL[t], Soliton_ScaleD[t],
                    Soliton_Center[t][0], Soliton_Center[t][1], Soliton_Center[t][2], Soliton_ParMass[t]+1 );
       Aux_Message( stdout, "=============================================================================\n" );
