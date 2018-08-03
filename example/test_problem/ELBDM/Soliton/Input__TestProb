@@ -5,7 +5,7 @@ Soliton_CoreRadiusAll       1.0e1    # core radius for ALL solitons (in code uni
 Soliton_EmptyRegion         0.0      # soliton-free region [0.0]
                                      # -> solitons only reside in [Soliton_EmptyRegion : BOX_SIZE-Soliton_EmptyRegion]
                                      # -> useful only when Soliton_RSeed >= 0
-Soliton_Distance            0.25      # normalized distance form solitons to the center (useful only when Soliton_N ==2 and Soliton_RSeed < 0 ) [0.25]
+Soliton_Distance            0.5      # normalized distance between solitons (useful only when Soliton_N ==2 and Soliton_RSeed < 0 ) [0.5]
 Soliton_DensProf_Filename   SolitonDensityProfile_Lambda0.0    # filename of the input soliton density profile
 Velocity1X                  0.0
 Velocity1Y                  0.0

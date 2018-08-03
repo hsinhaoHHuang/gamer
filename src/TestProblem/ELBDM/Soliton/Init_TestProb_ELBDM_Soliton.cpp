@@ -121,7 +121,7 @@ void SetParameter()
    ReadPara->Add( "Soliton_RSeed",             &Soliton_RSeed,              0,             NoMin_int,        NoMax_int         );
    ReadPara->Add( "Soliton_CoreRadiusAll",     &Soliton_CoreRadiusAll,      NoDef_double,  NoMin_double,     NoMax_double      );
    ReadPara->Add( "Soliton_EmptyRegion",       &Soliton_EmptyRegion,        0.0,           NoMin_double,     NoMax_double      );
-   ReadPara->Add( "Soliton_Distance",          &Soliton_Distance,           0.25,          0.0,              1.0               );
+   ReadPara->Add( "Soliton_Distance",          &Soliton_Distance,           0.5,          0.0,              1.0               );
    ReadPara->Add( "Soliton_DensProf_Filename",  Soliton_DensProf_Filename,  Useless_str,   Useless_str,      Useless_str       );
    ReadPara->Add( "Velocity1X",                &Velocity1X,                 0.0,           NoMin_double,     NoMax_double      );
    ReadPara->Add( "Velocity1Y",                &Velocity1Y,                 0.0,           NoMin_double,     NoMax_double      );
