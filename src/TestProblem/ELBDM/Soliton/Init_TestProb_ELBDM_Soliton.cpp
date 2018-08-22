@@ -163,13 +163,45 @@ void SetParameter()
    else
    {
 //    for Soliton_FixedScale <= 0.0, comment out the following line and hard code the scale factor of each soliton
-      if ( Soliton_N != 2 ) Aux_Error( ERROR_INFO, "for Soliton_CoreRadiusAll <= 0.0, please comment out this error check and hard code "
-                             "the core radius of each soliton !!\n" );
+//      if ( Soliton_N != 2 ) Aux_Error( ERROR_INFO, "for Soliton_CoreRadiusAll <= 0.0, please comment out this error check and hard code "
+//                             "the core radius of each soliton !!\n" );
 //    for (int t=0; t<Soliton_N; t++)  Soliton_CoreRadius[t] = XXX;
-      Soliton_CoreRadius[0] = 10.0;
-      Soliton_CoreRadius[1] = 15.0;
-      Soliton_ParMass[0] = 0;
-      Soliton_ParMass[1] = 1;
+      const double  CoreRadius[2] = { 10.0, 90.0 };
+
+      if ( Soliton_N == 2 )
+      {
+          Soliton_CoreRadius[0] = CoreRadius[0];
+          Soliton_CoreRadius[1] = CoreRadius[1];
+          Soliton_ParMass[0] = 0;
+          Soliton_ParMass[1] = 1;
+      }
+      else
+      {
+         if( Soliton_RSeed >= 0 )
+         {
+            srand( Soliton_RSeed );
+            int RandomParMass;
+            
+            for(int t=0; t<Soliton_N; t++)
+            {
+               RandomParMass = rand()%2;
+               if ( RandomParMass == 0 )
+               {
+                   Soliton_CoreRadius[t] = CoreRadius[0];
+                   Soliton_ParMass[t] = 0;
+               }
+               if ( RandomParMass == 1 )
+               {
+                   Soliton_CoreRadius[t] = CoreRadius[1];
+                   Soliton_ParMass[t] = 1;
+               }
+            }
+         }
+         else
+         {
+            Aux_Error( ERROR_INFO," for Soliton_CoreRadius <= 0.0 and Soliton_N != 2 and Soliton_RSeed < 0, please hard code the core radius of each soliton \n ");
+         }
+      }
    }
 
 // (2-3) soliton centers
