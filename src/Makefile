@@ -82,7 +82,7 @@ else ifeq "$(filter -DMODEL=MHD, $(SIMU_OPTION))" "-DMODEL=MHD"
 # ------------------------------------------------------------------------------------
 else ifeq "$(filter -DMODEL=ELBDM, $(SIMU_OPTION))" "-DMODEL=ELBDM"
 # enforce the mass conservation
-SIMU_OPTION += -DCONSERVE_MASS
+#SIMU_OPTION += -DCONSERVE_MASS
 
 # 4-th order Laplacian
 SIMU_OPTION += -DLAPLACIAN_4TH
@@ -316,7 +316,7 @@ endif
 CUDA_PATH    := /opt/gpu/cuda/4.2
 FFTW_PATH    := /opt/math/fftw/2.1.5-intel-qlc
 MPI_PATH     := /usr/mpi/intel/openmpi-1.4.3-qlc
-HDF5_PATH    := /opt/hdf5/1.8.9
+HDF5_PATH    := /opt/hdf5/1.8.20
 #MPI_PATH     := /opt/mpi/openmpi/1.6.0-intel
 #CUDA_PATH    := /usr/local/cuda-7.5
 
