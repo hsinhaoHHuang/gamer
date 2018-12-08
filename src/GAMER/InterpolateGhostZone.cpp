@@ -790,12 +790,16 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData[], const in
    real *FData_Imag1 = NULL;
    real *FData_Real2 = NULL;
    real *FData_Imag2 = NULL;
+   real CData_Dens1[CSize3D];
+   real CData_Dens2[CSize3D];
+   real FData_Dens1[FSize3D];
+   real FData_Dens2[FSize3D];
 
 // c1. interpolation on phase in ELBDM
    if ( IntPhase )
    {
       
-      Aux_Error( ERROR_INFO, "OPT__INT_Phase should be disabled !!\n" );/*
+//      Aux_Error( ERROR_INFO, "OPT__INT_Phase should be disabled !!\n" );/*
       int DensIdx=-1, Real1Idx=-1, Imag1Idx=-1, Real2Idx=-1, Imag2Idx=-1;
 
       for (int v=0; v<NVar_Flu; v++)
@@ -837,21 +841,26 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData[], const in
          Re2 = CData_Real2[t];
          Im2 = CData_Imag2[t];
 
+         CData_Dens1[t] = CData_Dens[t]*( Re1*Re1 + Im1*Im1 ) / ( Re1*Re1 + Im1*Im1 + Re2*Re2 + Im2*Im2 );
+         CData_Dens2[t] = CData_Dens[t]*( Re2*Re2 + Im2*Im2 ) / ( Re1*Re1 + Im1*Im1 + Re2*Re2 + Im2*Im2 );
          CData_Real1[t] = ATAN2( Im1, Re1 );
          CData_Real2[t] = ATAN2( Im2, Re2 );
          if ( DensIdx == -1 )
-         CData_Dens[t] = Re1*Re1 + Im1*Im1 + Re2*Re2 + Im2*Im2;
+         CData_Dens1[t] = Re1*Re1 + Im1*Im1;
+         CData_Dens2[t] = Re2*Re2 + Im2*Im2;
       }
 
 //    interpolate density
-      Interpolate( CData_Dens, CSize, CStart, CRange, FData_Dens, FSize, FStart, 1, IntScheme,
+      Interpolate( CData_Dens1, CSize, CStart, CRange, FData_Dens1, FSize, FStart, 1, IntScheme,
+                   PhaseUnwrapping_No, &EnsureMonotonicity_Yes );
+      Interpolate( CData_Dens2, CSize, CStart, CRange, FData_Dens2, FSize, FStart, 1, IntScheme,
                    PhaseUnwrapping_No, &EnsureMonotonicity_Yes );
 
 //    interpolate phase
       Interpolate( CData_Real1, CSize, CStart, CRange, FData_Real1, FSize, FStart, 1, IntScheme,
                    PhaseUnwrapping_Yes, &EnsureMonotonicity_No );
       Interpolate( CData_Real2, CSize, CStart, CRange, FData_Real2, FSize, FStart, 1, IntScheme,
-                   PhaseUnwrapping_Yes, &EnsureMonotonicity_No );*/
+                   PhaseUnwrapping_Yes, &EnsureMonotonicity_No );
    } // if ( IntPhase )
 
 
@@ -866,30 +875,39 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData[], const in
 // retrieve real and imaginary parts when phase interpolation is adopted
    if ( IntPhase )
    {
-      Aux_Error( ERROR_INFO, "OPT__INT_Phase should be disabled !!\n" );/*
-      real Amp, Phase1, Phase2, Rho;
+//      Aux_Error( ERROR_INFO, "OPT__INT_Phase should be disabled !!\n" );/*
+      real Amp1, Amp2, Phase1, Phase2, Rho1, Rho2;
 
       for (int t=0; t<FSize3D; t++)
       {
          Phase1 = FData_Real1[t];
          Phase2 = FData_Real2[t];
-         Rho   = FData_Dens[t];
+         Rho1   = FData_Dens1[t];
+         Rho2   = FData_Dens2[t];
+
 
 //       be careful about the negative density introduced from the round-off errors
 //       --> note that we check minimum density in the end of Prepare_PatchData()
-         if ( Rho < (real)0.0 )
+         if ( Rho1 < (real)0.0 )
          {
-            FData_Dens[t] = (real)0.0;
-            Rho           = (real)0.0;
+            FData_Dens1[t] = (real)0.0;
+            Rho1           = (real)0.0;
+         }
+         if ( Rho2 < (real)0.0 )
+         {
+            FData_Dens2[t] = (real)0.0;
+            Rho2           = (real)0.0;
          }
 
-         Amp           = SQRT( Rho );
-         FData_Real1[t] = Amp*COS( Phase1 );
-         FData_Imag1[t] = Amp*SIN( Phase1 );
-         FData_Real2[t] = Amp*COS( Phase2 );
-         FData_Imag2[t] = Amp*SIN( Phase2 );
+         Amp1           = SQRT( Rho1 );
+         Amp2           = SQRT( Rho2 );
+         FData_Real1[t] = Amp1*COS( Phase1 );
+         FData_Imag1[t] = Amp1*SIN( Phase1 );
+         FData_Real2[t] = Amp2*COS( Phase2 );
+         FData_Imag2[t] = Amp2*SIN( Phase2 );
+         FData_Dens[t]  = Rho1 + Rho2;
 
-      }*/
+      }
    }
 
 #  else // #if ( MODEL == ELBDM )
