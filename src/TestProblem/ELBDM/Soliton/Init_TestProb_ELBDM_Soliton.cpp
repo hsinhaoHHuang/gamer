@@ -27,6 +27,9 @@ static double   Velocity1Z;
 static double   Velocity2X;                              // velocity of the soliton with ELBDM_MASS2 ( code_length / code_time )
 static double   Velocity2Y;
 static double   Velocity2Z;
+
+static double ExtPot_M;          // point source mass
+static double ExtPot_Cen[3];     // point source position
 // =======================================================================================
 
 
@@ -66,8 +69,8 @@ void Validate()
 #  endif
 
 #  ifdef GRAVITY
-   if ( OPT__BC_POT != BC_POT_ISOLATED )
-      Aux_Error( ERROR_INFO, "must adopt isolated BC for gravity --> reset OPT__BC_POT !!\n" );
+//   if ( OPT__BC_POT != BC_POT_ISOLATED )
+//      Aux_Error( ERROR_INFO, "must adopt isolated BC for gravity --> reset OPT__BC_POT !!\n" );
 #  endif
 
 
@@ -129,10 +132,18 @@ void SetParameter()
    ReadPara->Add( "Velocity2X",                &Velocity2X,                 0.0,           NoMin_double,     NoMax_double      );
    ReadPara->Add( "Velocity2Y",                &Velocity2Y,                 0.0,           NoMin_double,     NoMax_double      );
    ReadPara->Add( "Velocity2Z",                &Velocity2Z,                 0.0,           NoMin_double,     NoMax_double      );
+   ReadPara->Add( "ExtPot_M",          &ExtPot_M,               0.0,          0.0,       NoMax_double      );
+   ReadPara->Add( "ExtPot_Cen_X",      &ExtPot_Cen[0],         -1.0,          NoMin_double,     NoMax_double      );
+   ReadPara->Add( "ExtPot_Cen_Y",      &ExtPot_Cen[1],         -1.0,          NoMin_double,     NoMax_double      );
+   ReadPara->Add( "ExtPot_Cen_Z",      &ExtPot_Cen[2],         -1.0,          NoMin_double,     NoMax_double      );
 
    ReadPara->Read( FileName );
 
    delete ReadPara;
+
+// set the default center
+   for (int d=0; d<3; d++)
+      if ( ExtPot_Cen[d] < 0.0 )    ExtPot_Cen[d] = 0.5*amr->BoxSize[d];
 
 // (1-2) set the default values
 
@@ -166,7 +177,7 @@ void SetParameter()
 //      if ( Soliton_N != 2 ) Aux_Error( ERROR_INFO, "for Soliton_CoreRadiusAll <= 0.0, please comment out this error check and hard code "
 //                             "the core radius of each soliton !!\n" );
 //    for (int t=0; t<Soliton_N; t++)  Soliton_CoreRadius[t] = XXX;
-      const double  CoreRadius[2] = { 10.0, 90.0 };
+      const double  CoreRadius[2] = { 10.0, 10.0};//166.66666667 };
 
       if ( Soliton_N == 2 )
       {
@@ -199,7 +210,22 @@ void SetParameter()
          }
          else
          {
-            Aux_Error( ERROR_INFO," for Soliton_CoreRadius <= 0.0 and Soliton_N != 2 and Soliton_RSeed < 0, please hard code the core radius of each soliton \n ");
+            //Aux_Error( ERROR_INFO," for Soliton_CoreRadius <= 0.0 and Soliton_N != 2 and Soliton_RSeed < 0, please hard code the core radius of each soliton \n ");
+            Soliton_CoreRadius[0] = CoreRadius[0];
+            Soliton_ParMass[0] = 0;
+            Soliton_CoreRadius[1] = CoreRadius[0];
+            Soliton_ParMass[1] = 0;
+            Soliton_CoreRadius[2] = CoreRadius[0];
+            Soliton_ParMass[2] = 0;
+            Soliton_CoreRadius[3] = CoreRadius[0];
+            Soliton_ParMass[3] = 0;
+
+            Soliton_CoreRadius[4] = CoreRadius[1];
+            Soliton_ParMass[4] = 1;
+            Soliton_CoreRadius[5] = CoreRadius[1];
+            Soliton_ParMass[5] = 1;
+
+
          }
       }
    }
@@ -236,9 +262,32 @@ void SetParameter()
       else
       {
 //       for Soliton_RSeed<0, comment out the following line and hard code the center of each soliton
-         Aux_Error( ERROR_INFO, "for Soliton_RSeed < 0 and Soliton_N > 2, please comment out this error check and hard code "
-                                "the center of each soliton !!\n" );
+         //Aux_Error( ERROR_INFO, "for Soliton_RSeed < 0 and Soliton_N > 2, please comment out this error check and hard code "
+         //                       "the center of each soliton !!\n" );
+         srand( 1234 );
+         Soliton_Center[0][0] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[0];
+         Soliton_Center[0][1] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[1];
+         Soliton_Center[0][2] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[2];
 
+         Soliton_Center[1][0] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[0];
+         Soliton_Center[1][1] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[1];
+         Soliton_Center[1][2] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[2];
+
+         Soliton_Center[2][0] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[0];
+         Soliton_Center[2][1] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[1];
+         Soliton_Center[2][2] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[2];
+
+         Soliton_Center[3][0] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[0];
+         Soliton_Center[3][1] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[1];
+         Soliton_Center[3][2] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[2];
+//
+         Soliton_Center[4][0] = 0.75*amr->BoxSize[0];
+         Soliton_Center[4][1] = 0.75*amr->BoxSize[1];
+         Soliton_Center[4][2] = 0.75*amr->BoxSize[2];
+
+         Soliton_Center[5][0] = 0.25*amr->BoxSize[0];
+         Soliton_Center[5][1] = 0.25*amr->BoxSize[1];
+         Soliton_Center[5][2] = 0.25*amr->BoxSize[2];
          
          /*for (int t=0; t<Soliton_N; t++)
          for (int d=0; d<3; d++)          Soliton_Center[t][d] = XXX;
@@ -328,6 +377,10 @@ void SetParameter()
       Aux_Message( stdout, "  %7d  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e   ELBDM_MASS%d\n",
                    t, Soliton_CoreRadius[t], Soliton_ScaleL[t], Soliton_ScaleD[t],
                    Soliton_Center[t][0], Soliton_Center[t][1], Soliton_Center[t][2], Soliton_ParMass[t]+1 );
+      Aux_Message( stdout, "  point source mass       = %13.7e\n",                   ExtPot_M );
+      Aux_Message( stdout, "  point source position   = (%13.7e, %13.7e, %13.7e)\n", ExtPot_Cen[0],
+                                                                                     ExtPot_Cen[1],
+                                                                                     ExtPot_Cen[2] );
       Aux_Message( stdout, "=============================================================================\n" );
    }
 
@@ -456,6 +509,27 @@ void BC( real fluid[], const double x, const double y, const double z, const dou
    fluid[DENS] = (real)0.0;
 
 } // FUNCTION : BC
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  Init_ExtPot
+// Description :  Set the array "ExtPot_AuxArray" used by the external potential routines
+//                "CUPOT_ExternalPot.cu / CPU_ExternalPot.cpp"
+//
+// Note        :  1. Linked to the function pointer "Init_ExternalPot_Ptr"
+//                2. Enabled by the runtime option "OPT__EXTERNAL_POT"
+//
+// Parameter   :  None
+//-------------------------------------------------------------------------------------------------------
+void Init_ExtPot()
+{
+
+// ExtPot_AuxArray has the size of EXT_POT_NAUX_MAX (default = 10)
+   ExtPot_AuxArray[0] = ExtPot_Cen[0];
+   ExtPot_AuxArray[1] = ExtPot_Cen[1];
+   ExtPot_AuxArray[2] = ExtPot_Cen[2];
+   ExtPot_AuxArray[3] = ExtPot_M*NEWTON_G;
+
+} // FUNCTION : Init_ExtPot
 #endif // #if ( MODEL == ELBDM  &&  defined GRAVITY )
 
 
@@ -494,7 +568,7 @@ void Init_TestProb_ELBDM_Soliton()
    Aux_Record_User_Ptr      = NULL;
    End_User_Ptr             = End_Soliton;
    Init_ExternalAcc_Ptr     = NULL;
-   Init_ExternalPot_Ptr     = NULL;
+   Init_ExternalPot_Ptr     = Init_ExtPot;
 #  endif // #if ( MODEL == ELBDM  &&  defined GRAVITY )
 
 
