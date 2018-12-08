@@ -380,23 +380,34 @@ void Refine( const int lv, const UseLBFunc_t UseLBFunc )
 
 //       (c1.3.3.2) interpolation
 #        if ( MODEL == ELBDM )
+         real Flu_CDataDENS1[CSize_Flu][CSize_Flu][CSize_Flu];
+         real Flu_CDataDENS2[CSize_Flu][CSize_Flu][CSize_Flu];
+         real Flu_FDataDENS1[FSize][FSize][FSize];
+         real Flu_FDataDENS2[FSize][FSize][FSize];
          if ( OPT__INT_PHASE )
          {
 //          get the wrapped phase (store in the REAL component)
-            Aux_Error( ERROR_INFO, "OPT__INT_PHASE is not supported !!\n");/*
+//            Aux_Error( ERROR_INFO, "OPT__INT_PHASE is not supported !!\n");
 #           ifdef GAMER_DEBUG
             ELBDM_GetPhase_DebugOnly( &Flu_CData[0][0][0][0], CSize_Flu );
 #           else
+
             for (int k=0; k<CSize_Flu; k++)
             for (int j=0; j<CSize_Flu; j++)
             for (int i=0; i<CSize_Flu; i++){
+               Flu_CDataDENS1[k][j][i] = Flu_CData[DENS][k][j][i]*( Flu_CData[REAL1][k][j][i]*Flu_CData[REAL1][k][j][i] + Flu_CData[IMAG1][k][j][i]*Flu_CData[IMAG1][k][j][i] ) / ( Flu_CData[REAL1][k][j][i]*Flu_CData[REAL1][k][j][i] + Flu_CData[IMAG1][k][j][i]*Flu_CData[IMAG1][k][j][i] + Flu_CData[REAL2][k][j][i]*Flu_CData[REAL2][k][j][i] + Flu_CData[IMAG2][k][j][i]*Flu_CData[IMAG2][k][j][i] );
+               Flu_CDataDENS2[k][j][i] = Flu_CData[DENS][k][j][i]*( Flu_CData[REAL2][k][j][i]*Flu_CData[REAL2][k][j][i] + Flu_CData[IMAG2][k][j][i]*Flu_CData[IMAG2][k][j][i] ) / ( Flu_CData[REAL1][k][j][i]*Flu_CData[REAL1][k][j][i] + Flu_CData[IMAG1][k][j][i]*Flu_CData[IMAG1][k][j][i] + Flu_CData[REAL2][k][j][i]*Flu_CData[REAL2][k][j][i] + Flu_CData[IMAG2][k][j][i]*Flu_CData[IMAG2][k][j][i] );
                Flu_CData[REAL1][k][j][i] = ATAN2( Flu_CData[IMAG1][k][j][i], Flu_CData[REAL1][k][j][i] );
                Flu_CData[REAL2][k][j][i] = ATAN2( Flu_CData[IMAG2][k][j][i], Flu_CData[REAL2][k][j][i] );
             }
 #           endif
 
 //          interpolate density
-            Interpolate( &Flu_CData[DENS][0][0][0], CSize_Flu3, CStart_Flu, CRange, &Flu_FData[DENS][0][0][0],
+            Interpolate( &Flu_CDataDENS1[0][0][0], CSize_Flu3, CStart_Flu, CRange, &Flu_FDataDENS1[0][0][0],
+                         FSize3, FStart, 1, OPT__REF_FLU_INT_SCHEME, PhaseUnwrapping_No,
+                         &EnsureMonotonicity_Yes );
+
+            Interpolate( &Flu_CDataDENS1[0][0][0], CSize_Flu3, CStart_Flu, CRange, &Flu_FDataDENS2[0][0][0],
                          FSize3, FStart, 1, OPT__REF_FLU_INT_SCHEME, PhaseUnwrapping_No,
                          &EnsureMonotonicity_Yes );
 
@@ -407,7 +418,7 @@ void Refine( const int lv, const UseLBFunc_t UseLBFunc )
             Interpolate( &Flu_CData[REAL2][0][0][0], CSize_Flu3, CStart_Flu, CRange, &Flu_FData[REAL2][0][0][0],
                          FSize3, FStart, 1, OPT__REF_FLU_INT_SCHEME, PhaseUnwrapping_Yes,
                          &EnsureMonotonicity_No );
-         */
+         
          }
 
          else // if ( OPT__INT_PHASE )
@@ -420,9 +431,9 @@ void Refine( const int lv, const UseLBFunc_t UseLBFunc )
 
          if ( OPT__INT_PHASE )
          {
-            Aux_Error( ERROR_INFO, "OPT__INT_PHASE is not supported !!\n");/*
+//            Aux_Error( ERROR_INFO, "OPT__INT_PHASE is not supported !!\n");
 //          retrieve real and imaginary parts
-            real Amp, Phase1, Phase2, Rho;
+            real Amp1, Amp2, Phase1, Phase2, Rho1, Rho2;
 
             for (int k=0; k<FSize; k++)
             for (int j=0; j<FSize; j++)
@@ -430,21 +441,29 @@ void Refine( const int lv, const UseLBFunc_t UseLBFunc )
             {
                Phase1 = Flu_FData[REAL1][k][j][i];
                Phase2 = Flu_FData[REAL2][k][j][i];
-               Rho   = Flu_FData[DENS][k][j][i];
+               Rho1   = Flu_FDataDENS1[k][j][i];
+               Rho2   = Flu_FDataDENS2[k][j][i];
 
 //             be careful about the negative density introduced from the round-off errors
-               if ( Rho < (real)0.0 )
+               if ( Rho1 < (real)0.0 )
                {
-                  Flu_FData[DENS][k][j][i] = (real)0.0;
-                  Rho                      = (real)0.0;
+                  Flu_FDataDENS1[k][j][i]   = (real)0.0;
+                  Rho1                      = (real)0.0;
+               }
+               if ( Rho2 < (real)0.0 )
+               {
+                  Flu_FDataDENS2[k][j][i]   = (real)0.0;
+                  Rho2                      = (real)0.0;
                }
 
-               Amp                      = SQRT( Rho );
-               Flu_FData[REAL1][k][j][i] = Amp*COS( Phase1 );
-               Flu_FData[IMAG1][k][j][i] = Amp*SIN( Phase1 );
-               Flu_FData[REAL2][k][j][i] = Amp*COS( Phase2 );
-               Flu_FData[IMAG2][k][j][i] = Amp*SIN( Phase2 );
-            }*/
+               Amp1                      = SQRT( Rho1 );
+               Amp2                      = SQRT( Rho2 );
+               Flu_FData[REAL1][k][j][i] = Amp1*COS( Phase1 );
+               Flu_FData[IMAG1][k][j][i] = Amp1*SIN( Phase1 );
+               Flu_FData[REAL2][k][j][i] = Amp2*COS( Phase2 );
+               Flu_FData[IMAG2][k][j][i] = Amp2*SIN( Phase2 );
+               Flu_FData[DENS][k][j][i]  = Rho1 + Rho2;
+            }
          }
 
 #        else // #if ( MODEL == ELBDM )
