@@ -88,8 +88,8 @@
 
 // for ELBDM, we only need the density flux
 #elif ( MODEL == ELBDM )
-#  define NCOMP_FLUID         5
-#  define NFLUX_FLUID         1
+#  define NCOMP_FLUID         6
+#  define NFLUX_FLUID         2
 
 #elif ( MODEL == PAR_ONLY )
 #  define NCOMP_FLUID         0
@@ -133,7 +133,7 @@
 
 // for ELBDM, we do not need to transfer the density component into GPU
 #elif ( MODEL == ELBDM )
-#  define FLU_NIN             ( NCOMP_TOTAL - 1 )
+#  define FLU_NIN             ( NCOMP_TOTAL - 2 )
 #  define FLU_NOUT            ( NCOMP_TOTAL - 0 )
 
 #elif ( MODEL == PAR_ONLY )
@@ -248,22 +248,26 @@
 
 #elif ( MODEL == ELBDM )
 // variable indices in the array "fluid"
-#  define  DENS               0
+#  define  DENS1              0
 #  define  REAL1              1
 #  define  IMAG1              2
-#  define  REAL2              3
-#  define  IMAG2              4
+#  define  DENS2              3
+#  define  REAL2              4
+#  define  IMAG2              5
 // variable indices in the array "flux" [0 ... NFLUX_FLUID-1]
-#  define  FLUX_DENS          0
+#  define  FLUX_DENS1         0
+#  define  FLUX_DENS2         1
 
 // symbolic constants used as function parameters (e.g., Prepare_PatchData)
-#  define _DENS               ( 1 << DENS )
+#  define _DENS1              ( 1 << DENS1 )
 #  define _REAL1              ( 1 << REAL1 )
 #  define _IMAG1              ( 1 << IMAG1 )
+#  define _DENS2              ( 1 << DENS2 )
 #  define _REAL2              ( 1 << REAL2 )
 #  define _IMAG2              ( 1 << IMAG2 )
 // symbolic constants of flux used as function parameters (e.g., Buf_GetBufferData)
-#  define _FLUX_DENS          ( 1 << FLUX_DENS )
+#  define _FLUX_DENS1         ( 1 << FLUX_DENS1 )
+#  define _FLUX_DENS2         ( 1 << FLUX_DENS2 )
 
 // derived variables
 #  define _DERIVED            0
@@ -358,7 +362,11 @@
 #else // #ifdef PARTICLE
 
 // set _TOTAL_DENS == _DENS if PARTICLE is off
+#  if ( MODEL == ELBDM )
+#  define _TOTAL_DENS         ( _DENS1 | _DENS2 )
+#  else
 #  define _TOTAL_DENS         ( _DENS )
+#  endif
 
 #endif // #ifdef PARTICLE ... else ...
 
@@ -418,7 +426,7 @@
 
 // for ELBDM, we do not need to transfer the density component
 #  elif ( MODEL == ELBDM )
-#     define GRA_NIN             ( NCOMP_FLUID - 1 )
+#     define GRA_NIN             ( NCOMP_FLUID - 2 )
 
 #  else
 #     error Error : unsupported MODEL (please edit GRA_NIN in the new MODEL) !!

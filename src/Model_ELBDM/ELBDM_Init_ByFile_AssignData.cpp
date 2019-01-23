@@ -11,8 +11,8 @@
 //
 // Note        :  1. Work in the model ELBDM
 //                2. Two modes:
-//                   (1) NVar == 1: load density and set real1=sqrt(dens/2), real2=sqrt(dens/2),  imag1=imag2=0.0
-//                   (2) NVar == 2: load both real and imaginary parts, and then *calculate* the density field
+//                   (1) NVar == 2: load density1 and density2 and set real1=sqrt(dens1/2), real2=sqrt(dens1/2),  imag1=imag2=0.0
+//                   (2) NVar == 4: load real1, imaginay1, real2 and imaginary2 parts, and then *calculate* the density1 and density2 field
 //                3. Data format in the UM_START file : [k][j][i][v]
 //
 // Parameter   :  lv       : Target refinement level to assign data
@@ -23,8 +23,8 @@ void ELBDM_Init_ByFile_AssignData( const int lv, real *UM_Data, const int NVar )
 {
 
 // check
-   if ( NVar != 1  &&  NVar != 2 )
-      Aux_Error( ERROR_INFO, "%s only supports OPT__UM_START_NVAR == 1 or 2 !!\n", __FUNCTION__ );
+   if ( NVar != 2  &&  NVar != 4 )
+      Aux_Error( ERROR_INFO, "%s only supports OPT__UM_START_NVAR == 2 or 4 !!\n", __FUNCTION__ );
 
 #  if ( NCOMP_PASSIVE > 0 )
    Aux_Error( ERROR_INFO, "%s does NOT support passive scalars !!\n", __FUNCTION__ );
@@ -50,23 +50,25 @@ void ELBDM_Init_ByFile_AssignData( const int lv, real *UM_Data, const int NVar )
 
          Idx = (long)NVar*( (long)kk*NX[1]*NX[0] + jj*NX[0]+ ii );
 
-         if ( NVar == 1 )
+         if ( NVar == 2 )
          {
-            amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[DENS][k][j][i] = UM_Data[Idx];
-            amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[REAL1][k][j][i] = SQRT( UM_Data[Idx]/2.0 );
+            amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[DENS1][k][j][i] = UM_Data[Idx+0];
+            amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[REAL1][k][j][i] = SQRT( UM_Data[Idx+0] );
             amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[IMAG1][k][j][i] = (real)0.0;
-            amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[REAL2][k][j][i] = SQRT( UM_Data[Idx]/2.0 );
+            amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[DENS2][k][j][i] = UM_Data[Idx+1];
+            amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[REAL2][k][j][i] = SQRT( UM_Data[Idx+1] );
             amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[IMAG2][k][j][i] = (real)0.0;
 
          }
 
-         else // NVar == 2
+         else // NVar == 4
          {
             amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[REAL1][k][j][i] = UM_Data[Idx+0];
             amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[IMAG1][k][j][i] = UM_Data[Idx+1];
             amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[REAL2][k][j][i] = UM_Data[Idx+2];
             amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[IMAG2][k][j][i] = UM_Data[Idx+3];
-            amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[DENS][k][j][i] = SQR( UM_Data[Idx+0] ) + SQR( UM_Data[Idx+1] ) + SQR( UM_Data[Idx+2] ) + SQR( UM_Data[Idx+3] );
+            amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[DENS1][k][j][i] = SQR( UM_Data[Idx+0] ) + SQR( UM_Data[Idx+1] );
+            amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[DENS2][k][j][i] = SQR( UM_Data[Idx+2] ) + SQR( UM_Data[Idx+3] );
          }
       }}}
    }

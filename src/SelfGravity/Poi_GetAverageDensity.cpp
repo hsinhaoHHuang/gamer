@@ -30,8 +30,10 @@ void Poi_GetAverageDensity()
 
 
 // check
+#  if ( MODEL != ELBDM )
 #  ifndef DENS
 #  error : ERROR : VARIABLE "DENS" IS NOT DEFINED IN THE FUNCTION "Poi_GetAverageDensity" !!
+#  endif
 #  endif
 
    if ( !OPT__INIT_RESTRICT  &&  MPI_Rank == 0 )
@@ -90,7 +92,11 @@ void Poi_GetAverageDensity()
       for (int k=0; k<PATCH_SIZE; k++)
       for (int j=0; j<PATCH_SIZE; j++)
       for (int i=0; i<PATCH_SIZE; i++)
+#        if ( MODEL == ELBDM )
+         Rho_Local[PID] += (double)amr->patch[ amr->FluSg[0] ][0][PID]->fluid[DENS1][k][j][i] + (double)amr->patch[ amr->FluSg[0] ][0][PID]->fluid[DENS2][k][j][i];
+#        else
          Rho_Local[PID] += (double)amr->patch[ amr->FluSg[0] ][0][PID]->fluid[DENS][k][j][i];
+#        endif
    }
 
 // gather data
@@ -188,8 +194,11 @@ void Poi_GetAverageDensity()
    for (int k=0; k<PATCH_SIZE; k++)
    for (int j=0; j<PATCH_SIZE; j++)
    for (int i=0; i<PATCH_SIZE; i++)
+#     if ( MODEL == ELBDM )
+      AveDensity_Init_local += amr->patch[ amr->FluSg[0] ][0][PID]->fluid[DENS1][k][j][i] + amr->patch[ amr->FluSg[0] ][0][PID]->fluid[DENS2][k][j][i];
+#     else
       AveDensity_Init_local += amr->patch[ amr->FluSg[0] ][0][PID]->fluid[DENS][k][j][i];
-
+#     endif
 // sum over all MPI ranks
    MPI_Allreduce( &AveDensity_Init_local, &AveDensity_Init, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
 

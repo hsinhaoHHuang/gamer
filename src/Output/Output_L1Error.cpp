@@ -58,9 +58,12 @@ void Output_L1Error( void (*AnalFunc)( real fluid[], const double x, const doubl
 #  warning : WAIT MHD !!!
 
 #  elif ( MODEL == ELBDM )
-   sprintf( FileName[0], "%s_Dens_%06d", Prefix, DumpID );
-   sprintf( FileName[1], "%s_Real_%06d", Prefix, DumpID );
-   sprintf( FileName[2], "%s_Imag_%06d", Prefix, DumpID );
+   sprintf( FileName[0], "%s_Dens1_%06d", Prefix, DumpID );
+   sprintf( FileName[1], "%s_Real1_%06d", Prefix, DumpID );
+   sprintf( FileName[2], "%s_Imag1_%06d", Prefix, DumpID );
+   sprintf( FileName[3], "%s_Dens2_%06d", Prefix, DumpID );
+   sprintf( FileName[4], "%s_Real2_%06d", Prefix, DumpID );
+   sprintf( FileName[5], "%s_Imag2_%06d", Prefix, DumpID );
 
 #  else
 #  error : unsupported MODEL !!
@@ -218,8 +221,8 @@ void Output_L1Error( void (*AnalFunc)( real fluid[], const double x, const doubl
 #        warning : WAIT MHD !!!
 
 #        elif ( MODEL == ELBDM )
-         fprintf( File_L1, "#%5s %13s %19s %19s %19s\n",
-                  "NGrid", "Time", "Error(Dens)", "Error(Real)", "Error(Imag)" );
+         fprintf( File_L1, "#%5s %13s %19s %19s %19s %19s %19s %19s\n",
+                  "NGrid", "Time", "Error(Dens1)", "Error(Real1)", "Error(Imag1)" ,"Error(Dens2)" ,"Error(Real2)" ,"Error(Imag2)");
 
 #        else
 #        error : unsupported MODEL !!

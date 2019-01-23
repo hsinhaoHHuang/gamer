@@ -63,7 +63,7 @@ void Aux_Check_Conservation( const char *comment )
 #  warning : WAIT MHD !!!
 
 #  elif ( MODEL == ELBDM )
-   const int NVar_NoPassive       = 5;    // 5: mass, kinematic/gravitational/self-interaction/total energies
+   const int NVar_NoPassive       = 6;    // 6: mass1, mass2, kinematic/gravitational/self-interaction/total energies
    const IntScheme_t IntScheme    = INT_CQUAR;
    const bool   IntPhase_No       = false;
    const bool   DE_Consistency_No = false;
@@ -167,22 +167,27 @@ void Aux_Check_Conservation( const char *comment )
                for (int j=0; j<PATCH_SIZE; j++)
                for (int i=0; i<PATCH_SIZE; i++)
                {
-//                [0] mass
-                  Fluid_lv[0] += amr->patch[FluSg][lv][PID]->fluid[DENS][k][j][i];
+//                [0] mass1
+                  Fluid_lv[0] += amr->patch[FluSg][lv][PID]->fluid[DENS1][k][j][i];
+//                [1] mass2
+                  Fluid_lv[1] += amr->patch[FluSg][lv][PID]->fluid[DENS2][k][j][i];
 
-//                [2] potential energy in ELBDM
+//                [3] potential energy in ELBDM
 #                 ifdef GRAVITY
-                  Fluid_lv[2] += 0.5*amr->patch[FluSg][lv][PID]->fluid[DENS][k][j][i]
+                  Fluid_lv[3] += 0.5*amr->patch[FluSg][lv][PID]->fluid[DENS1][k][j][i]
+                                    *amr->patch[PotSg][lv][PID]->pot        [k][j][i];
+                  Fluid_lv[3] += 0.5*amr->patch[FluSg][lv][PID]->fluid[DENS2][k][j][i]
                                     *amr->patch[PotSg][lv][PID]->pot        [k][j][i];
 #                 endif
 
-//                [3] quartic self-interaction potential
+//                [4] quartic self-interaction potential
 #                 ifdef QUARTIC_SELF_INTERACTION
-                  Fluid_lv[3] += 0.5*ELBDM_LAMBDA*SQR( amr->patch[FluSg][lv][PID]->fluid[DENS][k][j][i] );
+                  Fluid_lv[4] += 0.5*ELBDM_LAMBDA*SQR( amr->patch[FluSg][lv][PID]->fluid[DENS1][k][j][i] );
+                  Fluid_lv[4] += 0.5*ELBDM_LAMBDA*SQR( amr->patch[FluSg][lv][PID]->fluid[DENS2][k][j][i] );
 #                 endif
                }
 
-//             [1] kinematic energy in ELBDM
+//             [2] kinematic energy in ELBDM
                const int t = PID - PID0;
 
                for (int k=NGhost; k<Size_Flu-NGhost; k++)   { kp = k+1; km = k-1;
@@ -205,9 +210,9 @@ void Aux_Check_Conservation( const char *comment )
                   GradI2[1] = _dh2*( Flu_ELBDM[t][3][k ][jp][i ] - Flu_ELBDM[t][3][k ][jm][i ] );
                   GradI2[2] = _dh2*( Flu_ELBDM[t][3][kp][j ][i ] - Flu_ELBDM[t][3][km][j ][i ] );
 
-                  Fluid_lv[1] += _2Eta12*( SQR(GradR1[0]) + SQR(GradR1[1]) + SQR(GradR1[2]) +
+                  Fluid_lv[2] += _2Eta12*( SQR(GradR1[0]) + SQR(GradR1[1]) + SQR(GradR1[2]) +
                                           SQR(GradI1[0]) + SQR(GradI1[1]) + SQR(GradI1[2])   );
-                  Fluid_lv[1] += _2Eta22*( SQR(GradR2[0]) + SQR(GradR2[1]) + SQR(GradR2[2]) +
+                  Fluid_lv[2] += _2Eta22*( SQR(GradR2[0]) + SQR(GradR2[1]) + SQR(GradR2[2]) +
                                           SQR(GradI2[0]) + SQR(GradI2[1]) + SQR(GradI2[2])   );
                }}}
 
@@ -238,7 +243,7 @@ void Aux_Check_Conservation( const char *comment )
 #     if   ( MODEL == HYDRO  ||  MODEL == MHD )
       Fluid_lv[7] = Fluid_lv[4] + Fluid_lv[5] + Fluid_lv[6];
 #     elif ( MODEL == ELBDM )
-      Fluid_lv[4] = Fluid_lv[1] + Fluid_lv[2] + Fluid_lv[3];
+      Fluid_lv[5] = Fluid_lv[2] + Fluid_lv[3] + Fluid_lv[4];
 #     else
 #     error : ERROR : unsupported MODEL !!
 #     endif
@@ -311,7 +316,8 @@ void Aux_Check_Conservation( const char *comment )
          Aux_Message( File, "# Etot_Gas     : total HYDRO/MHD energy\n" );
 
 #        elif ( MODEL == ELBDM )
-         Aux_Message( File, "# Mass_Psi     : total ELBDM mass\n" );
+         Aux_Message( File, "# Mas1_Psi     : total ELBDM mass1\n" );
+         Aux_Message( File, "# Mas2_Psi     : total ELBDM mass2\n" );
          Aux_Message( File, "# Ekin_Psi     : total ELBDM kinematic energy\n" );
          Aux_Message( File, "# Epot_Psi     : total ELBDM potential energy\n" );
          Aux_Message( File, "# Esel_Psi     : total ELBDM self-interaction energy\n" );
@@ -366,7 +372,8 @@ void Aux_Check_Conservation( const char *comment )
          Aux_Message( File, "  %14s  %14s  %14s", "Etot_Gas", "Etot_Gas_AErr", "Etot_Gas_RErr" );
 
 #        elif ( MODEL == ELBDM )
-         Aux_Message( File, "  %14s  %14s  %14s", "Mass_Psi", "Mass_Psi_AErr", "Mass_Psi_RErr" );
+         Aux_Message( File, "  %14s  %14s  %14s", "Mas1_Psi", "Mas1_Psi_AErr", "Mas1_Psi_RErr" );
+         Aux_Message( File, "  %14s  %14s  %14s", "Mas2_Psi", "Mas2_Psi_AErr", "Mas2_Psi_RErr" );
          Aux_Message( File, "  %14s  %14s  %14s", "Ekin_Psi", "Ekin_Psi_AErr", "Ekin_Psi_RErr" );
          Aux_Message( File, "  %14s  %14s  %14s", "Epot_Psi", "Epot_Psi_AErr", "Epot_Psi_RErr" );
          Aux_Message( File, "  %14s  %14s  %14s", "Esel_Psi", "Esel_Psi_AErr", "Esel_Psi_RErr" );
@@ -429,11 +436,11 @@ void Aux_Check_Conservation( const char *comment )
       const double Etot_All_Ref = Fluid_Ref    [7] + Etot_Par_Ref;
 
 #     elif ( MODEL == ELBDM )
-      const double Mass_All     = Fluid_AllRank[0] + Mass_Par;
-      const double Etot_All     = Fluid_AllRank[4] + Etot_Par;       // for ELBDM, total energy is stored in the 7th element
+      const double Mass_All     = Fluid_AllRank[0] + Fluid_AllRank[1]+ Mass_Par;
+      const double Etot_All     = Fluid_AllRank[5] + Etot_Par;       // for ELBDM, total energy is stored in the 5th element
 
-      const double Mass_All_Ref = Fluid_Ref    [0] + Mass_Par_Ref;
-      const double Etot_All_Ref = Fluid_Ref    [4] + Etot_Par_Ref;
+      const double Mass_All_Ref = Fluid_Ref    [0] + Fluid_Ref [1] + Mass_Par_Ref;
+      const double Etot_All_Ref = Fluid_Ref    [5] + Etot_Par_Ref;
 #     endif // MODEL
 #     endif // if ( defined PARTICLE  &&  MODEL != PAR_ONLY )
 

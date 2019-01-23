@@ -98,8 +98,8 @@ void Flag_Real( const int lv, const UseLBFunc_t UseLBFunc )
 #  elif ( MODEL == ELBDM )
    if ( OPT__FLAG_LOHNER_DENS )
    {
-      Lohner_NVar = 2;
-      Lohner_TVar = _REAL1 | _IMAG1;
+      Lohner_NVar = 4;
+      Lohner_TVar = _REAL1 | _IMAG1 | _REAL2 | _IMAG2;
    }
 
 #  else

@@ -121,7 +121,7 @@ void Output_Patch( const int lv, const int PID, const int FluSg, const int PotSg
 #  warning : WAIT MHD !!!
 
 #  elif ( MODEL == ELBDM )
-   fprintf( File, "%14s%14s%14s", "Density", "Real", "Imag" );
+   fprintf( File, "%14s%14s%14s%14s%14s%14s", "Density1", "Real1", "Imag1", "Density2", "Real2", "Imag2" );
 
 #  else
 #  warning : WARNING : DO YOU WANT TO ADD the FILE HEADER HERE FOR THE NEW MODEL ??

@@ -796,16 +796,16 @@ void Aux_Check_Parameter()
 
 // errors
 // ------------------------------
-#  if ( NCOMP_FLUID != 5 )
-#     error : ERROR : NCOMP_FLUID != 5 in ELBDM !!
+#  if ( NCOMP_FLUID != 6 )
+#     error : ERROR : NCOMP_FLUID != 6 in ELBDM !!
 #  endif
 
 #  if ( FLU_NIN != 4 )
 #     error : ERROR : FLU_NIN != 4 in ELBDM !!
 #  endif
 
-#  if ( FLU_NOUT != 5 )
-#     error : ERROR : FLU_NOUT != 5 in ELBDM !!
+#  if ( FLU_NOUT != 6 )
+#     error : ERROR : FLU_NOUT != 6 in ELBDM !!
 #  endif
 
 #  if ( NCOMP_PASSIVE > 0 )

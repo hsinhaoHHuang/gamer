@@ -73,7 +73,7 @@ bool ParDensArray_Initialized = false;
 //                                     HYDRO : _DENS, _MOMX, _MOMY, _MOMZ, _ENGY, _VELX, _VELY, _VELZ, _PRES, _TEMP,
 //                                             [, _POTE]
 //                                     MHD   :
-//                                     ELBDM : _DENS, _REAL1, _IMAG1, _REAL2, _IMAG2 [, _POTE]
+//                                     ELBDM : _DENS1, _REAL1, _IMAG1, _DENS2, _REAL2, _IMAG2 [, _POTE]
 //                                 --> _FLUID, _PASSIVE, _TOTAL, and _DERIVED apply to all models
 //                IntScheme      : Interpolation scheme
 //                                 --> currently supported schemes include
@@ -145,13 +145,21 @@ void Prepare_PatchData( const int lv, const double PrepTime, real *h_Input_Array
 
    if ( MinDens >= (real)0.0 )
    {
-#     if ( MODEL == HYDRO  ||  MODEL == MHD  ||  MODEL == ELBDM )
+#     if ( MODEL == HYDRO  ||  MODEL == MHD )
 #     ifdef PARTICLE
       if ( !(TVar & _DENS)  &&  !(TVar & _TOTAL_DENS) )
          Aux_Error( ERROR_INFO, "MinDens (%13.7e) >= 0.0, but neither _DENS nor _TOTAL_DENS is found !!\n", MinDens );
 #     else
       if ( !(TVar & _DENS) )
          Aux_Error( ERROR_INFO, "MinDens (%13.7e) >= 0.0, but _DENS is not found !!\n", MinDens );
+#     endif
+#     elif ( MODEL == ELBDM )
+#     ifdef PARTICLE
+      if ( !(TVar & _DENS1) && !(TVar & _DEN2)  &&  !(TVar & _TOTAL_DENS) )
+         Aux_Error( ERROR_INFO, "MinDens (%13.7e) >= 0.0, but neither _DENS1 nor _DENS2 nor _TOTAL_DENS is found !!\n", MinDens );
+#     else
+      if ( !(TVar & _DENS1) && !(TVar & _DENS2) )
+         Aux_Error( ERROR_INFO, "MinDens (%13.7e) >= 0.0, but _DENS1 and _DENS2 are not found !!\n", MinDens );
 #     endif
 #     else
          Aux_Error( ERROR_INFO, "MinDens (%13.7e) >= 0.0 can only be applied to HYDRO/MHD/ELBDM !!\n", MinDens );
@@ -299,7 +307,9 @@ void Prepare_PatchData( const int lv, const double PrepTime, real *h_Input_Array
    NVar_Flu = 0;
    for (int v=0; v<NCOMP_TOTAL; v++)
       if ( TVar & (1<<v) )    TFluVarIdxList[ NVar_Flu++ ] = v;
-
+#  if   ( MODEL == ELBDM )
+   if ( TVar == _TOTAL_DENS ) NVar_Flu = 1;
+#  endif
    NVar_Der = 0;
 
 #  if   ( MODEL == HYDRO )
@@ -763,10 +773,19 @@ void Prepare_PatchData( const int lv, const double PrepTime, real *h_Input_Array
                for (int i=0; i<PATCH_SIZE; i++)    {
 
                   Array_Ptr[Idx1] = amr->patch[FluSg][lv][PID]->fluid[TFluVarIdx][k][j][i];
+#                 if ( MODEL == ELBDM)
+                  if ( TVar == _TOTAL_DENS ) Array_Ptr[Idx1] = amr->patch[FluSg][lv][PID]->fluid[DENS1][k][j][i] + amr->patch[FluSg][lv][PID]->fluid[DENS2][k][j][i];
+#                 endif
 
-                  if ( FluIntTime ) // temporal interpolation
+                  if ( FluIntTime ){ // temporal interpolation
+#                 if ( MODEL == ELBDM)
+                  if ( TVar == _TOTAL_DENS )
                   Array_Ptr[Idx1] =   FluWeighting     *Array_Ptr[Idx1]
-                                    + FluWeighting_IntT*amr->patch[FluSg_IntT][lv][PID]->fluid[TFluVarIdx][k][j][i];
+                                    + FluWeighting_IntT*(amr->patch[FluSg_IntT][lv][PID]->fluid[DENS1][k][j][i] + amr->patch[FluSg_IntT][lv][PID]->fluid[DENS2][k][j][i]);
+                  else
+#                 endif
+                  Array_Ptr[Idx1] =   FluWeighting     *Array_Ptr[Idx1]
+                                    + FluWeighting_IntT*amr->patch[FluSg_IntT][lv][PID]->fluid[TFluVarIdx][k][j][i];}
                   Idx1 ++;
                }}}
 
@@ -968,10 +987,19 @@ void Prepare_PatchData( const int lv, const double PrepTime, real *h_Input_Array
                      for (I2=Disp_i2; I2<Disp_i2+Loop_i; I2++) {
 
                         Array_Ptr[Idx1] = amr->patch[FluSg][lv][SibPID]->fluid[TFluVarIdx][K2][J2][I2];
+#                       if ( MODEL == ELBDM)
+                        if ( TVar == _TOTAL_DENS ) Array_Ptr[Idx1] = amr->patch[FluSg][lv][SibPID]->fluid[DENS1][K2][J2][I2] + amr->patch[FluSg][lv][SibPID]->fluid[DENS2][K2][J2][I2];
+#                       endif
 
-                        if ( FluIntTime ) // temporal interpolation
+                        if ( FluIntTime ){ // temporal interpolation
+#                       if ( MODEL == ELBDM)
+                        if ( TVar == _TOTAL_DENS )
                         Array_Ptr[Idx1] =   FluWeighting     *Array_Ptr[Idx1]
-                                          + FluWeighting_IntT*amr->patch[FluSg_IntT][lv][SibPID]->fluid[TFluVarIdx][K2][J2][I2];
+                                          + FluWeighting_IntT*(amr->patch[FluSg_IntT][lv][SibPID]->fluid[DENS1][K2][J2][I2] + amr->patch[FluSg_IntT][lv][SibPID]->fluid[DENS2][K2][J2][I2]);
+                        else
+#                       endif
+                        Array_Ptr[Idx1] =   FluWeighting     *Array_Ptr[Idx1]
+                                          + FluWeighting_IntT*amr->patch[FluSg_IntT][lv][SibPID]->fluid[TFluVarIdx][K2][J2][I2];}
                         Idx1 ++;
                      }}}
 
@@ -1485,7 +1513,7 @@ void Prepare_PatchData( const int lv, const double PrepTime, real *h_Input_Array
 //       --> note that it's unnecessary to check negative passive scalars thanks to the monotonic interpolation
 // ------------------------------------------------------------------------------------------------------------
 //       (d1) minimum density
-#        if ( MODEL == HYDRO  ||  MODEL == MHD  ||  MODEL == ELBDM )
+#        if ( MODEL == HYDRO  ||  MODEL == MHD )
          if ( MinDens >= (real)0.0 )
          {
 //          note that _DENS is turned on automatically for _TOTAL_DENS (and total density is stored in DENS)
@@ -1496,10 +1524,33 @@ void Prepare_PatchData( const int lv, const double PrepTime, real *h_Input_Array
                real *ArrayDens = Array + DensIdx*PGSize3D;
 
 //             apply minimum density
-//             --> note that for ELBDM it will result in dens != real^2 + imag^2
                for (int t=0; t<PGSize3D; t++)   ArrayDens[t] = FMAX( ArrayDens[t], MinDens );
             }
          } // if ( MinDens >= (real)0.0 )
+#        elif ( MODEL == ELBDM )
+         if ( MinDens >= (real)0.0 && TVar != _TOTAL_DENS )
+         {
+            if ( TVar & _DENS1 )
+            {
+//             assuming that the order of variables stored in h_Input_Array is the same as patch->fluid[]
+               const int Dens1Idx = DENS1;
+               real *ArrayDens1 = Array + Dens1Idx*PGSize3D;
+
+//             apply minimum density
+//             --> note that for ELBDM it will result in dens != real^2 + imag^2
+               for (int t=0; t<PGSize3D; t++)   ArrayDens1[t] = FMAX( ArrayDens1[t], MinDens );
+            }
+            if ( TVar & _DENS2 )
+            {
+//             assuming that the order of variables stored in h_Input_Array is the same as patch->fluid[]
+               const int Dens2Idx = DENS2;
+               real *ArrayDens2 = Array + Dens2Idx*PGSize3D;
+
+//             apply minimum density
+//             --> note that for ELBDM it will result in dens != real^2 + imag^2
+               for (int t=0; t<PGSize3D; t++)   ArrayDens2[t] = FMAX( ArrayDens2[t], MinDens );
+            }
+         }
 #        endif // #if ( MODEL == HYDRO  ||  MODEL == MHD  ||  MODEL == ELBDM )
 
 

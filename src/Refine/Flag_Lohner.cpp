@@ -18,7 +18,7 @@
 //                Var1D       : Array storing the input variables for the Lohner error estimator (used only for stencil == 1)
 //                Ave1D       : Array storing the input averages for the Lohner error estimator
 //                Slope1D     : Array storing the input slopes for the Lohner error estimator
-//                NVar        : Number of variables stored in Ave and Slope arrays (must be 2 in ELBDM)
+//                NVar        : Number of variables stored in Ave and Slope arrays (must be 4 in ELBDM)
 //                Threshold   : Refinement threshold
 //                Filter      : Filter parameter for preventing refinement of small ripples
 //                Soften      : Minimum number in the denominator --> error = sqrt( N/max(D,Soften) ), where
@@ -37,7 +37,7 @@ bool Flag_Lohner( const int i, const int j, const int k, const OptLohnerForm_t F
       Aux_Error( ERROR_INFO, "incorrect index (i,j,k) = (%d,%d,%d) !!\n", i, j, k );
 
 #  if ( MODEL == ELBDM )
-   if ( NVar != 2 )  Aux_Error( ERROR_INFO, "NVar (%d) != 2 in ELBDM !!\n", NVar );
+   if ( NVar != 4 )  Aux_Error( ERROR_INFO, "NVar (%d) != 4 in ELBDM !!\n", NVar );
 #  endif
 #  endif // #ifdef GAMER_DEBUG
 
@@ -193,7 +193,7 @@ bool Flag_Lohner( const int i, const int j, const int k, const OptLohnerForm_t F
 
 //    3. check the flag
 #     if ( MODEL == ELBDM )
-      if ( v == NVar - 1 )    // we check "SQRT(REAL^2 + IMAG^2)" in ELBDM
+      if ( v%2 == 1 )    // we check "SQRT(REAL^2 + IMAG^2)" in ELBDM
 #     endif
       {
          if ( Stencil == 2 )

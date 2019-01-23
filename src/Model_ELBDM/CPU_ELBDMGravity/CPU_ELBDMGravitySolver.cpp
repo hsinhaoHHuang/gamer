@@ -14,8 +14,8 @@
 //                   --> Optimized performance can be achieved if GRA_GHOST_SIZE == 0, GRA_NXT == PATCH_SIZE
 //                   --> But the code supports GRA_GHOST_SIZE > 0 as well (mainly for the STORE_POT_GHOST option)
 //                2. ELBDM gravity solver does NOT need the density information (if QUARTIC_SELF_INTERACTION is off)
-//                   --> DENS component will NOT be sent in and out in this solver
-//                   --> GRA_NIN == 2 (only store the real and imaginary parts)
+//                   --> DENS1, DENS2 component will NOT be sent in and out in this solver
+//                   --> GRA_NIN == 4 (only store the real1, imaginary1, real2 and imaginary2 parts)
 //                   --> If QUARTIC_SELF_INTERACTION is on, the density is *calculated* here to be REAL^2+IMAG^2
 //
 // Parameter   :  Flu_Array      : Array to store the input and output data

@@ -713,9 +713,10 @@ void Output_DumpData_Total_HDF5( const char *FileName )
    sprintf( FieldName[ENGY], "Engy" );
 
 #  elif ( MODEL == ELBDM )
-   sprintf( FieldName[DENS], "Dens" );
+   sprintf( FieldName[DENS1], "Dens1" );
    sprintf( FieldName[REAL1], "Real1" );
    sprintf( FieldName[IMAG1], "Imag1" );
+   sprintf( FieldName[DENS2], "Dens2" );
    sprintf( FieldName[REAL2], "Real2" );
    sprintf( FieldName[IMAG2], "Imag2" );
 

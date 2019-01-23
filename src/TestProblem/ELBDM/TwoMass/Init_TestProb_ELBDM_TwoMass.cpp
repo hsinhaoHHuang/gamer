@@ -140,13 +140,13 @@ void SetParameter()
    else
    {
       
-         Center[0][0]=0.5*amr->BoxSize[0]-2.0*Width1;   
-         Center[0][1]=0.5*amr->BoxSize[1]-2.0*Width1;   
-         Center[0][2]=0.5*amr->BoxSize[2]-2.0*Width1;
+         Center[0][0]=0.5*amr->BoxSize[0]-0.0*Width1;   
+         Center[0][1]=0.5*amr->BoxSize[1]-0.0*Width1;   
+         Center[0][2]=0.5*amr->BoxSize[2]-0.0*Width1;
 
-         Center[1][0]=0.5*amr->BoxSize[0]+2.0*Width2;   
-         Center[1][1]=0.5*amr->BoxSize[1]+2.0*Width2;   
-         Center[1][2]=0.5*amr->BoxSize[2]+2.0*Width2;   
+         Center[1][0]=0.5*amr->BoxSize[0]+0.0*Width2;   
+         Center[1][1]=0.5*amr->BoxSize[1]+0.0*Width2;   
+         Center[1][2]=0.5*amr->BoxSize[2]+0.0*Width2;   
    
  //      Aux_Error(ERROR_INFO,"please hard code the center position !!\n");
                
@@ -219,7 +219,8 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
    fluid[IMAG1] = Height1* exp(-( SQR(x-Center[0][0]) + SQR(y-Center[0][1]) + SQR(z-Center[0][2]) )/(2.0*Width1*Width1) )* sin(Velocity1*( (x-Center[0][0])+(y-Center[0][1])+(z-Center[0][2]) ) );
    fluid[REAL2] = Height2* exp(-( SQR(x-Center[1][0]) + SQR(y-Center[1][1]) + SQR(z-Center[1][2]) )/(2.0*Width2*Width2) )* cos(Velocity2*( (x-Center[1][0])+(y-Center[1][1])+(z-Center[1][2]) ) );
    fluid[IMAG2] = Height2* exp(-( SQR(x-Center[1][0]) + SQR(y-Center[1][1]) + SQR(z-Center[1][2]) )/(2.0*Width2*Width2) )* sin(Velocity2*( (x-Center[1][0])+(y-Center[1][1])+(z-Center[1][2]) ) );
-   fluid[DENS]  = SQR( fluid[REAL1] ) + SQR( fluid[IMAG1] ) + SQR( fluid[REAL2] ) + SQR( fluid[IMAG2] );
+   fluid[DENS1] = SQR( fluid[REAL1] ) + SQR( fluid[IMAG1] );
+   fluid[DENS2] = SQR( fluid[REAL2] ) + SQR( fluid[IMAG2] );
 
 
 } // FUNCTION : SetGridIC
@@ -236,6 +237,8 @@ void BCo( real fluid[], const double x, const double y, const double z, const do
    fluid[IMAG1] = (real)0.0;
    fluid[REAL2] = (real)0.0;
    fluid[IMAG2] = (real)0.0;
+   fluid[DENS1] = (real)0.0;
+   fluid[DENS2] = (real)0.0;
 }
 
 

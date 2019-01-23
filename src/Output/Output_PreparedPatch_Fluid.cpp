@@ -99,7 +99,7 @@ void Output_PreparedPatch_Fluid( const int TLv, const int TPID,
 #     warning : WAIT MHD !!!
 
 #     elif ( MODEL == ELBDM )
-      fprintf( File, "(%3s,%3s,%3s )%16s%16s",                 "i", "j", "k", "Real", "Imag" );
+      fprintf( File, "(%3s,%3s,%3s )%16s%16s%16s%16s",                 "i", "j", "k", "Real1", "Imag1", "Real2", "Imag2" );
 
 #     else
 #     warning : WARNING : DO YOU WANT TO ADD the FILE HEADER HERE FOR THE NEW MODEL ??

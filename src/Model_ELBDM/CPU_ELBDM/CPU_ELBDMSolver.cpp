@@ -40,7 +40,7 @@ static void TransposeXZ( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ] );
 //                2. The implementation is very similar to the function "CPU_FluidSolver_RTVD"
 //
 // Parameter   :  Flu_Array_In   : Array storing the input variables (only REAL1/IMAG1/REAL2/IMAG2)
-//                Flu_Array_Out  : Array to store the output variables (DENS/REAL1/IMAG1/REAL2/IMAG2)
+//                Flu_Array_Out  : Array to store the output variables (DENS1/REAL1/IMAG1/DENS2/REAL2/IMAG2)
 //                Flux_Array     : Array to store the output flux
 //                NPatchGroup    : Number of patch groups to be evaluated
 //                dt             : Time interval to advance solution
@@ -114,13 +114,13 @@ void CPU_ELBDMSolver( real Flu_Array_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU_NXT ],
 
 // copy the updated data to Flu_Array_Out
    int  Idx1, Idx2, v_m1;
-   real Amp, Rescale;   // not using double precision since MinDens will break the mass conservation anyway
+   real Amp1, Amp2, Rescale1, Rescale2;   // not using double precision since MinDens will break the mass conservation anyway
 
-#  pragma omp parallel for private( Idx1, Idx2, v_m1, Amp, Rescale ) schedule( runtime )
+#  pragma omp parallel for private( Idx1, Idx2, v_m1, Amp1, Amp2, Rescale1, Rescale2 ) schedule( runtime )
    for (int P=0; P<NPatchGroup; P++)
    {
 //    copy data
-      for (int v=1; v<FLU_NOUT; v++)
+      for (int v=1; v<FLU_NOUT-1; v++)
       {
          v_m1 = v-1;
          Idx1 = 0;
@@ -131,26 +131,33 @@ void CPU_ELBDMSolver( real Flu_Array_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU_NXT ],
          {
             Idx2 = to1D(k,j,i);
 
-            Flu_Array_Out[P][v][ Idx1++ ] = Flu_Array_In[P][v_m1][Idx2];
+            Flu_Array_Out[P][v+(int)(v_m1/2)][ Idx1++ ] = Flu_Array_In[P][v_m1][Idx2];
          }
       }
 
 //    evaluate the new density (and apply the minimum density check)
       for (int t=0; t<PS2*PS2*PS2; t++)
       {
-         Amp = SQR( Flu_Array_Out[P][1][t] ) + SQR( Flu_Array_Out[P][2][t] ) + SQR( Flu_Array_Out[P][3][t] ) + SQR( Flu_Array_Out[P][4][t] );
+         Amp1 = SQR( Flu_Array_Out[P][1][t] ) + SQR( Flu_Array_Out[P][2][t] );
+         Amp2 = SQR( Flu_Array_Out[P][4][t] ) + SQR( Flu_Array_Out[P][5][t] );
 
-         if ( Amp < MinDens )
+         if ( Amp1 < MinDens )
          {
-            Rescale                 = SQRT( MinDens / Amp );
-            Flu_Array_Out[P][1][t] *= Rescale;
-            Flu_Array_Out[P][2][t] *= Rescale;
-            Flu_Array_Out[P][3][t] *= Rescale;
-            Flu_Array_Out[P][4][t] *= Rescale;
-            Amp                     = MinDens;
+            Rescale1                 = SQRT( MinDens / Amp1 );
+            Flu_Array_Out[P][1][t] *= Rescale1;
+            Flu_Array_Out[P][2][t] *= Rescale1;
+            Amp1                     = MinDens;
+         }
+         if ( Amp2 < MinDens )
+         {
+            Rescale2                 = SQRT( MinDens / Amp2 );
+            Flu_Array_Out[P][4][t] *= Rescale2;
+            Flu_Array_Out[P][5][t] *= Rescale2;
+            Amp2                     = MinDens;
          }
 
-         Flu_Array_Out[P][0][t] = Amp;
+         Flu_Array_Out[P][0][t] = Amp1;
+         Flu_Array_Out[P][3][t] = Amp2;
       }
    } // for (int P=0; P<NPatchGroup; P++)
 
@@ -216,7 +223,7 @@ void CPU_AdvanceX( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ], real Flux_Array[][NFLUX_
    const real dT1_dh2 = dT1*_dh*_dh;
    const real dT2_dh2 = dT2*_dh*_dh;
    real   R1, I1, R2, I2, dR1, dI1, dR2, dI2, Flux1[PS2+1], Flux2[PS2+1];
-   double Amp_Old, Amp_New, Amp_Corr;  // use double precision to reduce the round-off error in the mass conservation
+   double Amp1_Old, Amp1_New, Amp1_Corr, Amp2_Old, Amp2_New, Amp2_Corr;  // use double precision to reduce the round-off error in the mass conservation
    int    Idx2, Idx3;
 #  endif
 
@@ -301,23 +308,30 @@ void CPU_AdvanceX( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ], real Flux_Array[][NFLUX_
       Idx2 = 0;
       for (int i=FLU_GHOST_SIZE; i<FLU_NXT-FLU_GHOST_SIZE; i++)
       {
-         Amp_Old  = SQR( Re_Old1[i] ) + SQR( Im_Old1[i] ) +  SQR( Re_Old2[i] ) + SQR( Im_Old2[i] );
-         Amp_New  = SQR( Re_New1[i] ) + SQR( Im_New1[i] ) +  SQR( Re_New2[i] ) + SQR( Im_New2[i] );
-         Amp_Corr = Amp_Old - dT1_dh2*( Flux1[Idx2+1] - Flux1[Idx2] ) -dT2_dh2*( Flux2[Idx2+1] - Flux2[Idx2] );
+         Amp1_Old  = SQR( Re_Old1[i] ) + SQR( Im_Old1[i] );
+         Amp2_Old  = SQR( Re_Old2[i] ) + SQR( Im_Old2[i] );
+         Amp1_New  = SQR( Re_New1[i] ) + SQR( Im_New1[i] );
+         Amp2_New  = SQR( Re_New2[i] ) + SQR( Im_New2[i] );
+         Amp1_Corr = Amp1_Old - dT1_dh2*( Flux1[Idx2+1] - Flux1[Idx2] );
+         Amp2_Corr = Amp2_Old - dT2_dh2*( Flux2[Idx2+1] - Flux2[Idx2] );
 
 //       be careful about the negative density and the vacuum (where we might have Amp_New == 0.0)
 //       if ( Amp_Corr > (real)0.0  &&  Amp_New > (real)0.0 )
-         if ( Amp_Corr >       0.0  &&  Amp_New >       0.0 )
+         if ( Amp1_Corr >       0.0  &&  Amp1_New >       0.0 )
          {
             /*
             Re_New[i] *= SQRT( Amp_Corr / Amp_New );
             Im_New[i] *= SQRT( Amp_Corr / Amp_New );
             */
-            Re_New1[i] *= sqrt( Amp_Corr / Amp_New );  // use double precision to improve the mass conservation further
-            Im_New1[i] *= sqrt( Amp_Corr / Amp_New );
-            Re_New2[i] *= sqrt( Amp_Corr / Amp_New );
-            Im_New2[i] *= sqrt( Amp_Corr / Amp_New );
+            Re_New1[i] *= sqrt( Amp1_Corr / Amp1_New );  // use double precision to improve the mass conservation further
+            Im_New1[i] *= sqrt( Amp1_Corr / Amp1_New );
          }
+         if ( Amp2_Corr >       0.0  &&  Amp2_New >       0.0 )
+         {
+            Re_New2[i] *= sqrt( Amp2_Corr / Amp2_New );
+            Im_New2[i] *= sqrt( Amp2_Corr / Amp2_New );
+         }
+
 
 
          Idx2 ++;
@@ -329,9 +343,12 @@ void CPU_AdvanceX( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ], real Flux_Array[][NFLUX_
       {
          Idx3 = (k-FLU_GHOST_SIZE)*PS2 + (j-FLU_GHOST_SIZE);
 
-         Flux_Array[Flux_XYZ+0][0][Idx3] = Flux1[  0]*_Eta12_dh + Flux2[  0]*_Eta22_dh;
-         Flux_Array[Flux_XYZ+1][0][Idx3] = Flux1[PS1]*_Eta12_dh + Flux2[PS1]*_Eta22_dh;
-         Flux_Array[Flux_XYZ+2][0][Idx3] = Flux1[PS2]*_Eta12_dh + Flux2[PS2]*_Eta22_dh;
+         Flux_Array[Flux_XYZ+0][0][Idx3] = Flux1[  0]*_Eta12_dh;
+         Flux_Array[Flux_XYZ+1][0][Idx3] = Flux1[PS1]*_Eta12_dh;
+         Flux_Array[Flux_XYZ+2][0][Idx3] = Flux1[PS2]*_Eta12_dh;
+         Flux_Array[Flux_XYZ+0][1][Idx3] = Flux2[  0]*_Eta22_dh;
+         Flux_Array[Flux_XYZ+1][1][Idx3] = Flux2[PS1]*_Eta22_dh;
+         Flux_Array[Flux_XYZ+2][1][Idx3] = Flux2[PS2]*_Eta22_dh;
       }
 #     endif // #ifdef CONSERVE_MASS
 

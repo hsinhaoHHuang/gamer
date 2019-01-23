@@ -43,10 +43,11 @@ bool ELBDM_Flag_EngyDensity( const int i, const int j, const int k, const real R
    const real   Imag1     = Imag1_Array[Idx];
    const real   Real2     = Real2_Array[Idx];
    const real   Imag2     = Imag2_Array[Idx];
-   const real   Deno      = Real1*Real1 + Imag1*Imag1 + Real2*Real2 + Imag2*Imag2 + Eps;
+   const real   Deno1     = Real1*Real1 + Imag1*Imag1 + Eps;
+   const real   Deno2     = Real2*Real2 + Imag2*Imag2 + Eps;
 
    int  Idx_p, Idx_m;
-   real _dh, Grad_Real1[3], Grad_Imag1[3], Grad_Real2[3], Grad_Imag2[3], Nume, EngyDensity;
+   real _dh, Grad_Real1[3], Grad_Imag1[3], Grad_Real2[3], Grad_Imag2[3], Nume1, Nume2, EngyDensity;
    bool Flag;
 
 
@@ -69,11 +70,11 @@ bool ELBDM_Flag_EngyDensity( const int i, const int j, const int k, const real R
 
 
 // evaluate energy density and check the flag criterion
-   Nume        = Grad_Real1[0]*Grad_Real1[0] + Grad_Real1[1]*Grad_Real1[1] + Grad_Real1[2]*Grad_Real1[2] +
-                 Grad_Imag1[0]*Grad_Imag1[0] + Grad_Imag1[1]*Grad_Imag1[1] + Grad_Imag1[2]*Grad_Imag1[2] +
-                 Grad_Real2[0]*Grad_Real2[0] + Grad_Real2[1]*Grad_Real2[1] + Grad_Real2[2]*Grad_Real2[2] +
+   Nume1        = Grad_Real1[0]*Grad_Real1[0] + Grad_Real1[1]*Grad_Real1[1] + Grad_Real1[2]*Grad_Real1[2] +
+                 Grad_Imag1[0]*Grad_Imag1[0] + Grad_Imag1[1]*Grad_Imag1[1] + Grad_Imag1[2]*Grad_Imag1[2] ;
+   Nume2        = Grad_Real2[0]*Grad_Real2[0] + Grad_Real2[1]*Grad_Real2[1] + Grad_Real2[2]*Grad_Real2[2] +
                  Grad_Imag2[0]*Grad_Imag2[0] + Grad_Imag2[1]*Grad_Imag2[1] + Grad_Imag2[2]*Grad_Imag2[2];
-   EngyDensity = Nume/Deno;
+   EngyDensity = Nume1/Deno1 + Nume2/Deno2;
    Flag        = EngyDensity > Threshold;
 
    return Flag;

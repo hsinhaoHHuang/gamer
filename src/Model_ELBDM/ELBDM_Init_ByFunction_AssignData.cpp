@@ -51,7 +51,8 @@ void Init_Function_User( real fluid[], const double x, const double y, const dou
    fluid[IMAG1] = 1.0 + Height2*exp(  -( SQR(x-C2[0]) + SQR(y-C2[1]) + SQR(z-C2[2]) ) /SQR(Width2)  );
    fluid[REAL2] = 1.0 + Height1*exp(  -( SQR(x-C1[0]) + SQR(y-C1[1]) + SQR(z-C1[2]) ) /SQR(Width1)  );
    fluid[IMAG2] = 1.0 + Height2*exp(  -( SQR(x-C2[0]) + SQR(y-C2[1]) + SQR(z-C2[2]) ) /SQR(Width2)  );
-   fluid[DENS] = fluid[REAL1]*fluid[REAL1] + fluid[IMAG2]*fluid[IMAG2] + fluid[REAL2]*fluid[REAL2] + fluid[IMAG2]*fluid[IMAG2];
+   fluid[DENS1] = fluid[REAL1]*fluid[REAL1] + fluid[IMAG1]*fluid[IMAG1];
+   fluid[DENS2] = fluid[REAL2]*fluid[REAL2] + fluid[IMAG2]*fluid[IMAG2];
 
 // ELBDM does not support passive scalars yet ...
 
@@ -126,22 +127,29 @@ void ELBDM_Init_ByFunction_AssignData( const int lv )
          fluid[IMAG1] *= _NSub3;
          fluid[REAL2] *= _NSub3;
          fluid[IMAG2] *= _NSub3;
-         fluid[DENS]  = fluid[REAL1]*fluid[REAL1] + fluid[IMAG1]*fluid[IMAG1] + fluid[REAL2]*fluid[REAL2] + fluid[IMAG2]*fluid[IMAG2];
+         fluid[DENS1]  = fluid[REAL1]*fluid[REAL1] + fluid[IMAG1]*fluid[IMAG1];
+         fluid[DENS2]  = fluid[REAL2]*fluid[REAL2] + fluid[IMAG2]*fluid[IMAG2];
 
 //       check minimum density (but keep phase fixed)
-         if ( fluid[DENS] < (real)MIN_DENS )
+         if ( fluid[DENS1] < (real)MIN_DENS )
          {
-            const real Rescale = SQRT( (real)MIN_DENS/fluid[DENS] );
+            const real Rescale1 = SQRT( (real)MIN_DENS/fluid[DENS1] );
 
-            fluid[REAL1] *= Rescale;
-            fluid[IMAG1] *= Rescale;
-            fluid[REAL2] *= Rescale;
-            fluid[IMAG2] *= Rescale;
-            fluid[DENS]  = (real)MIN_DENS;
+            fluid[REAL1] *= Rescale1;
+            fluid[IMAG1] *= Rescale1;
+            fluid[DENS1]  = (real)MIN_DENS;
+         }
+         if ( fluid[DENS2] < (real)MIN_DENS )
+         {
+            const real Rescale2 = SQRT( (real)MIN_DENS/fluid[DENS2] );
+
+            fluid[REAL2] *= Rescale2;
+            fluid[IMAG2] *= Rescale2;
+            fluid[DENS2]  = (real)MIN_DENS;
          }
 
 //       floor and normalize passive scalars (actually passive scalars are NOT supported by ELBDM yet)
-#        if ( NCOMP_PASSIVE > 0 )
+#        if ( MODEL != ELBDM && NCOMP_PASSIVE > 0 )
          for (int v=NCOMP_FLUID; v<NCOMP_TOTAL; v++)  fluid[v] = FMAX( fluid[v], TINY_NUMBER );
 
          if ( OPT__NORMALIZE_PASSIVE )
@@ -168,19 +176,25 @@ void ELBDM_Init_ByFunction_AssignData( const int lv )
             Flu_ResetByUser_Func_Ptr( fluid, x, y, z, Time[lv], lv, NULL );
 
 //       check minimum density (but keep phase fixed)
-         if ( fluid[DENS] < (real)MIN_DENS )
+         if ( fluid[DENS1] < (real)MIN_DENS )
          {
-            const real Rescale = SQRT( (real)MIN_DENS/fluid[DENS] );
+            const real Rescale1 = SQRT( (real)MIN_DENS/fluid[DENS1] );
 
-            fluid[REAL1] *= Rescale;
-            fluid[IMAG1] *= Rescale;
-            fluid[REAL2] *= Rescale;
-            fluid[IMAG2] *= Rescale;
-            fluid[DENS]  = (real)MIN_DENS;
+            fluid[REAL1] *= Rescale1;
+            fluid[IMAG1] *= Rescale1;
+            fluid[DENS1]  = (real)MIN_DENS;
+         }
+         if ( fluid[DENS2] < (real)MIN_DENS )
+         {
+            const real Rescale2 = SQRT( (real)MIN_DENS/fluid[DENS2] );
+
+            fluid[REAL2] *= Rescale2;
+            fluid[IMAG2] *= Rescale2;
+            fluid[DENS2]  = (real)MIN_DENS;
          }
 
 //       floor and normalize passive scalars (actually passive scalars are NOT supported by ELBDM yet)
-#        if ( NCOMP_PASSIVE > 0 )
+#        if ( MODEL != ELBDM && NCOMP_PASSIVE > 0 )
          for (int v=NCOMP_FLUID; v<NCOMP_TOTAL; v++)  fluid[v] = FMAX( fluid[v], TINY_NUMBER );
 
          if ( OPT__NORMALIZE_PASSIVE )

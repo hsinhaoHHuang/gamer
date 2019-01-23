@@ -113,7 +113,7 @@ real GetMaxPot( const int lv )
 
          PotG   = amr->patch[ amr->PotSg[lv] ][lv][PID]->pot[k][j][i];
 #        ifdef QUARTIC_SELF_INTERACTION
-         PotS   = ELBDM_LAMBDA*amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[DENS][k][j][i];
+         PotS   = ELBDM_LAMBDA*amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[DENS1][k][j][i] + ELBDM_LAMBDA*amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[DENS2][k][j][i];
 #        else
          PotS   = (real)0.0;
 #        endif

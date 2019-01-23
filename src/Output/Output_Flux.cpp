@@ -78,7 +78,7 @@ void Output_Flux( const int lv, const int PID, const int Sib, const char *commen
 #     warning : WAIT MHD !!!
 
 #     elif ( MODEL == ELBDM )
-      fprintf( File, "( %c, %c )%16s\n",                 label[0], label[1], "Density Flux" );
+      fprintf( File, "( %c, %c )%16s%16s\n",                 label[0], label[1], "Density1 Flux", "Density2 Flux" );
 
 #     else
 #     warning : WARNING : DO YOU WANT TO ADD the FILE HEADER HERE FOR THE NEW MODEL ??

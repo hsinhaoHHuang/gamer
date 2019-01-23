@@ -56,7 +56,7 @@ void Gra_Prepare_Flu( const int lv, real h_Flu_Array_G[][GRA_NIN][PS1][PS1][PS1]
          for (int k=0; k<PS1; k++)
          for (int j=0; j<PS1; j++)
          for (int i=0; i<PS1; i++)
-            h_Flu_Array_G[N][v][k][j][i] = amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[v+1][k][j][i];
+            h_Flu_Array_G[N][v][k][j][i] = amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[v+1+(int)(v/2)][k][j][i];
 
 #        else
 #        error : unsupported MODEL !!

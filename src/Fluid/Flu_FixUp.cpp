@@ -39,7 +39,7 @@ void Flu_FixUp( const int lv )
 #  endif
 */
 
-   real CorrVal[NFLUX_TOTAL];    // values after applying the flux correction
+   real CorrVal[NCOMP_TOTAL];    // values after applying the flux correction
    real (*FluxPtr)[PATCH_SIZE][PATCH_SIZE] = NULL;
    real *FluidPtr1D0[NCOMP_TOTAL], *FluidPtr1D[NCOMP_TOTAL];
    int  didx_m, didx_n;
@@ -69,22 +69,21 @@ void Flu_FixUp( const int lv )
       Aux_Error( ERROR_INFO, "CONSERVE_MASS is not turned on in the Makefile for the option OPT__FIXUP_FLUX !!\n" );
 #     endif
 
-#     if ( NFLUX_TOTAL != 1 )
-      Aux_Error( ERROR_INFO, "NFLUX_TOTAL (%d) != 1 for the option OPT__FIXUP_FLUX !!\n", NFLUX_TOTAL );
+#     if ( NFLUX_TOTAL != 2 )
+      Aux_Error( ERROR_INFO, "NFLUX_TOTAL (%d) != 2 for the option OPT__FIXUP_FLUX !!\n", NFLUX_TOTAL );
 #     endif
 
-#     if ( DENS != 0 )
-      Aux_Error( ERROR_INFO, "DENS (%d) != 0 for the option OPT__FIXUP_FLUX !!\n", DENS );
+#     if ( DENS1 != 0 || DENS2 != 3)
+      Aux_Error( ERROR_INFO, "DENS1 (%d) != 0 or DENS2 (%d) != 3 for the option OPT__FIXUP_FLUX !!\n", DENS1, DENS2 );
 #     endif
 
-#     if ( FLUX_DENS != 0 )
-      Aux_Error( ERROR_INFO, "FLUX_DENS (%d) != 0 for the option OPT__FIXUP_FLUX !!\n", FLUX_DENS );
+#     if ( FLUX_DENS1 != 0 || FLUX_DENS2 != 1 )
+      Aux_Error( ERROR_INFO, "FLUX_DENS1 (%d) != 0 or FLUX_DENS2 (%d) != 1 for the option OPT__FIXUP_FLUX !!\n", FLUX_DENS1, FLUX_DENS2 );
 #     endif
 
 
 //    if "NCOMP_TOTAL != NFLUX_TOTAL", one must specify how to correct cell data from the flux arrays
 //    --> specifically, how to map different flux variables to fluid active/passive variables
-//    --> for ELBDM, we have assumed that FLUX_DENS == DENS == 0 and NFLUX_TOTAL == 1
 #     elif ( NCOMP_TOTAL != NFLUX_TOTAL )
 #        error : NCOMP_TOTAL != NFLUX_TOTAL (one must specify how to map flux variables to fluid active/passive variables) !!
 
@@ -160,9 +159,13 @@ void Flu_FixUp( const int lv )
 
 
 //                calculate the corrected results
-//                --> do NOT **store** these results yet since we want to skip the cells with unphysical results
+//                --> do NOT **store** these results yet since we want to skip the cells with unphysical results 
+#                 if ( MODEL == ELBDM )
+                  CorrVal[DENS1] = *FluidPtr1D[DENS1] + FluxPtr[FLUX_DENS1][m][n]*Const[s];
+                  CorrVal[DENS2] = *FluidPtr1D[DENS2] + FluxPtr[FLUX_DENS2][m][n]*Const[s];
+#                 else                                          
                   for (int v=0; v<NFLUX_TOTAL; v++)   CorrVal[v] = *FluidPtr1D[v] + FluxPtr[v][m][n]*Const[s];
-
+#                 endif
 
 //                calculate the pressure
 #                 if ( MODEL == HYDRO  ||  MODEL == MHD )
@@ -218,13 +221,13 @@ void Flu_FixUp( const int lv )
                      )
 
 #                 elif ( MODEL == ELBDM  &&  defined CONSERVE_MASS )
-                  if ( CorrVal[DENS] <= MIN_DENS )
+                  if ( CorrVal[DENS1] <= MIN_DENS || CorrVal[DENS2] <= MIN_DENS  )
 #                 endif
                      continue;
 
 
 //                floor and normalize the passive scalars
-#                 if ( NCOMP_PASSIVE > 0 )
+#                 if ( MODEL != ELBDM && NCOMP_PASSIVE > 0 )
                   for (int v=NCOMP_FLUID; v<NCOMP_TOTAL; v++)  CorrVal[v] = FMAX( CorrVal[v], TINY_NUMBER );
 
                   if ( OPT__NORMALIZE_PASSIVE )
@@ -251,38 +254,53 @@ void Flu_FixUp( const int lv )
 
 
 //                store the corrected results
+#                 if ( MODEL == ELBDM )
+                  *FluidPtr1D[DENS1] = CorrVal[DENS1];
+                  *FluidPtr1D[DENS2] = CorrVal[DENS2];
+#                 else
                   for (int v=0; v<NFLUX_TOTAL; v++)   *FluidPtr1D[v] = CorrVal[v];
-
+#                 endif
 
 //                rescale the real and imaginary parts to be consistent with the corrected amplitude
 //                --> must NOT use CorrVal[REAL] and CorrVal[IMAG] below since NFLUX_TOTAL == 1 for ELBDM
 #                 if ( MODEL == ELBDM  &&  defined CONSERVE_MASS )
-                  real Re1, Im1, Re2, Im2,  Rho_Corr, Rho_Wrong, Rescale;
+                  real Re1, Im1, Re2, Im2,  Rho1_Corr, Rho1_Wrong, Rho2_Corr, Rho2_Wrong, Rescale1, Rescale2;
 
                   Re1        = *FluidPtr1D[REAL1];
                   Im1        = *FluidPtr1D[IMAG1];
                   Re2        = *FluidPtr1D[REAL2];
                   Im2        = *FluidPtr1D[IMAG2];
-                  Rho_Corr  = *FluidPtr1D[DENS];
-                  Rho_Wrong = SQR(Re1) + SQR(Im1) + SQR(Re2) + SQR(Im2);
+                  Rho1_Corr  = *FluidPtr1D[DENS1];
+                  Rho1_Wrong = SQR(Re1) + SQR(Im1);
+                  Rho2_Corr  = *FluidPtr1D[DENS2];
+                  Rho2_Wrong = SQR(Re2) + SQR(Im2);
                   
 
 //                be careful about the negative density introduced from the round-off errors
-                  if ( Rho_Wrong <= (real)0.0 ||  Rho_Corr <= (real)0.0 )
+                  if ( Rho2_Wrong <= (real)0.0 ||  Rho2_Corr <= (real)0.0 )
                   {
-                     *FluidPtr1D[DENS] = (real)0.0;
-                     Rescale           = (real)0.0;
-                  }
-                  
+                     *FluidPtr1D[DENS2] = (real)0.0;
+                     Rescale2           = (real)0.0;
+                  }                  
                   else
                   {
-                     Rescale = SQRT( Rho_Corr/Rho_Wrong );
+                     Rescale2 = SQRT( Rho2_Corr/Rho2_Wrong );
                   }
 
-                  *FluidPtr1D[REAL1] *= Rescale;
-                  *FluidPtr1D[IMAG1] *= Rescale;
-                  *FluidPtr1D[REAL2] *= Rescale;
-                  *FluidPtr1D[IMAG2] *= Rescale;
+                  if ( Rho1_Wrong <= (real)0.0 ||  Rho1_Corr <= (real)0.0 )
+                  {
+                     *FluidPtr1D[DENS1] = (real)0.0;
+                     Rescale1           = (real)0.0;
+                  }                  
+                  else
+                  {
+                     Rescale1 = SQRT( Rho1_Corr/Rho1_Wrong );
+                  }
+
+                  *FluidPtr1D[REAL1] *= Rescale1;
+                  *FluidPtr1D[IMAG1] *= Rescale1;
+                  *FluidPtr1D[REAL2] *= Rescale2;
+                  *FluidPtr1D[IMAG2] *= Rescale2;
 #                 endif
 
 

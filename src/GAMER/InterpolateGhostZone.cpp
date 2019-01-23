@@ -46,7 +46,7 @@ static int Table_01( const int SibID, const int Side, const char dim, const int 
 //                                     HYDRO : _DENS, _MOMX, _MOMY, _MOMZ, _ENGY, _VELX, _VELY, _VELZ, _PRES, _TEMP,
 //                                             [, _POTE]
 //                                     MHD   :
-//                                     ELBDM : _DENS, _REAL1, _IMAG1, _REAL2, _IMAG2 [, _POTE]
+//                                     ELBDM : _DENS1, _REAL1, _IMAG1, _DENS2, _REAL2, _IMAG2 [, _POTE]
 //                                 --> _FLUID, _PASSIVE, _TOTAL, and _DERIVED apply to all models
 //                NVar_Tot       : Total number of variables to be prepared
 //                NVar_Flu       : Number of fluid variables to be prepared
@@ -780,33 +780,32 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData[], const in
 
 // interpolation
 #  if ( MODEL == ELBDM )
-   real *CData_Dens = NULL;
+   real *CData_Dens1 = NULL;
+   real *CData_Dens2 = NULL;
    real *CData_Real1 = NULL;
    real *CData_Imag1 = NULL;
    real *CData_Real2 = NULL;
    real *CData_Imag2 = NULL;
-   real *FData_Dens = NULL;
+   real *FData_Dens1 = NULL;
+   real *FData_Dens2 = NULL;
    real *FData_Real1 = NULL;
    real *FData_Imag1 = NULL;
    real *FData_Real2 = NULL;
    real *FData_Imag2 = NULL;
-   real CData_Dens1[CSize3D];
-   real CData_Dens2[CSize3D];
-   real FData_Dens1[FSize3D];
-   real FData_Dens2[FSize3D];
 
 // c1. interpolation on phase in ELBDM
    if ( IntPhase )
    {
       
 //      Aux_Error( ERROR_INFO, "OPT__INT_Phase should be disabled !!\n" );/*
-      int DensIdx=-1, Real1Idx=-1, Imag1Idx=-1, Real2Idx=-1, Imag2Idx=-1;
+      int Dens1Idx=-1, Dens2Idx=-1, Real1Idx=-1, Imag1Idx=-1, Real2Idx=-1, Imag2Idx=-1;
 
       for (int v=0; v<NVar_Flu; v++)
       {
          TFluVarIdx = TFluVarIdxList[v];
 
-         if      ( TFluVarIdx == DENS )   DensIdx = v;
+         if      ( TFluVarIdx == DENS1 )   Dens1Idx = v;
+         else if ( TFluVarIdx == DENS2 )   Dens2Idx = v;
          else if ( TFluVarIdx == REAL1 )   Real1Idx = v;
          else if ( TFluVarIdx == IMAG1 )   Imag1Idx = v;
          else if ( TFluVarIdx == REAL2 )   Real2Idx = v;
@@ -820,12 +819,14 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData[], const in
 #     endif
 
 //    determine the array index to store density
-      CData_Dens = CData   + ( (DensIdx==-1) ? Imag2Idx : DensIdx )*CSize3D;
+      CData_Dens1 = CData   + ( (Dens1Idx==-1) ? Imag1Idx : Dens1Idx )*CSize3D;
+      CData_Dens2 = CData   + ( (Dens2Idx==-1) ? Imag2Idx : Dens2Idx )*CSize3D;
       CData_Real1 = CData   + Real1Idx*CSize3D;
       CData_Imag1 = CData   + Imag1Idx*CSize3D;
       CData_Real2 = CData   + Real2Idx*CSize3D;
       CData_Imag2 = CData   + Imag2Idx*CSize3D;
-      FData_Dens = IntData + ( (DensIdx==-1) ? Imag2Idx : DensIdx )*FSize3D;
+      FData_Dens1 = IntData + ( (Dens1Idx==-1) ? Imag1Idx : Dens1Idx )*FSize3D;
+      FData_Dens2 = IntData + ( (Dens2Idx==-1) ? Imag2Idx : Dens2Idx )*FSize3D;
       FData_Real1 = IntData + Real1Idx*FSize3D;
       FData_Imag1 = IntData + Imag1Idx*FSize3D;
       FData_Real2 = IntData + Real2Idx*FSize3D;
@@ -841,12 +842,11 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData[], const in
          Re2 = CData_Real2[t];
          Im2 = CData_Imag2[t];
 
-         CData_Dens1[t] = CData_Dens[t]*( Re1*Re1 + Im1*Im1 ) / ( Re1*Re1 + Im1*Im1 + Re2*Re2 + Im2*Im2 );
-         CData_Dens2[t] = CData_Dens[t]*( Re2*Re2 + Im2*Im2 ) / ( Re1*Re1 + Im1*Im1 + Re2*Re2 + Im2*Im2 );
          CData_Real1[t] = ATAN2( Im1, Re1 );
          CData_Real2[t] = ATAN2( Im2, Re2 );
-         if ( DensIdx == -1 )
+         if ( Dens1Idx == -1 )
          CData_Dens1[t] = Re1*Re1 + Im1*Im1;
+         if ( Dens2Idx == -1 )
          CData_Dens2[t] = Re2*Re2 + Im2*Im2;
       }
 
@@ -905,7 +905,6 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData[], const in
          FData_Imag1[t] = Amp1*SIN( Phase1 );
          FData_Real2[t] = Amp2*COS( Phase2 );
          FData_Imag2[t] = Amp2*SIN( Phase2 );
-         FData_Dens[t]  = Rho1 + Rho2;
 
       }
    }

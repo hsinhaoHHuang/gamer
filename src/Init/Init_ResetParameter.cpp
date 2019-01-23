@@ -551,6 +551,8 @@ void Init_ResetParameter()
 
 // turn off refinement criteria and checks related to density if "DENS" is not defined
 #  ifndef DENS
+#  ifndef DENS1
+#  ifndef DENS2
    if ( OPT__FLAG_RHO )
    {
       OPT__FLAG_RHO = false;
@@ -571,6 +573,8 @@ void Init_ResetParameter()
 
       PRINT_WARNING( OPT__CK_REFINE, FORMAT_INT, "since the symbolic constant DENS is not defined" );
    }
+#  endif
+#  endif
 #  endif // #ifndef DENS
 
 

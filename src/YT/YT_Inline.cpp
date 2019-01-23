@@ -74,9 +74,10 @@ void YT_Inline()
 #  warning : WAIT MHD !!!
 
 #  elif ( MODEL == ELBDM )
-   sprintf( FieldLabel[DENS], "Dens" );
+   sprintf( FieldLabel[DENS1], "Dens1" );
    sprintf( FieldLabel[REAL1], "Real1" );
    sprintf( FieldLabel[IMAG1], "Imag1" );
+   sprintf( FieldLabel[DENS2], "Dens2" );
    sprintf( FieldLabel[REAL2], "Real2" );
    sprintf( FieldLabel[IMAG2], "Imag2" );
 

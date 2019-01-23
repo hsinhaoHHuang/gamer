@@ -178,7 +178,8 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
    fluid[IMAG1] = 0.0;                                       // imaginary part is always zero --> no initial velocity
    fluid[REAL2] = ExtPot_Amp*j1( 2.0*R2 )/R2;
    fluid[IMAG2] = 0.0;                                       // imaginary part is always zero --> no initial velocity
-   fluid[DENS] = SQR( fluid[REAL1] ) + SQR( fluid[IMAG1] ) + SQR( fluid[REAL2] ) + SQR( fluid[IMAG2] ) ;
+   fluid[DENS1] = SQR( fluid[REAL1] ) + SQR( fluid[IMAG1] ) ;
+   fluid[DENS2] = SQR( fluid[REAL2] ) + SQR( fluid[IMAG2] ) ;
 
 } // FUNCTION : SetGridIC
 

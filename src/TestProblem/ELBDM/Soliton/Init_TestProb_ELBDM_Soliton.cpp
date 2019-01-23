@@ -177,7 +177,7 @@ void SetParameter()
 //      if ( Soliton_N != 2 ) Aux_Error( ERROR_INFO, "for Soliton_CoreRadiusAll <= 0.0, please comment out this error check and hard code "
 //                             "the core radius of each soliton !!\n" );
 //    for (int t=0; t<Soliton_N; t++)  Soliton_CoreRadius[t] = XXX;
-      const double  CoreRadius[2] = { 10.0, 10.0};//166.66666667 };
+      const double  CoreRadius[2] = { 10.0, 166.66666667 };
 
       if ( Soliton_N == 2 )
       {
@@ -419,7 +419,8 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
 
 
 // initialize density as zero since there may be multiple solitons
-   fluid[DENS] = 0.0;
+   fluid[DENS1] = 0.0;
+   fluid[DENS2] = 0.0;
    dens1 = 0.0;
    dens2 = 0.0;
 
@@ -454,11 +455,12 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
 
 
 // set the real and imaginary parts
-   fluid[REAL1] = sqrt( dens1 )*cos( ELBDM_ETA1*( Velocity1X*x + Velocity1Y*y + Velocity1Z*z ) );
-   fluid[IMAG1] = sqrt( dens1 )*sin( ELBDM_ETA1*( Velocity1X*x + Velocity1Y*y + Velocity1Z*z ) );
+   fluid[REAL1] = (real)0.0;//sqrt( dens1 )*cos( ELBDM_ETA1*( Velocity1X*x + Velocity1Y*y + Velocity1Z*z ) );
+   fluid[IMAG1] = (real)0.0;//sqrt( dens1 )*sin( ELBDM_ETA1*( Velocity1X*x + Velocity1Y*y + Velocity1Z*z ) );
    fluid[REAL2] = sqrt( dens2 )*cos( ELBDM_ETA2*( Velocity2X*x + Velocity2Y*y + Velocity2Z*z ) );
    fluid[IMAG2] = sqrt( dens2 )*sin( ELBDM_ETA2*( Velocity2X*x + Velocity2Y*y + Velocity2Z*z ) );
-   fluid[DENS] = SQR( fluid[REAL1] ) + SQR( fluid[IMAG1] ) + SQR( fluid[REAL2] ) + SQR( fluid[IMAG2] );
+   fluid[DENS1] = SQR( fluid[REAL1] ) + SQR( fluid[IMAG1] );
+   fluid[DENS2] = SQR( fluid[REAL2] ) + SQR( fluid[IMAG2] );
 } // FUNCTION : SetGridIC
 
 
@@ -506,7 +508,8 @@ void BC( real fluid[], const double x, const double y, const double z, const dou
    fluid[IMAG1] = (real)0.0;
    fluid[REAL2] = (real)0.0;
    fluid[IMAG2] = (real)0.0;
-   fluid[DENS] = (real)0.0;
+   fluid[DENS1] = (real)0.0;
+   fluid[DENS2] = (real)0.0;
 
 } // FUNCTION : BC
 

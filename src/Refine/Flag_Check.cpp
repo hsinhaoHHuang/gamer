@@ -139,9 +139,26 @@ bool Flag_Check( const int lv, const int PID, const int i, const int j, const in
 #  endif
 
 
+#  if ( MODEL == ELBDM )
+// check density magnitude
+// ===========================================================================================
+   if ( OPT__FLAG_RHO )
+   {
+      Flag |= ( Fluid[DENS1][k][j][i]+Fluid[DENS2][k][j][i] > FlagTable_Rho[lv] );
+      if ( Flag )    return Flag;
+   }
+
+
+// check density gradient
+// ===========================================================================================
+   if ( OPT__FLAG_RHO_GRADIENT )
+   {
+      Flag |= Check_Gradient( i, j, k, &Fluid[DENS1][0][0][0], FlagTable_RhoGradient[lv] );
+      Flag |= Check_Gradient( i, j, k, &Fluid[DENS2][0][0][0], FlagTable_RhoGradient[lv] );
+      if ( Flag )    return Flag;
+   }
 // check ELBDM energy density
 // ===========================================================================================
-#  if ( MODEL == ELBDM )
    if ( OPT__FLAG_ENGY_DENSITY )
    {
       Flag |= ELBDM_Flag_EngyDensity( i, j, k, &Fluid[REAL1][0][0][0], &Fluid[IMAG1][0][0][0],&Fluid[REAL2][0][0][0], &Fluid[IMAG2][0][0][0],

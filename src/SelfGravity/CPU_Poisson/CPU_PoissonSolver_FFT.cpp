@@ -92,7 +92,6 @@ void Patch2Slab( real *RhoK, real *SendBuf_Rho, real *RecvBuf_Rho, long *SendBuf
    const real        MinPres_No        = -1.0;
    const int         GhostSize         = 0;
    const int         NPG               = 1;
-
    real (*Dens)[PS1][PS1][PS1] = new real [8*NPG][PS1][PS1][PS1];
 
    for (int PID0=0; PID0<amr->NPatchComma[0][1]; PID0+=8)
@@ -157,7 +156,6 @@ void Patch2Slab( real *RhoK, real *SendBuf_Rho, real *RecvBuf_Rho, long *SendBuf
          } // for (int k=0; k<PS1; k++)
       } // for (int PID=PID0, LocalID=0; PID<PID0+8; PID++, LocalID++)
    } // for (int PID0=0; PID0<amr->NPatchComma[0][1]; PID0+=8)
-
    delete [] Dens;
 
 

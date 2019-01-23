@@ -137,7 +137,12 @@ void Flu_CorrAfterAllSync()
 
       else
       {
+#        if ( MODEL == ELBDM )
+         Buf_GetBufferData( lv, amr->FluSg[lv], NULL_INT, DATA_GENERAL, _DENS1, Rho_ParaBuf, USELB_YES );
+         Buf_GetBufferData( lv, amr->FluSg[lv], NULL_INT, DATA_GENERAL, _DENS2, Rho_ParaBuf, USELB_YES );
+#        else
          Buf_GetBufferData( lv, amr->FluSg[lv], NULL_INT, DATA_GENERAL, _DENS, Rho_ParaBuf, USELB_YES );
+#        endif
 
          InvokeSolver( POISSON_SOLVER, lv, Time[lv], NULL_REAL, NULL_REAL, Poi_Coeff, NULL_INT, amr->PotSg[lv], false, false );
 

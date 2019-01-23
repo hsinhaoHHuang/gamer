@@ -86,7 +86,7 @@ void Gra_Close( const int lv, const int SaveSg, const real h_Flu_Array_G[][GRA_N
          for (int k=0; k<PATCH_SIZE; k++)
          for (int j=0; j<PATCH_SIZE; j++)
          for (int i=0; i<PATCH_SIZE; i++)
-            amr->patch[SaveSg][lv][PID]->fluid[v+1][k][j][i] = h_Flu_Array_G[N][v][k][j][i];
+            amr->patch[SaveSg][lv][PID]->fluid[v+1+(int)(v/2)][k][j][i] = h_Flu_Array_G[N][v][k][j][i];
 
 #        else
 #        error : unsupported MODEL !!

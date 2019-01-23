@@ -247,8 +247,12 @@ void Init_GAMER( int *argc, char ***argv )
       for (int lv=0; lv<NLEVEL; lv++)
       {
          if ( MPI_Rank == 0 )    Aux_Message( stdout, "   Lv %2d ... ", lv );
-
+#        if ( MODEL == ELBDM )
+         Buf_GetBufferData( lv, amr->FluSg[lv], NULL_INT, DATA_GENERAL, _DENS1, Rho_ParaBuf, USELB_YES );
+         Buf_GetBufferData( lv, amr->FluSg[lv], NULL_INT, DATA_GENERAL, _DENS2, Rho_ParaBuf, USELB_YES );
+#        else
          Buf_GetBufferData( lv, amr->FluSg[lv], NULL_INT, DATA_GENERAL, _DENS, Rho_ParaBuf, USELB_YES );
+#        endif
 
          Gra_AdvanceDt( lv, Time[lv], NULL_REAL, NULL_REAL, NULL_INT, amr->PotSg[lv], true, false, false, false );
 

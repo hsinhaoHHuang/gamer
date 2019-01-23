@@ -190,7 +190,7 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
          uint Column0     = 0;                              // the total number of columns that have been updated
          uint NColumnOnce = MIN( NColumnTotal, FLU_BLOCK_SIZE_Y );
 
-   double Amp_New;            // use double precision to reduce the round-off error in the mass conservation
+   double Amp1_New, Amp2_New;            // use double precision to reduce the round-off error in the mass conservation
    real   Re1_Old, Im1_Old, Re1_New, Im1_New;
    real   Re2_Old, Im2_Old, Re2_New, Im2_New;
    uint   Idx1, Idx2, Idx3, delta_k;
@@ -202,7 +202,7 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
    const real dT2_dh2     = dT2*_dh*_dh;
    const uint txp         = tx + 1;
 
-   double Amp_Old, Amp_Corr;  // use double precision to reduce the round-off error in the mass conservation
+   double Amp1_Old, Amp2_Old, Amp1_Corr, Amp2_Corr;  // use double precision to reduce the round-off error in the mass conservation
    real   R1, I1, dR1, dI1;
    real   R2, I2, dR2, dI2;
    uint   Idx;
@@ -346,23 +346,30 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
          Re2_New   = Re2_Old - Coeff12*LAP1( s_Half[3][ty], i );
          Im2_New   = Im2_Old + Coeff12*LAP1( s_Half[2][ty], i );
 
-         Amp_Old  = SQR( Re1_Old ) + SQR( Im1_Old ) +  SQR( Re2_Old ) + SQR( Im2_Old );
-         Amp_New  = SQR( Re1_New ) + SQR( Im1_New ) +  SQR( Re2_New ) + SQR( Im2_New );
-         Amp_Corr = Amp_Old - dT1_dh2*( s_Flux1[ty][txp] - s_Flux1[ty][tx] )- dT2_dh2*( s_Flux2[ty][txp] - s_Flux2[ty][tx] );
+         Amp1_Old  = SQR( Re1_Old ) + SQR( Im1_Old );
+         Amp2_Old  = SQR( Re2_Old ) + SQR( Im2_Old );
+         Amp1_New  = SQR( Re1_New ) + SQR( Im1_New );
+         Amp2_New  = SQR( Re2_New ) + SQR( Im2_New );
+         Amp1_Corr = Amp1_Old - dT1_dh2*( s_Flux1[ty][txp] - s_Flux1[ty][tx] );
+         Amp2_Corr = Amp2_Old - dT2_dh2*( s_Flux2[ty][txp] - s_Flux2[ty][tx] );
 
 //       be careful about the negative density and the vacuum (where we might have Amp_New == 0.0)
 //       if ( Amp_Corr > (real)0.0  &&  Amp_New > (real)0.0 )
-         if ( Amp_Corr >       0.0  &&  Amp_New >       0.0 )
+         if ( Amp1_Corr >       0.0  &&  Amp1_New >       0.0 )
          {
             /*
             Re_New *= SQRT( Amp_Corr / Amp_New );
             Im_New *= SQRT( Amp_Corr / Amp_New );
             */
-            Re1_New *= sqrt( Amp_Corr / Amp_New );  // use double precision to improve the mass conservation further
-            Im1_New *= sqrt( Amp_Corr / Amp_New );
-            Re2_New *= sqrt( Amp_Corr / Amp_New );
-            Im2_New *= sqrt( Amp_Corr / Amp_New );
-            Amp_New = Amp_Corr;
+            Re1_New *= sqrt( Amp1_Corr / Amp1_New );  // use double precision to improve the mass conservation further
+            Im1_New *= sqrt( Amp1_Corr / Amp1_New );
+            Amp1_New = Amp1_Corr;
+         }
+         if ( Amp2_Corr >       0.0  &&  Amp2_New >       0.0 )
+         {
+            Re2_New *= sqrt( Amp2_Corr / Amp2_New );
+            Im2_New *= sqrt( Amp2_Corr / Amp2_New );
+            Amp2_New = Amp2_Corr;
          }
       } // if if ( tid < NColumnOnce*PS2 )
 
@@ -377,7 +384,8 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
          Im1_New  = Im1_Old + Coeff11*LAP1( s_In[0][ty], i ) - Coeff21*LAP2( s_In[1][ty], i ) - Coeff31*LAP3( s_In[0][ty], i );
          Re2_New  = Re2_Old - Coeff12*LAP1( s_In[3][ty], i ) - Coeff22*LAP2( s_In[2][ty], i ) + Coeff32*LAP3( s_In[3][ty], i );
          Im2_New  = Im2_Old + Coeff12*LAP1( s_In[2][ty], i ) - Coeff22*LAP2( s_In[3][ty], i ) - Coeff32*LAP3( s_In[2][ty], i );
-         Amp_New = SQR( Re1_New ) + SQR( Im1_New ) + SQR( Re2_New ) + SQR( Im2_New );
+         Amp1_New = SQR( Re1_New ) + SQR( Im1_New );
+         Amp2_New = SQR( Re2_New ) + SQR( Im2_New );
       }
 
 
@@ -392,15 +400,21 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
          {
 //          apply the the minimum density check
 //          --> to be consistent with the CPU solver, we apply it just before storing the output results to g_Fluid_Out
-            if ( Amp_New < MinDens )
+            if ( Amp1_New < MinDens )
             {
-               const real Rescale = SQRT( MinDens / (real)Amp_New );
+               const real Rescale1 = SQRT( MinDens / (real)Amp1_New );
 
-               Re1_New *= Rescale;
-               Im1_New *= Rescale;
-               Re2_New *= Rescale;
-               Im2_New *= Rescale;
-               Amp_New = MinDens;
+               Re1_New *= Rescale1;
+               Im1_New *= Rescale1;
+               Amp1_New = MinDens;
+            }
+            if ( Amp2_New < MinDens )
+            {
+               const real Rescale2 = SQRT( MinDens / (real)Amp2_New );
+
+               Re2_New *= Rescale2;
+               Im2_New *= Rescale2;
+               Amp2_New = MinDens;
             }
 
             switch ( XYZ )
@@ -410,11 +424,12 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
                case 6:  Idx2 = to1D2( i, k, j );    break;
             }
 
-            g_Fluid_Out[bx][0][Idx2] = Amp_New;
+            g_Fluid_Out[bx][0][Idx2] = Amp1_New;
             g_Fluid_Out[bx][1][Idx2] = Re1_New;
             g_Fluid_Out[bx][2][Idx2] = Im1_New;
-            g_Fluid_Out[bx][3][Idx2] = Re2_New;
-            g_Fluid_Out[bx][4][Idx2] = Im2_New;
+            g_Fluid_Out[bx][3][Idx2] = Amp2_New;
+            g_Fluid_Out[bx][4][Idx2] = Re2_New;
+            g_Fluid_Out[bx][5][Idx2] = Im2_New;
          }
 
          else
@@ -433,9 +448,12 @@ __device__ void CUFLU_Advance( real g_Fluid_In [][FLU_NIN ][ FLU_NXT*FLU_NXT*FLU
          {
             Idx3 = __umul24( k-FLU_GHOST_SIZE, PS2 ) + (j-FLU_GHOST_SIZE);
 
-            g_Flux[bx][XYZ+0][0][Idx3] = s_Flux1[ty][  0]*_Eta12_dh + s_Flux2[ty][  0]*_Eta22_dh;
-            g_Flux[bx][XYZ+1][0][Idx3] = s_Flux1[ty][PS1]*_Eta12_dh + s_Flux2[ty][PS1]*_Eta22_dh;
-            g_Flux[bx][XYZ+2][0][Idx3] = s_Flux1[ty][PS2]*_Eta12_dh + s_Flux2[ty][PS2]*_Eta22_dh;
+            g_Flux[bx][XYZ+0][0][Idx3] = s_Flux1[ty][  0]*_Eta12_dh;
+            g_Flux[bx][XYZ+1][0][Idx3] = s_Flux1[ty][PS1]*_Eta12_dh;
+            g_Flux[bx][XYZ+2][0][Idx3] = s_Flux1[ty][PS2]*_Eta12_dh;
+            g_Flux[bx][XYZ+0][1][Idx3] = s_Flux2[ty][  0]*_Eta22_dh;
+            g_Flux[bx][XYZ+1][1][Idx3] = s_Flux2[ty][PS1]*_Eta22_dh;
+            g_Flux[bx][XYZ+2][1][Idx3] = s_Flux2[ty][PS2]*_Eta22_dh;
          }
 
 
