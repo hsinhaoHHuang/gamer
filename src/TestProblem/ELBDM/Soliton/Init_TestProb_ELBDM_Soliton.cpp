@@ -455,8 +455,8 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
 
 
 // set the real and imaginary parts
-   fluid[REAL1] = (real)0.0;//sqrt( dens1 )*cos( ELBDM_ETA1*( Velocity1X*x + Velocity1Y*y + Velocity1Z*z ) );
-   fluid[IMAG1] = (real)0.0;//sqrt( dens1 )*sin( ELBDM_ETA1*( Velocity1X*x + Velocity1Y*y + Velocity1Z*z ) );
+   fluid[REAL1] = sqrt( dens1 )*cos( ELBDM_ETA1*( Velocity1X*x + Velocity1Y*y + Velocity1Z*z ) );
+   fluid[IMAG1] = sqrt( dens1 )*sin( ELBDM_ETA1*( Velocity1X*x + Velocity1Y*y + Velocity1Z*z ) );
    fluid[REAL2] = sqrt( dens2 )*cos( ELBDM_ETA2*( Velocity2X*x + Velocity2Y*y + Velocity2Z*z ) );
    fluid[IMAG2] = sqrt( dens2 )*sin( ELBDM_ETA2*( Velocity2X*x + Velocity2Y*y + Velocity2Z*z ) );
    fluid[DENS1] = SQR( fluid[REAL1] ) + SQR( fluid[IMAG1] );
