@@ -219,11 +219,11 @@ void Flu_FixUp( const int lv )
 #                      error : DE_EINT is NOT supported yet !!
 #                      endif
                      )
+                     continue;
 
 #                 elif ( MODEL == ELBDM  &&  defined CONSERVE_MASS )
-                  if ( CorrVal[DENS1] <= MIN_DENS || CorrVal[DENS2] <= MIN_DENS  )
+//                  if ( CorrVal[DENS1] <= MIN_DENS || CorrVal[DENS2] <= MIN_DENS  )
 #                 endif
-                     continue;
 
 
 //                floor and normalize the passive scalars
