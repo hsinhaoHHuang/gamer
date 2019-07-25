@@ -42,8 +42,13 @@ real   CPU_ExternalPot( const double x, const double y, const double z, const do
    const real   dy     = (real)(y - Cen[1]);
    const real   dz     = (real)(z - Cen[2]);
    const real   _r     = 1.0/SQRT( dx*dx + dy*dy + dz*dz );
+   const real   r      = SQRT( dx*dx + dy*dy + dz*dz );
+   const real   R      = 260.0;
 
-   return -GM*_r;
+   if(r<=R)
+       return GM*(r*r-1.5*R*R);
+   else
+       return GM*(-2.0*R*R*R*_r+1.5*R*R);
 
 } // FUNCTION : CUPOT_ExternalPot // CPU_ExternalPot
 
