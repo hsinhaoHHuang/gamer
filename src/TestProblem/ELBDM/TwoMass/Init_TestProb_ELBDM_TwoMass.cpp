@@ -49,8 +49,8 @@ void Validate()
 #  endif
 
 #  ifdef GRAVITY
-   if ( OPT__BC_POT != BC_POT_ISOLATED )
-      Aux_Error( ERROR_INFO, "must adopt isolated BC for gravity --> reset OPT__BC_POT !!\n" );
+//   if ( OPT__BC_POT != BC_POT_ISOLATED )
+//      Aux_Error( ERROR_INFO, "must adopt isolated BC for gravity --> reset OPT__BC_POT !!\n" );
 #  endif
 
 
