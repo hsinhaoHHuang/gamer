@@ -8,6 +8,8 @@
 static int      Soliton_N;                               // total number of solitons
 static int      Soliton_RSeed;                           // random seed for setting Soliton_Center (<0 --> set manually)
 static double   Soliton_CoreRadiusAll;                   // core radius for all solitons (<=0.0 --> set manually)
+static double   Soliton_CoreRadiusAll1;                  // core radius for all soliton1s (<=0.0 --> set manually)
+static double   Soliton_CoreRadiusAll2;                  // core radius for all soliton2s (<=0.0 --> set manually)
 static double   Soliton_EmptyRegion;                     // soliton-free region from the boundary (useful only when Soliton_RSeed>=0)
 static double   Soliton_Distance;                        // normalized distance between solitons ( useful only when Soliton_N == 2 )
 static char     Soliton_DensProf_Filename[MAX_STRING];   // filename of the soliton density profile
@@ -16,6 +18,7 @@ static int      Soliton_DensProf_NBin;                   // number of radial bin
 static double  *Soliton_DensProf   = NULL;               // soliton density profile [radius/density]
 static double  *Soliton_CoreRadius = NULL;               // core radius of each soliton
 static double (*Soliton_Center)[3] = NULL;               // center coordinates of each soliton
+static double (*Soliton_Velocity)[3] = NULL;             // velocity of each soliton
 static double  *Soliton_ScaleL     = NULL;               // L/D: length/density scale factors of each soliton
                                                          //      (defined as the ratio between the core radii/peak
                                                          //      density of the target and reference soliton profiles
@@ -123,6 +126,8 @@ void SetParameter()
    ReadPara->Add( "Soliton_N",                 &Soliton_N,                 -1,             1,                NoMax_int         );
    ReadPara->Add( "Soliton_RSeed",             &Soliton_RSeed,              0,             NoMin_int,        NoMax_int         );
    ReadPara->Add( "Soliton_CoreRadiusAll",     &Soliton_CoreRadiusAll,      NoDef_double,  NoMin_double,     NoMax_double      );
+   ReadPara->Add( "Soliton_CoreRadiusAll1",    &Soliton_CoreRadiusAll1,     NoDef_double,  NoMin_double,     NoMax_double      );
+   ReadPara->Add( "Soliton_CoreRadiusAll2",    &Soliton_CoreRadiusAll2,     NoDef_double,  NoMin_double,     NoMax_double      );
    ReadPara->Add( "Soliton_EmptyRegion",       &Soliton_EmptyRegion,        0.0,           NoMin_double,     NoMax_double      );
    ReadPara->Add( "Soliton_Distance",          &Soliton_Distance,           0.5,          0.0,              1.0               );
    ReadPara->Add( "Soliton_DensProf_Filename",  Soliton_DensProf_Filename,  Useless_str,   Useless_str,      Useless_str       );
@@ -157,6 +162,7 @@ void SetParameter()
 // (2-1) allocate memory
    Soliton_CoreRadius  = new double [Soliton_N];
    Soliton_Center      = new double [Soliton_N][3];
+   Soliton_Velocity    = new double [Soliton_N][3];
    Soliton_ScaleL      = new double [Soliton_N];
    Soliton_ScaleD      = new double [Soliton_N];
    Soliton_ParMass     = new int    [Soliton_N];
@@ -177,9 +183,14 @@ void SetParameter()
 //      if ( Soliton_N != 2 ) Aux_Error( ERROR_INFO, "for Soliton_CoreRadiusAll <= 0.0, please comment out this error check and hard code "
 //                             "the core radius of each soliton !!\n" );
 //    for (int t=0; t<Soliton_N; t++)  Soliton_CoreRadius[t] = XXX;
-      const double  CoreRadius[2] = { 10.0, 166.66666667 };
+      const double  CoreRadius[2] = {Soliton_CoreRadiusAll1, Soliton_CoreRadiusAll2 };//{ 10.0, 166.66666667 };
 
-      if ( Soliton_N == 2 )
+      if ( Soliton_N == 1 )
+      {
+         Soliton_CoreRadius[0] = CoreRadius[0];
+         Soliton_ParMass[0] = 0;
+      }
+      else if ( Soliton_N == 2 )
       {
           Soliton_CoreRadius[0] = CoreRadius[0];
           Soliton_CoreRadius[1] = CoreRadius[1];
@@ -224,8 +235,24 @@ void SetParameter()
             Soliton_ParMass[4] = 1;
             Soliton_CoreRadius[5] = CoreRadius[1];
             Soliton_ParMass[5] = 1;
+            Soliton_CoreRadius[6] = CoreRadius[1];
+            Soliton_ParMass[6] = 1;
+            Soliton_CoreRadius[7] = CoreRadius[1];
+            Soliton_ParMass[7] = 1;
+            Soliton_CoreRadius[8] = CoreRadius[1];
+            Soliton_ParMass[8] = 1;
+            Soliton_CoreRadius[9] = CoreRadius[1];
+            Soliton_ParMass[9] = 1;
 
-
+/*            Soliton_CoreRadius[10] = CoreRadius[0];
+            Soliton_ParMass[10] = 0;
+            Soliton_CoreRadius[11] = CoreRadius[0];
+            Soliton_ParMass[11] = 0;
+            Soliton_CoreRadius[12] = CoreRadius[0];
+            Soliton_ParMass[12] = 0;
+            Soliton_CoreRadius[13] = CoreRadius[0];
+            Soliton_ParMass[13] = 0;
+*/
          }
       }
    }
@@ -252,10 +279,10 @@ void SetParameter()
       }
       else if ( Soliton_N == 2)
       {
-         Soliton_Center[0][0] = (0.5-0.5*Soliton_Distance)*amr->BoxSize[0];
+         Soliton_Center[0][0] = (0.5)*amr->BoxSize[0];//(0.5-0.5*Soliton_Distance)*amr->BoxSize[0];
          Soliton_Center[0][1] = (0.5)*amr->BoxSize[1];
          Soliton_Center[0][2] = (0.5)*amr->BoxSize[2];
-         Soliton_Center[1][0] = (0.5+0.5*Soliton_Distance)*amr->BoxSize[0];
+         Soliton_Center[1][0] = (0.5)*amr->BoxSize[0];//(0.5+0.5*Soliton_Distance)*amr->BoxSize[0];
          Soliton_Center[1][1] = (0.5)*amr->BoxSize[1];
          Soliton_Center[1][2] = (0.5)*amr->BoxSize[2];
       }
@@ -265,37 +292,80 @@ void SetParameter()
          //Aux_Error( ERROR_INFO, "for Soliton_RSeed < 0 and Soliton_N > 2, please comment out this error check and hard code "
          //                       "the center of each soliton !!\n" );
          srand( 1234 );
-         Soliton_Center[0][0] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[0];
-         Soliton_Center[0][1] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[1];
-         Soliton_Center[0][2] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[2];
+         Soliton_Center[0][0] = ((0.25+0.5*( (double)rand()/RAND_MAX ) ))*amr->BoxSize[0];//(0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[0];
+         Soliton_Center[0][1] = ((0.25+0.5*( (double)rand()/RAND_MAX ) ))*amr->BoxSize[1];
+         Soliton_Center[0][2] = ((0.25+0.5*( (double)rand()/RAND_MAX ) ))*amr->BoxSize[2];
 
-         Soliton_Center[1][0] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[0];
-         Soliton_Center[1][1] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[1];
-         Soliton_Center[1][2] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[2];
+         Soliton_Center[1][0] = ((0.25+0.5*( (double)rand()/RAND_MAX ) ))*amr->BoxSize[0];
+         Soliton_Center[1][1] = ((0.25+0.5*( (double)rand()/RAND_MAX ) ))*amr->BoxSize[1];
+         Soliton_Center[1][2] = ((0.25+0.5*( (double)rand()/RAND_MAX ) ))*amr->BoxSize[2];
 
-         Soliton_Center[2][0] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[0];
-         Soliton_Center[2][1] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[1];
-         Soliton_Center[2][2] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[2];
+         Soliton_Center[2][0] = ((0.25+0.5*( (double)rand()/RAND_MAX ) ))*amr->BoxSize[0];
+         Soliton_Center[2][1] = ((0.25+0.5*( (double)rand()/RAND_MAX ) ))*amr->BoxSize[1];
+         Soliton_Center[2][2] = ((0.25+0.5*( (double)rand()/RAND_MAX ) ))*amr->BoxSize[2];
 
-         Soliton_Center[3][0] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[0];
-         Soliton_Center[3][1] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[1];
-         Soliton_Center[3][2] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[2];
+         Soliton_Center[3][0] = ((0.25+0.5*( (double)rand()/RAND_MAX ) ))*amr->BoxSize[0];
+         Soliton_Center[3][1] = ((0.25+0.5*( (double)rand()/RAND_MAX ) ))*amr->BoxSize[1];
+         Soliton_Center[3][2] = ((0.25+0.5*( (double)rand()/RAND_MAX ) ))*amr->BoxSize[2];
 //
-         Soliton_Center[4][0] = 0.75*amr->BoxSize[0];
-         Soliton_Center[4][1] = 0.75*amr->BoxSize[1];
-         Soliton_Center[4][2] = 0.75*amr->BoxSize[2];
+         Soliton_Center[4][0] = ((0.25+0.5*0.75))*amr->BoxSize[0];
+         Soliton_Center[4][1] = ((0.25+0.5*0.75))*amr->BoxSize[1];
+         Soliton_Center[4][2] = ((0.25+0.5*0.75))*amr->BoxSize[2];
 
-         Soliton_Center[5][0] = 0.25*amr->BoxSize[0];
-         Soliton_Center[5][1] = 0.25*amr->BoxSize[1];
-         Soliton_Center[5][2] = 0.25*amr->BoxSize[2];
+         Soliton_Center[5][0] = ((0.25+0.5*0.25))*amr->BoxSize[0];
+         Soliton_Center[5][1] = ((0.25+0.5*0.25))*amr->BoxSize[1];
+         Soliton_Center[5][2] = ((0.25+0.5*0.25))*amr->BoxSize[2];
+         Soliton_Center[6][0] = ((0.25+0.5*0.6))*amr->BoxSize[0];
+         Soliton_Center[6][1] = ((0.25+0.5*0.4))*amr->BoxSize[1];
+         Soliton_Center[6][2] = ((0.25+0.5*0.4))*amr->BoxSize[2];
+         Soliton_Center[7][0] = ((0.25+0.5*0.4))*amr->BoxSize[0];
+         Soliton_Center[7][1] = ((0.25+0.5*0.6))*amr->BoxSize[1];
+         Soliton_Center[7][2] = ((0.25+0.5*0.6))*amr->BoxSize[2];
+         Soliton_Center[8][0] = ((0.25+0.5*(0.4+0.2*( (double)rand()/RAND_MAX ) )))*amr->BoxSize[0];
+         Soliton_Center[8][1] = ((0.25+0.5*(0.4+0.2*( (double)rand()/RAND_MAX ) )))*amr->BoxSize[1];
+         Soliton_Center[8][2] = ((0.25+0.5*(0.4+0.2*( (double)rand()/RAND_MAX ) )))*amr->BoxSize[2];
+         Soliton_Center[9][0] = ((0.25+0.5*(0.4+0.2*( (double)rand()/RAND_MAX ) )))*amr->BoxSize[0];
+         Soliton_Center[9][1] = ((0.25+0.5*(0.4+0.2*( (double)rand()/RAND_MAX ) )))*amr->BoxSize[1];
+         Soliton_Center[9][2] = ((0.25+0.5*(0.4+0.2*( (double)rand()/RAND_MAX ) )))*amr->BoxSize[2];
          
-         /*for (int t=0; t<Soliton_N; t++)
+/*         Soliton_Center[10][0] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[0];
+         Soliton_Center[10][1] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[1];
+         Soliton_Center[10][2] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[2];
+         Soliton_Center[11][0] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[0];
+         Soliton_Center[11][1] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[1];
+         Soliton_Center[11][2] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[2];
+         Soliton_Center[12][0] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[0];
+         Soliton_Center[12][1] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[1];
+         Soliton_Center[12][2] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[2];
+         Soliton_Center[13][0] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[0];
+         Soliton_Center[13][1] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[1];
+         Soliton_Center[13][2] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[2];
+*/         /*for (int t=0; t<Soliton_N; t++)
          for (int d=0; d<3; d++)          Soliton_Center[t][d] = XXX;
          */
       }
    } // if ( Soliton_RSeed >= 0 ) ... else ...
 
    
+// (2-4) soliton velocity
+   srand( 1234 );
+   for (int t=0; t<Soliton_N; t++)
+   {
+      if ( Soliton_ParMass[t] == 0)
+      {
+         Soliton_Velocity[t][0] = Velocity1X;//(2.0*( (double)rand()/RAND_MAX - 0.5 ) )*Velocity1X;
+         Soliton_Velocity[t][1] = Velocity1Y;//(2.0*( (double)rand()/RAND_MAX - 0.5 ) )*Velocity1Y;
+         Soliton_Velocity[t][2] = Velocity1Z;//(2.0*( (double)rand()/RAND_MAX - 0.5 ) )*Velocity1Z;
+      }
+      else
+      {
+         Soliton_Velocity[t][0] = (2.0*( (double)rand()/RAND_MAX - 0.5 ) )*Velocity2X;
+         Soliton_Velocity[t][1] = (2.0*( (double)rand()/RAND_MAX - 0.5 ) )*Velocity2Y;
+         Soliton_Velocity[t][2] = (2.0*( (double)rand()/RAND_MAX - 0.5 ) )*Velocity2Z;
+      }
+
+   }
+
 
 // (3) load the soliton density profile
    if ( OPT__INIT != INIT_BY_RESTART )
@@ -371,12 +441,12 @@ void SetParameter()
       Aux_Message( stdout, "  number of bins of the density profile     = %d\n",     Soliton_DensProf_NBin      );
       Aux_Message( stdout, "\n" );
       Aux_Message( stdout, "  Soliton info:\n" );
-      Aux_Message( stdout, "  %7s  %13s  %13s  %13s  %13s  %13s  %13s %13s\n",
-                   "ID", "CoreRadius", "ScaleL", "ScaleD", "Center_X", "Center_Y", "Center_Z", "ParticleMass" );
+      Aux_Message( stdout, "  %7s  %13s  %13s  %13s  %13s  %13s  %13s  %13s  %13s  %13s %13s\n",
+                   "ID", "CoreRadius", "ScaleL", "ScaleD", "Center_X", "Center_Y", "Center_Z", "Velocity_X", "Velocity_Y", "Velocity_Z", "ParticleMass" );
       for (int t=0; t<Soliton_N; t++)
-      Aux_Message( stdout, "  %7d  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e   ELBDM_MASS%d\n",
+      Aux_Message( stdout, "  %7d  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e   ELBDM_MASS%d\n",
                    t, Soliton_CoreRadius[t], Soliton_ScaleL[t], Soliton_ScaleD[t],
-                   Soliton_Center[t][0], Soliton_Center[t][1], Soliton_Center[t][2], Soliton_ParMass[t]+1 );
+                   Soliton_Center[t][0], Soliton_Center[t][1], Soliton_Center[t][2], Soliton_Velocity[t][0], Soliton_Velocity[t][1], Soliton_Velocity[t][2], Soliton_ParMass[t]+1 );
       Aux_Message( stdout, "  point source mass       = %13.7e\n",                   ExtPot_M );
       Aux_Message( stdout, "  point source position   = (%13.7e, %13.7e, %13.7e)\n", ExtPot_Cen[0],
                                                                                      ExtPot_Cen[1],
@@ -415,7 +485,7 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
    const double *Table_Radius  = Soliton_DensProf + 0*Soliton_DensProf_NBin;  // radius
    const double *Table_Density = Soliton_DensProf + 1*Soliton_DensProf_NBin;  // density
 
-   double r_tar, r_ref, dens_ref, dens1, dens2;
+   double r_tar, r_ref, dens_ref, dens1, dens2, real1, imag1, real2, imag2;
 
 
 // initialize density as zero since there may be multiple solitons
@@ -423,6 +493,10 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
    fluid[DENS2] = 0.0;
    dens1 = 0.0;
    dens2 = 0.0;
+   real1 = 0.0;
+   imag1 = 0.0;
+   real2 = 0.0;
+   imag2 = 0.0;
 
 // loop over all solitons to get the total density
    for (int t=0; t<Soliton_N; t++)
@@ -447,20 +521,49 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
       }
 
 //    rescale density (reference density --> target density) and add to the fluid array
-      if ( Soliton_ParMass[t] == 0)
+      if ( Soliton_ParMass[t] == 0 )
+      {
          dens1 += dens_ref*Soliton_ScaleD[t];
+         real1 += sqrt(dens_ref*Soliton_ScaleD[t])*cos( ELBDM_ETA1*( Soliton_Velocity[t][0]*x + Soliton_Velocity[t][1]*y + Soliton_Velocity[t][2]*z ) );
+         imag1 += sqrt(dens_ref*Soliton_ScaleD[t])*sin( ELBDM_ETA1*( Soliton_Velocity[t][0]*x + Soliton_Velocity[t][1]*y + Soliton_Velocity[t][2]*z ) );
+      }
       else
+      {
          dens2 += dens_ref*Soliton_ScaleD[t]; 
+         real2 += sqrt(dens_ref*Soliton_ScaleD[t])*cos( ELBDM_ETA2*( Soliton_Velocity[t][0]*x + Soliton_Velocity[t][1]*y + Soliton_Velocity[t][2]*z ) );
+         imag2 += sqrt(dens_ref*Soliton_ScaleD[t])*sin( ELBDM_ETA2*( Soliton_Velocity[t][0]*x + Soliton_Velocity[t][1]*y + Soliton_Velocity[t][2]*z ) );
+      }
    } // for (int t=0; t<Soliton_N; t++)
 
 
 // set the real and imaginary parts
-   fluid[REAL1] = sqrt( dens1 )*cos( ELBDM_ETA1*( Velocity1X*x + Velocity1Y*y + Velocity1Z*z ) );
-   fluid[IMAG1] = sqrt( dens1 )*sin( ELBDM_ETA1*( Velocity1X*x + Velocity1Y*y + Velocity1Z*z ) );
-   fluid[REAL2] = sqrt( dens2 )*cos( ELBDM_ETA2*( Velocity2X*x + Velocity2Y*y + Velocity2Z*z ) );
-   fluid[IMAG2] = sqrt( dens2 )*sin( ELBDM_ETA2*( Velocity2X*x + Velocity2Y*y + Velocity2Z*z ) );
-   fluid[DENS1] = SQR( fluid[REAL1] ) + SQR( fluid[IMAG1] );
-   fluid[DENS2] = SQR( fluid[REAL2] ) + SQR( fluid[IMAG2] );
+   if ( dens1 == 0.0 )
+   {
+     fluid[REAL1] = (real)0.0;
+     fluid[IMAG1] = (real)0.0;
+     fluid[DENS1] = (real)0.0;
+   }
+   else
+   {
+     fluid[REAL1] = real1*sqrt( dens1/(real1*real1+imag1*imag1) );//sqrt( dens1 )*cos( ELBDM_ETA1*( Velocity1X*x + Velocity1Y*y + Velocity1Z*z ) );
+     fluid[IMAG1] = imag1*sqrt( dens1/(real1*real1+imag1*imag1) );//sqrt( dens1 )*sin( ELBDM_ETA1*( Velocity1X*x + Velocity1Y*y + Velocity1Z*z ) );
+     fluid[DENS1] = SQR( fluid[REAL1] ) + SQR( fluid[IMAG1] );
+   }
+
+   if ( dens2 == 0.0 )
+   {
+     fluid[REAL2] = (real)0.0;
+     fluid[IMAG2] = (real)0.0;
+     fluid[DENS2] = (real)0.0;
+   }
+   else
+   {
+     fluid[REAL2] = (real)0.0;//real2*sqrt( dens2/(real2*real2+imag2*imag2) );//sqrt( dens2 )*cos( ELBDM_ETA2*( Velocity2X*x + Velocity2Y*y + Velocity2Z*z ) );
+     fluid[IMAG2] = (real)0.0;//imag2*sqrt( dens2/(real2*real2+imag2*imag2) );//sqrt( dens2 )*sin( ELBDM_ETA2*( Velocity2X*x + Velocity2Y*y + Velocity2Z*z ) );
+     fluid[DENS2] = (real)0.0;//SQR( fluid[REAL2] ) + SQR( fluid[IMAG2] );
+   }
+
+
 } // FUNCTION : SetGridIC
 
 
@@ -478,6 +581,7 @@ void End_Soliton()
 
    delete [] Soliton_DensProf;
    delete [] Soliton_Center;
+   delete [] Soliton_Velocity;
    delete [] Soliton_ScaleL;
    delete [] Soliton_ScaleD;
    delete [] Soliton_ParMass;
