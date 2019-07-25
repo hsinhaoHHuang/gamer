@@ -44,33 +44,29 @@ bool Flu_ResetByUser_Func( real fluid[], const double x, const double y, const d
 {
 
 // Example : reset fluid variables to extremely small values if the cell is within a specific sphere
-   /*
+
    const real dr[3]   = { x-0.5*amr->BoxSize[0], y-0.5*amr->BoxSize[1], z-0.5*amr->BoxSize[2] };
    const real r       = SQRT( dr[0]*dr[0] + dr[1]*dr[1] + dr[2]*dr[2] );
 
-   const real TRad    = 0.3;
-   const real MaxDens = 1.0e15;
-   const real MaxPres = 1.0e15;
+   const real TRad    = 1600.0;
+   const real Sigma   = 400.0;
 
-   if ( r <= TRad )
+   if ( r >= TRad && Time>=1.0 && Time<0.0 )
    {
-//    set active scalars
-      fluid[DENS] = MaxDens;
-      fluid[MOMX] = 0.0;
-      fluid[MOMY] = 0.0;
-      fluid[MOMZ] = 0.0;
-      fluid[ENGY] = MaxPres / ( GAMMA-(real)1.0 );
+      fluid[REAL1] *= exp(-( (r-TRad)*(r-TRad) )/(2.0*Sigma*Sigma) );
+      fluid[IMAG1] *= exp(-( (r-TRad)*(r-TRad) )/(2.0*Sigma*Sigma) );
+      fluid[REAL2] *= exp(-( (r-TRad)*(r-TRad) )/(2.0*Sigma*Sigma) );
+      fluid[IMAG2] *= exp(-( (r-TRad)*(r-TRad) )/(2.0*Sigma*Sigma) );
+      fluid[DENS1] = SQR( fluid[REAL1] ) + SQR( fluid[IMAG1] );
+      fluid[DENS2] = SQR( fluid[REAL2] ) + SQR( fluid[IMAG2] );
 
-//    set passive scalars
 
       return true;
    }
 
    else
       return false;
-   */
 
-   return false;
 
 } // FUNCTION : Flu_ResetByUser_Func
 
