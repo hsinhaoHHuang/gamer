@@ -244,15 +244,12 @@ void SetParameter()
             Soliton_CoreRadius[9] = CoreRadius[1];
             Soliton_ParMass[9] = 1;
 
-/*            Soliton_CoreRadius[10] = CoreRadius[0];
-            Soliton_ParMass[10] = 0;
-            Soliton_CoreRadius[11] = CoreRadius[0];
-            Soliton_ParMass[11] = 0;
-            Soliton_CoreRadius[12] = CoreRadius[0];
-            Soliton_ParMass[12] = 0;
-            Soliton_CoreRadius[13] = CoreRadius[0];
-            Soliton_ParMass[13] = 0;
-*/
+            for(int t=10;t<Soliton_N; t++){
+               Soliton_CoreRadius[t] = CoreRadius[0];
+               Soliton_ParMass[t] = 0;
+            }
+
+
          }
       }
    }
@@ -315,32 +312,43 @@ void SetParameter()
          Soliton_Center[5][0] = ((0.25+0.5*0.25))*amr->BoxSize[0];
          Soliton_Center[5][1] = ((0.25+0.5*0.25))*amr->BoxSize[1];
          Soliton_Center[5][2] = ((0.25+0.5*0.25))*amr->BoxSize[2];
-         Soliton_Center[6][0] = ((0.25+0.5*0.6))*amr->BoxSize[0];
-         Soliton_Center[6][1] = ((0.25+0.5*0.4))*amr->BoxSize[1];
-         Soliton_Center[6][2] = ((0.25+0.5*0.4))*amr->BoxSize[2];
-         Soliton_Center[7][0] = ((0.25+0.5*0.4))*amr->BoxSize[0];
-         Soliton_Center[7][1] = ((0.25+0.5*0.6))*amr->BoxSize[1];
-         Soliton_Center[7][2] = ((0.25+0.5*0.6))*amr->BoxSize[2];
-         Soliton_Center[8][0] = ((0.25+0.5*(0.4+0.2*( (double)rand()/RAND_MAX ) )))*amr->BoxSize[0];
-         Soliton_Center[8][1] = ((0.25+0.5*(0.4+0.2*( (double)rand()/RAND_MAX ) )))*amr->BoxSize[1];
-         Soliton_Center[8][2] = ((0.25+0.5*(0.4+0.2*( (double)rand()/RAND_MAX ) )))*amr->BoxSize[2];
-         Soliton_Center[9][0] = ((0.25+0.5*(0.4+0.2*( (double)rand()/RAND_MAX ) )))*amr->BoxSize[0];
-         Soliton_Center[9][1] = ((0.25+0.5*(0.4+0.2*( (double)rand()/RAND_MAX ) )))*amr->BoxSize[1];
-         Soliton_Center[9][2] = ((0.25+0.5*(0.4+0.2*( (double)rand()/RAND_MAX ) )))*amr->BoxSize[2];
+         Soliton_Center[6][0] = ((0.25+0.5*0.67))*amr->BoxSize[0];
+         Soliton_Center[6][1] = ((0.25+0.5*0.33))*amr->BoxSize[1];
+         Soliton_Center[6][2] = ((0.25+0.5*0.33))*amr->BoxSize[2];
+         Soliton_Center[7][0] = ((0.25+0.5*0.33))*amr->BoxSize[0];
+         Soliton_Center[7][1] = ((0.25+0.5*0.67))*amr->BoxSize[1];
+         Soliton_Center[7][2] = ((0.25+0.5*0.67))*amr->BoxSize[2];
+         Soliton_Center[8][0] = ((0.25+0.5*(0.33+0.34*( (double)rand()/RAND_MAX ) )))*amr->BoxSize[0];
+         Soliton_Center[8][1] = ((0.25+0.5*(0.33+0.34*( (double)rand()/RAND_MAX ) )))*amr->BoxSize[1];
+         Soliton_Center[8][2] = ((0.25+0.5*(0.33+0.34*( (double)rand()/RAND_MAX ) )))*amr->BoxSize[2];
+         Soliton_Center[9][0] = ((0.25+0.5*(0.33+0.34*( (double)rand()/RAND_MAX ) )))*amr->BoxSize[0];
+         Soliton_Center[9][1] = ((0.25+0.5*(0.33+0.34*( (double)rand()/RAND_MAX ) )))*amr->BoxSize[1];
+         Soliton_Center[9][2] = ((0.25+0.5*(0.33+0.34*( (double)rand()/RAND_MAX ) )))*amr->BoxSize[2];
          
-/*         Soliton_Center[10][0] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[0];
-         Soliton_Center[10][1] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[1];
-         Soliton_Center[10][2] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[2];
-         Soliton_Center[11][0] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[0];
-         Soliton_Center[11][1] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[1];
-         Soliton_Center[11][2] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[2];
-         Soliton_Center[12][0] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[0];
-         Soliton_Center[12][1] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[1];
-         Soliton_Center[12][2] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[2];
-         Soliton_Center[13][0] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[0];
-         Soliton_Center[13][1] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[1];
-         Soliton_Center[13][2] = (0.25+0.5*( (double)rand()/RAND_MAX ) )*amr->BoxSize[2];
-*/         /*for (int t=0; t<Soliton_N; t++)
+         
+         /*Soliton_Center[10][0] = Soliton_Center[0][0]+30.0;
+         Soliton_Center[10][1] = Soliton_Center[0][1]+30.0;
+         Soliton_Center[10][2] = Soliton_Center[0][2]+30.0;
+         Soliton_Center[11][0] = Soliton_Center[0][0]+21.2;
+         Soliton_Center[11][1] = Soliton_Center[0][1]-42.4;
+         Soliton_Center[11][2] = Soliton_Center[0][2]+21.2;
+         Soliton_Center[12][0] = Soliton_Center[0][0]-21.2;
+         Soliton_Center[12][1] = Soliton_Center[0][1]+42.4;
+         Soliton_Center[12][2] = Soliton_Center[0][2]-21.2;
+         Soliton_Center[0][0] = Soliton_Center[0][0]-30.0;
+         Soliton_Center[0][1] = Soliton_Center[0][1]-30.0;
+         Soliton_Center[0][2] = Soliton_Center[0][2]-30.0;
+         Soliton_Center[3][0] = Soliton_Center[7][0];
+         Soliton_Center[3][1] = Soliton_Center[7][1];
+         Soliton_Center[3][2] = Soliton_Center[7][2];
+         Soliton_Center[10][0] = Soliton_Center[8][0];
+         Soliton_Center[10][1] = Soliton_Center[8][1];
+         Soliton_Center[10][2] = Soliton_Center[8][2];
+         Soliton_Center[11][0] = Soliton_Center[9][0];
+         Soliton_Center[11][1] = Soliton_Center[9][1];
+         Soliton_Center[11][2] = Soliton_Center[9][2];*/
+         
+         /*for (int t=0; t<Soliton_N; t++)
          for (int d=0; d<3; d++)          Soliton_Center[t][d] = XXX;
          */
       }
@@ -558,9 +566,9 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
    }
    else
    {
-     fluid[REAL2] = (real)0.0;//real2*sqrt( dens2/(real2*real2+imag2*imag2) );//sqrt( dens2 )*cos( ELBDM_ETA2*( Velocity2X*x + Velocity2Y*y + Velocity2Z*z ) );
-     fluid[IMAG2] = (real)0.0;//imag2*sqrt( dens2/(real2*real2+imag2*imag2) );//sqrt( dens2 )*sin( ELBDM_ETA2*( Velocity2X*x + Velocity2Y*y + Velocity2Z*z ) );
-     fluid[DENS2] = (real)0.0;//SQR( fluid[REAL2] ) + SQR( fluid[IMAG2] );
+     fluid[REAL2] = real2*sqrt( dens2/(real2*real2+imag2*imag2) );//sqrt( dens2 )*cos( ELBDM_ETA2*( Velocity2X*x + Velocity2Y*y + Velocity2Z*z ) );
+     fluid[IMAG2] = imag2*sqrt( dens2/(real2*real2+imag2*imag2) );//sqrt( dens2 )*sin( ELBDM_ETA2*( Velocity2X*x + Velocity2Y*y + Velocity2Z*z ) );
+     fluid[DENS2] = SQR( fluid[REAL2] ) + SQR( fluid[IMAG2] );
    }
 
 
