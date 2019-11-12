@@ -375,7 +375,8 @@ void SetParameter()
    }
 
 
-// (3) load the soliton density profile
+
+// (3) load the reference soliton density profile and evaluate the scale factors
    if ( OPT__INIT != INIT_BY_RESTART )
    {
 //    load the reference profile
@@ -386,6 +387,7 @@ void SetParameter()
 
       Soliton_DensProf_NBin = Aux_LoadTable( Soliton_DensProf, Soliton_DensProf_Filename, NCol, Col, RowMajor_No, AllocMem_Yes );
 
+
 //    get the core radius of the reference profile
       const double *RadiusRef = Soliton_DensProf + 0*Soliton_DensProf_NBin;
       const double *DensRef   = Soliton_DensProf + 1*Soliton_DensProf_NBin;
@@ -395,14 +397,16 @@ void SetParameter()
 
       for (int b=1; b<Soliton_DensProf_NBin-1; b++)
       {
-         if ( DensRef[b] >= DensCore && DensRef[b+1] <= DensCore )
+         if ( DensRef[b] >= DensCore  &&  DensRef[b+1] <= DensCore )
          {
             CoreRadiusRef = 0.5*( RadiusRef[b] + RadiusRef[b+1] );
             break;
          }
-       }
+      }
+
       if ( CoreRadiusRef == NULL_REAL )
          Aux_Error( ERROR_INFO, "cannot determine the reference core radius !!\n" );
+
 
 //    evaluate the scale factors of each soliton
       for (int t=0; t<Soliton_N; t++)
@@ -439,7 +443,7 @@ void SetParameter()
 // (5) make a note
    if ( MPI_Rank == 0 )
    {
-      Aux_Message( stdout, "=============================================================================\n" );
+      Aux_Message( stdout, "======================================================================================\n" );
       Aux_Message( stdout, "  test problem ID                           = %d\n",     TESTPROB_ID                );
       Aux_Message( stdout, "  total number of solitons                  = %d\n",     Soliton_N                  );
       Aux_Message( stdout, "  random seed for setting the center coord. = %d\n",     Soliton_RSeed              );
@@ -459,7 +463,7 @@ void SetParameter()
       Aux_Message( stdout, "  point source position   = (%13.7e, %13.7e, %13.7e)\n", ExtPot_Cen[0],
                                                                                      ExtPot_Cen[1],
                                                                                      ExtPot_Cen[2] );
-      Aux_Message( stdout, "=============================================================================\n" );
+      Aux_Message( stdout, "======================================================================================\n" );
    }
 
 
@@ -669,7 +673,7 @@ void Init_TestProb_ELBDM_Soliton()
    Validate();
 
 
-#  if ( MODEL == ELBDM &&  defined GRAVITY )
+#  if ( MODEL == ELBDM  &&  defined GRAVITY )
 // set the problem-specific runtime parameters
    SetParameter();
 

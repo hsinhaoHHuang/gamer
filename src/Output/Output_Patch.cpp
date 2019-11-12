@@ -11,11 +11,11 @@
 //                sprintf( comment, "Step%d", AdvanceCounter[6] );
 //                Output_Patch( 6, 5560, comment );
 //
-// Parameter   :  lv       : Target refinement level 
-//                PID      : Target patch index
-//                FluSg    : Sandglass of the fluid data
-//                PotSg    : Sandglass of the potential data
-//                comment  : String to attach to the end of the file name
+// Parameter   :  lv      : Target refinement level
+//                PID     : Target patch index
+//                FluSg   : Sandglass of the fluid data
+//                PotSg   : Sandglass of the potential data
+//                comment : String to attach to the end of the file name
 //-------------------------------------------------------------------------------------------------------
 void Output_Patch( const int lv, const int PID, const int FluSg, const int PotSg, const char *comment )
 {
@@ -50,7 +50,7 @@ void Output_Patch( const int lv, const int PID, const int FluSg, const int PotSg
 
    char FileName[100];
    sprintf( FileName, "Patch_r%d_lv%d_p%d", MPI_Rank, lv, PID );
-   if ( comment != NULL )       
+   if ( comment != NULL )
    {
       strcat( FileName, "_" );
       strcat( FileName, comment );
@@ -63,10 +63,10 @@ void Output_Patch( const int lv, const int PID, const int FluSg, const int PotSg
 // output patch information
    FILE *File = fopen( FileName, "w" );
 
-   fprintf( File, "Rank %d  Lv %d  PID %d  Local ID %d  FluSg %d  PotSg %d  Time %13.7e  Step %ld  Counter %ld\n", 
+   fprintf( File, "Rank %d  Lv %d  PID %d  Local ID %d  FluSg %d  PotSg %d  Time %13.7e  Step %ld  Counter %ld\n",
             MPI_Rank, lv, PID, PID%8, FluSg, PotSg, Time[lv], Step, AdvanceCounter[lv] );
 
-   fprintf( File, "Father %d  Son %d  Corner (%10d,%10d,%10d)  Size %13.7e", Relation->father, Relation->son, 
+   fprintf( File, "Father %d  Son %d  Corner (%10d,%10d,%10d)  Size %13.7e", Relation->father, Relation->son,
             Relation->corner[0], Relation->corner[1], Relation->corner[2], PS1*amr->dh[lv] );
 #  ifdef LOAD_BALANCE
    fprintf( File, "  LB_Idx %ld  PaddedCr1D %lu", Relation->LB_Idx, Relation->PaddedCr1D );
@@ -83,15 +83,15 @@ void Output_Patch( const int lv, const int PID, const int FluSg, const int PotSg
    fprintf( File, "\nSibling, Sibling->Son, and Father->Sibling Lists :\n" );
 
    int Sib, FaSib, SibSon, Fa;
-   for (int S=0; S<26; S++)   
+   for (int S=0; S<26; S++)
    {
       Fa     = Relation->father;
       Sib    = Relation->sibling[S];
-      FaSib  = ( Fa == -1 ) ? -1 : ( amr->patch[0][lv-1][Fa] != NULL ) ? 
+      FaSib  = ( Fa == -1 ) ? -1 : ( amr->patch[0][lv-1][Fa] != NULL ) ?
                                      amr->patch[0][lv-1][Fa]->sibling[S] : -999;
-      SibSon = ( Sib < 0 )  ? Sib : amr->patch[0][lv][Sib]->son; 
+      SibSon = ( Sib < 0 )  ? Sib : amr->patch[0][lv][Sib]->son;
 
-      fprintf( File, "Sib[%2d] = %6d     Sib_Son = %6d     Fa_Sib[%2d] = %6d\n", 
+      fprintf( File, "Sib[%2d] = %6d     Sib_Son = %6d     Fa_Sib[%2d] = %6d\n",
                S, Sib, SibSon, S, FaSib );
    }
    fprintf( File, "\n" );
@@ -110,9 +110,10 @@ void Output_Patch( const int lv, const int PID, const int FluSg, const int PotSg
 // output header
    fprintf( File, "(%2s,%2s,%2s)", "i", "j", "k" );
 
-#  if   ( MODEL == HYDRO )
-   fprintf( File, "%14s%14s%14s%14s%14s%14s", "Density", "Px", "Py", "Pz", "Energy", "Pressure" );
+   for (int v=0; v<NCOMP_TOTAL; v++)   fprintf( File, "%14s", FieldLabel[v] );
 
+#  if   ( MODEL == HYDRO )
+   fprintf( File, "%14s", "Pressure" );
 #  ifdef DUAL_ENERGY
    fprintf( File, "%14s", "DE-status" );
 #  endif
@@ -121,36 +122,32 @@ void Output_Patch( const int lv, const int PID, const int FluSg, const int PotSg
 #  warning : WAIT MHD !!!
 
 #  elif ( MODEL == ELBDM )
-   fprintf( File, "%14s%14s%14s%14s%14s%14s", "Density1", "Real1", "Imag1", "Density2", "Real2", "Imag2" );
 
 #  else
-#  warning : WARNING : DO YOU WANT TO ADD the FILE HEADER HERE FOR THE NEW MODEL ??
+#  warning : WARNING : DO YOU WANT TO ADD THE FILE HEADER HERE FOR THE NEW MODEL ??
 #  endif // MODEL
 
-   for (int v=0; v<NCOMP_PASSIVE; v++)
-   fprintf( File, "%14s", PassiveFieldName_Grid[v] );
-
 #  ifdef GRAVITY
-   fprintf( File, "%14s", "Potential" );
+   fprintf( File, "%14s", PotLabel );
 #  endif
 
    fprintf( File, "\n" );
 
 
 // output data
-   real u[NCOMP_FLUID]; 
+   real u[NCOMP_TOTAL];
 
    for (int k=0; k<PATCH_SIZE; k++)
    for (int j=0; j<PATCH_SIZE; j++)
    for (int i=0; i<PATCH_SIZE; i++)
    {
-//    output cell indices      
+//    output cell indices
       fprintf( File, "(%2d,%2d,%2d)", i, j, k );
 
       if ( FluData->fluid != NULL )
       {
 //       output all variables in the fluid array
-         for (int v=0; v<NCOMP_FLUID; v++)   
+         for (int v=0; v<NCOMP_TOTAL; v++)
          {
             u[v] = FluData->fluid[v][k][j][i];
             fprintf( File, " %13.6e", u[v] );
@@ -158,34 +155,41 @@ void Output_Patch( const int lv, const int PID, const int FluSg, const int PotSg
 
 //       output pressure and dual-energy status in HYDRO
 #        if   ( MODEL == HYDRO )
-         fprintf( File, " %13.6e", ( u[ENGY]-0.5*(u[MOMX]*u[MOMX]+u[MOMY]*u[MOMY]+u[MOMZ]*u[MOMZ])/u[DENS] )*
-                                   (GAMMA-1.0) );
+         const bool CheckMinPres_No = false;
+         fprintf( File, " %13.6e", Hydro_GetPressure(u[DENS],u[MOMX],u[MOMY],u[MOMZ],u[ENGY],GAMMA-1.0,CheckMinPres_No,NULL_REAL) );
 #        ifdef DUAL_ENERGY
          fprintf( File, " %13c", Relation->de_status[k][j][i] );
 #        endif
 
 #        elif ( MODEL == MHD )
 #        warning : WAIT MHD !!!
-#        endif // MODEL
 
-//       output the passive variables
-         for (int v=NCOMP_FLUID; v<NCOMP_TOTAL; v++)   
-         fprintf( File, " %13.6e", FluData->fluid[v][k][j][i] );
+#        elif ( MODEL == ELBDM )
+
+#        else
+#        warning : WARNING : DO YOU WANT TO ADD THE MODEL-SPECIFIC FIELD HERE FOR THE NEW MODEL ??
+#        endif // MODEL
       } // if ( FluData->fluid != NULL )
 
       else
       {
 //       output empty strings if the fluid array is not allocated
-         for (int v=0; v<NCOMP_FLUID; v++)   fprintf( File, " %13s", "" );
+         for (int v=0; v<NCOMP_TOTAL; v++)   fprintf( File, " %13s", "" );
 
 #        if   ( MODEL == HYDRO )
          fprintf( File, " %13s", "" );
+#        ifdef DUAL_ENERGY
+         fprintf( File, " %13s", "" );
+#        endif
+
 #        elif ( MODEL == MHD )
 #        warning : WAIT MHD !!!
-#        endif // MODEL
 
-         for (int v=NCOMP_FLUID; v<NCOMP_TOTAL; v++)   
-         fprintf( File, " %13s", "" );
+#        elif ( MODEL == ELBDM )
+
+#        else
+#        warning : WARNING : DO YOU WANT TO ADD THE MODEL-SPECIFIC FIELD HERE FOR THE NEW MODEL ??
+#        endif // MODEL
       } // if ( FluData->fluid != NULL ) ... else ...
 
 //    output potential
@@ -205,30 +209,16 @@ void Output_Patch( const int lv, const int PID, const int FluSg, const int PotSg
    fprintf( File, "== PARTICLE DATA == \n" );
    fprintf( File, "===================\n" );
    fprintf( File, "\n" );
-   fprintf( File, "%5s  %10s  %13s  %13s  %13s  %13s  %13s  %13s  %13s  %13s", 
-            "No.", "ParID", "Mass", "X", "Y", "Z", "Vx", "Vy", "Vz", "Time" );
-#  ifdef STORE_PAR_ACC
-   fprintf( File, "  %13s  %13s  %13s", "AccX", "AccY", "AccZ" );
-#  endif
-   for (int v=0; v<PAR_NPASSIVE; v++)
-   fprintf( File, "  %13s", PassiveFieldName_Par[v] );
+   fprintf( File, "%5s  %10s", "No.", "ParID" );
+   for (int v=0; v<PAR_NATT_TOTAL; v++)   fprintf( File, "  %13s", ParAttLabel[v] );
    fprintf( File, "\n" );
 
    for (int p=0; p<Relation->NPar; p++)
    {
       ParID = Relation->ParList[p];
 
-      fprintf( File, "%5d  %10ld  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e", 
-               p, ParID, amr->Par->Mass[ParID],
-               amr->Par->PosX[ParID], amr->Par->PosY[ParID], amr->Par->PosZ[ParID],
-               amr->Par->VelX[ParID], amr->Par->VelY[ParID], amr->Par->VelZ[ParID],
-               amr->Par->Time[ParID] );
-#     ifdef STORE_PAR_ACC
-      fprintf( File, "  %13.6e  %13.6e  %13.6e",
-               amr->Par->AccX[ParID], amr->Par->AccY[ParID], amr->Par->AccZ[ParID] );
-#     endif
-      for (int v=0; v<PAR_NPASSIVE; v++)
-      fprintf( File, "  %13.6e", amr->Par->Passive[v][ParID] );
+      fprintf( File, "%5d  %10ld", p, ParID );
+      for (int v=0; v<PAR_NATT_TOTAL; v++)   fprintf( File, "  %13.6e", amr->Par->Attribute[v][ParID] );
 
       fprintf( File, "\n" );
    }

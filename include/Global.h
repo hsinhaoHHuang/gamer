@@ -5,6 +5,9 @@
 
 #include "Macro.h"
 #include "AMR.h"
+#ifdef SUPPORT_LIBYT
+#include <libyt.h>
+#endif
 
 
 // **********************************************************************************************************
@@ -42,7 +45,6 @@ extern int       *BaseP;                              // table recording the IDs
 extern int        Flu_ParaBuf;                        // number of parallel buffers to exchange all fluid
                                                       // variables for the fluid solver and fluid refinement
 
-extern char      *PassiveFieldName_Grid[NCOMP_PASSIVE];
 extern int        PassiveNorm_NVar;
 extern int        PassiveNorm_VarIdx[NCOMP_PASSIVE];
 
@@ -52,7 +54,7 @@ extern int        NX0_TOT[3], OUTPUT_STEP, REGRID_COUNT, FLU_GPU_NPGROUP, OMP_NT
 extern int        MPI_NRank, MPI_NRank_X[3];
 extern int        GPU_NSTREAM, FLAG_BUFFER_SIZE, FLAG_BUFFER_SIZE_MAXM1_LV, FLAG_BUFFER_SIZE_MAXM2_LV, MAX_LEVEL;
 
-extern int        OPT__UM_IC_LEVEL, OPT__UM_IC_NVAR, OPT__GPUID_SELECT, OPT__PATCH_COUNT;
+extern int        OPT__UM_IC_LEVEL, OPT__UM_IC_NVAR, OPT__UM_IC_LOAD_NRANK, OPT__GPUID_SELECT, OPT__PATCH_COUNT;
 extern int        INIT_DUMPID, INIT_SUBSAMPLING_NCELL, OPT__TIMING_BARRIER, OPT__REUSE_MEMORY, RESTART_LOAD_NRANK;
 extern double     OUTPUT_PART_X, OUTPUT_PART_Y, OUTPUT_PART_Z, AUTO_REDUCE_DT_FACTOR, AUTO_REDUCE_DT_FACTOR_MIN;
 extern double     OPT__CK_MEMFREE, INT_MONO_COEFF, UNIT_L, UNIT_M, UNIT_T, UNIT_V, UNIT_D, UNIT_E, UNIT_P;
@@ -64,8 +66,10 @@ extern bool       OPT__OUTPUT_BASEPS, OPT__CK_REFINE, OPT__CK_PROPER_NESTING, OP
 extern bool       OPT__CK_RESTRICT, OPT__CK_PATCH_ALLOCATE, OPT__FIXUP_FLUX, OPT__CK_FLUX_ALLOCATE, OPT__CK_NORMALIZE_PASSIVE;
 extern bool       OPT__UM_IC_DOWNGRADE, OPT__UM_IC_REFINE, OPT__TIMING_MPI;
 extern bool       OPT__CK_CONSERVATION, OPT__RESET_FLUID, OPT__RECORD_USER, OPT__NORMALIZE_PASSIVE, AUTO_REDUCE_DT;
-extern bool       OPT__OPTIMIZE_AGGRESSIVE, OPT__INIT_GRID_WITH_OMP;
+extern bool       OPT__OPTIMIZE_AGGRESSIVE, OPT__INIT_GRID_WITH_OMP, OPT__NO_FLAG_NEAR_BOUNDARY;
+extern bool       OPT__RECORD_NOTE, OPT__RECORD_UNPHY;
 
+extern UM_IC_Format_t     OPT__UM_IC_FORMAT;
 extern TestProbID_t       TESTPROB_ID;
 extern OptInit_t          OPT__INIT;
 extern IntScheme_t        OPT__FLU_INT_SCHEME, OPT__REF_FLU_INT_SCHEME;
@@ -84,9 +88,8 @@ extern OptTimeStepLevel_t OPT__DT_LEVEL;
 // (2-1) fluid solver in different models
 #if   ( MODEL == HYDRO )
 extern double           FlagTable_PresGradient[NLEVEL-1], FlagTable_Vorticity[NLEVEL-1], FlagTable_Jeans[NLEVEL-1];
-extern double           GAMMA, MINMOD_COEFF, EP_COEFF, MOLECULAR_WEIGHT;
+extern double           GAMMA, MINMOD_COEFF, MOLECULAR_WEIGHT;
 extern LR_Limiter_t     OPT__LR_LIMITER;
-extern WAF_Limiter_t    OPT__WAF_LIMITER;
 extern Opt1stFluxCorr_t OPT__1ST_FLUX_CORR;
 extern OptRSolver1st_t  OPT__1ST_FLUX_CORR_SCHEME;
 extern bool             OPT__FLAG_PRES_GRADIENT, OPT__FLAG_LOHNER_ENGY, OPT__FLAG_LOHNER_PRES, OPT__FLAG_LOHNER_TEMP;
@@ -111,6 +114,7 @@ extern double           ELBDM_TAYLOR3_COEFF, ELBDM_MASS1, ELBDM_MASS2, ELBDM_PLA
 #ifdef QUARTIC_SELF_INTERACTION
 extern double           ELBDM_LAMBDA;
 #endif
+extern ELBDMRemoveMotionCM_t ELBDM_REMOVE_MOTION_CM;
 
 #else
 #  error : ERROR : unsupported MODEL !!
@@ -130,7 +134,7 @@ extern double     GFUNC_COEFF0;
 extern double     DT__GRAVITY;
 extern double     NEWTON_G;
 extern int        POT_GPU_NPGROUP;
-extern bool       OPT__OUTPUT_POT, OPT__GRA_P5_GRADIENT, OPT__EXTERNAL_POT;
+extern bool       OPT__OUTPUT_POT, OPT__GRA_P5_GRADIENT, OPT__EXTERNAL_POT, OPT__GRAVITY_EXTRA_MASS;
 extern double     SOR_OMEGA;
 extern int        SOR_MAX_ITER, SOR_MIN_ITER;
 extern double     MG_TOLERATED_ERROR;
@@ -169,7 +173,6 @@ extern bool            OPT__OUTPUT_PAR_TEXT, OPT__CK_PARTICLE, OPT__FLAG_NPAR_CE
 extern int             OPT__PARTICLE_COUNT, OPT__FLAG_NPAR_PATCH, FlagTable_NParPatch[NLEVEL-1], FlagTable_NParCell[NLEVEL-1];
 extern double          FlagTable_ParMassCell[NLEVEL-1];
 extern ParOutputDens_t OPT__OUTPUT_PAR_DENS;
-extern char           *PassiveFieldName_Par[PAR_NPASSIVE];
 #endif
 
 
@@ -184,7 +187,7 @@ extern yt_verbose      YT_VERBOSE;
 // (2-7) Grackle
 // ============================================================================================================
 #ifdef SUPPORT_GRACKLE
-extern GrackleMode_t   GRACKLE_MODE;
+extern bool            GRACKLE_ACTIVATE;
 extern bool            GRACKLE_VERBOSE;
 extern bool            GRACKLE_COOLING;
 extern GracklePriChe_t GRACKLE_PRIMORDIAL;
@@ -203,7 +206,7 @@ extern int             CHE_GPU_NPGROUP;
 #ifdef STAR_FORMATION
 extern SF_CreateStarScheme_t SF_CREATE_STAR_SCHEME;
 extern int                   SF_CREATE_STAR_RSEED;
-extern bool                  SF_CREATE_STAR_DET_RANDOM;
+extern int                   SF_CREATE_STAR_DET_RANDOM;
 extern int                   SF_CREATE_STAR_MIN_LEVEL;
 extern double                SF_CREATE_STAR_MIN_GAS_DENS;
 extern double                SF_CREATE_STAR_MASS_EFF;
@@ -215,12 +218,12 @@ extern double                SF_CREATE_STAR_MAX_STAR_MFRAC;
 
 // 3. CPU (host) arrays for transferring data between CPU and GPU
 // ============================================================================================================
-extern real       (*h_Flu_Array_F_In [2])[FLU_NIN ][  FLU_NXT   *FLU_NXT   *FLU_NXT   ];
-extern real       (*h_Flu_Array_F_Out[2])[FLU_NOUT][8*PATCH_SIZE*PATCH_SIZE*PATCH_SIZE];
-extern real       (*h_Flux_Array[2])[9][NFLUX_TOTAL][4*PATCH_SIZE*PATCH_SIZE];
+extern real       (*h_Flu_Array_F_In [2])[FLU_NIN ][ CUBE(FLU_NXT) ];
+extern real       (*h_Flu_Array_F_Out[2])[FLU_NOUT][ CUBE(PS2) ];
+extern real       (*h_Flux_Array[2])[9][NFLUX_TOTAL][ SQR(PS2) ];
 extern double     (*h_Corner_Array_F [2])[3];
 #ifdef DUAL_ENERGY
-extern char       (*h_DE_Array_F_Out [2])[8*PATCH_SIZE*PATCH_SIZE*PATCH_SIZE];
+extern char       (*h_DE_Array_F_Out [2])[ CUBE(PS2) ];
 #endif
 
 #ifdef GRAVITY
@@ -234,7 +237,7 @@ extern char       (*h_DE_Array_G     [2])[PATCH_SIZE][PATCH_SIZE][PATCH_SIZE];
 #endif
 
 #ifdef UNSPLIT_GRAVITY
-extern real       (*h_Pot_Array_USG_F[2])[USG_NXT_F ][USG_NXT_F ][USG_NXT_F ];
+extern real       (*h_Pot_Array_USG_F[2])[ CUBE(USG_NXT_F) ];
 extern real       (*h_Pot_Array_USG_G[2])[USG_NXT_G ][USG_NXT_G ][USG_NXT_G ];
 extern real       (*h_Flu_Array_USG_G[2])[GRA_NIN-1][PS1][PS1][PS1];
 #endif
@@ -242,8 +245,11 @@ extern real       (*h_Flu_Array_USG_G[2])[GRA_NIN-1][PS1][PS1][PS1];
 
 #ifdef SUPPORT_GRACKLE
 extern real       (*h_Che_Array      [2]);
+// do not declare Grackle variables for CUDA source files since they do not include <grackle.h>
+#ifndef __CUDACC__
 extern grackle_field_data *Che_FieldData;
 extern code_units Che_Units;
+#endif
 #endif
 
 extern real        *h_dt_Array_T[2];
@@ -258,6 +264,12 @@ extern real       (*h_Pot_Array_T[2])[ CUBE(GRA_NXT) ];
 // ============================================================================================================
 /*** These global variables are NOT included here. Instead, they are included by individual files
      only if necessary. ***/
+
+
+
+// 5. global variables related to different fields
+// ============================================================================================================
+/*** Defined in Field.h ***/
 
 
 

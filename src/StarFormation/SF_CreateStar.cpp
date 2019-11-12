@@ -3,10 +3,7 @@
 #ifdef STAR_FORMATION
 
 
-struct drand48_data *drand_buf = NULL;
-
-//###: HARD-CODED FIELDS
-extern bool AGORA_UseMetal;
+static RandomNumber_t *RNG = NULL;
 
 
 
@@ -46,28 +43,31 @@ void SF_CreateStar( const int lv, const real TimeNew, const real dt )
       {  NT = 1;                      }
 #     endif
 
-      drand_buf = new drand48_data [NT];
+//    allocate RNG
+      RNG = new RandomNumber_t( NT );
 
 //    make sure that different threads in different MPI ranks have different random seeds
 //    --> even when SF_CREATE_STAR_DET_RANDOM is enabled, we still set random seeds here just in case that not all
 //        star formation methods support SF_CREATE_STAR_DET_RANDOM
-      for (int t=0; t<NT; t++)   srand48_r(  SF_CREATE_STAR_RSEED + MPI_Rank*1000 + t, drand_buf + t  );
+      for (int t=0; t<NT; t++)
+      {
+         const long RSeed = SF_CREATE_STAR_RSEED + MPI_Rank*1000 + t;
+         RNG->SetSeed( t, RSeed );
+      }
 
       FirstTime = false;
    }
 
 
-//###: HARD-CODED FIELDS
 // determine if metallicity is included
-// --> currently it's used by the AGORA_IsolatedGalaxy test only (but will be made more general-purpose soon)
-   const bool UseMetal = AGORA_UseMetal;
+   const bool UseMetal = ( Idx_Metal != Idx_Undefined );
 
 
 // invoke the target star-formation method
    switch ( SF_CREATE_STAR_SCHEME )
    {
 #     if ( MODEL==HYDRO  ||  MODEL==MHD )
-      case SF_CREATE_STAR_SCHEME_AGORA:   SF_CreateStar_AGORA( lv, TimeNew, dt, drand_buf, SF_CREATE_STAR_MIN_GAS_DENS,
+      case SF_CREATE_STAR_SCHEME_AGORA:   SF_CreateStar_AGORA( lv, TimeNew, dt, RNG, SF_CREATE_STAR_MIN_GAS_DENS,
                                                                SF_CREATE_STAR_MASS_EFF, SF_CREATE_STAR_MIN_STAR_MASS,
                                                                SF_CREATE_STAR_MAX_STAR_MFRAC, SF_CREATE_STAR_DET_RANDOM,
                                                                UseMetal );
@@ -98,8 +98,8 @@ void SF_CreateStar( const int lv, const real TimeNew, const real dt )
 void SF_FreeRNG()
 {
 
-   delete [] drand_buf;
-   drand_buf = NULL;
+   delete RNG;
+   RNG = NULL;
 
 } // FUNCTION : SF_FreeRNG
 

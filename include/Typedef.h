@@ -44,12 +44,19 @@ const TestProbID_t
    TESTPROB_HYDRO_KELVIN_HELMHOLTZ_INSTABILITY =    8,
    TESTPROB_HYDRO_RIEMANN                      =    9,
    TESTPROB_HYDRO_COLLIDING_JETS               =   10,
+   TESTPROB_HYDRO_PLUMMER                      =   11,
+   TESTPROB_HYDRO_GRAVITY                      =   12,
 
    TESTPROB_ELBDM_EXTPOT                       = 1000,
    TESTPROB_ELBDM_JEANS_INSTABILITY_COMOVING   = 1001,
    TESTPROB_ELBDM_JEANS_INSTABILITY_PHYSICAL   = 1002,
    TESTPROB_ELBDM_SOLITON                      = 1003,
-   TESTPROB_ELBDM_TWOMASS                      = 1004;
+   TESTPROB_ELBDM_SELF_SIMILAR_HALO            = 1004,
+   TESTPROB_ELBDM_VORTEX_PAIR_ROTATING         = 1005,
+   TESTPROB_ELBDM_VORTEX_PAIR_LINEAR           = 1006,
+   TESTPROB_ELBDM_LSS_HALO                     = 1007,
+   TESTPROB_ELBDM_GAUSSIAN_WAVE_PACKET         = 1008,
+   TESTPROB_ELBDM_TWOMASS                      = 1009;
 
 // program initialization options
 typedef int OptInit_t;
@@ -57,6 +64,22 @@ const OptInit_t
    INIT_BY_FUNCTION = 1,
    INIT_BY_RESTART  = 2,
    INIT_BY_FILE     = 3;
+
+
+// data format for OPT__INIT=INIT_BY_FILE
+typedef int UM_IC_Format_t;
+const UM_IC_Format_t
+   UM_IC_FORMAT_NONE = 0,
+   UM_IC_FORMAT_VZYX = 1,
+   UM_IC_FORMAT_ZYXV = 2;
+
+
+// data format for PAR_INIT=PAR_INIT_BY_FILE
+typedef int ParICFormat_t;
+const ParICFormat_t
+   PAR_IC_FORMAT_NONE   = 0,
+   PAR_IC_FORMAT_ATT_ID = 1,
+   PAR_IC_FORMAT_ID_ATT = 2;
 
 
 // program restart options
@@ -91,16 +114,6 @@ const LR_Limiter_t
    EXTPRE          = 5;
 
 
-// TVD limiters for the WAF scheme
-typedef int WAF_Limiter_t;
-const WAF_Limiter_t
-   WAF_LIMITER_NONE = 0,
-   WAF_SUPERBEE     = 1,
-   WAF_VANLEER      = 2,
-   WAF_ALBADA       = 3,
-   WAF_MINBEE       = 4;
-
-
 // data output formats
 typedef int OptOutputFormat_t;
 const OptOutputFormat_t
@@ -130,7 +143,7 @@ const OptOutputPart_t
    OUTPUT_DIAG      = 7;
 
 
-// options in "Prepare_PatchData"
+// options in Prepare_PatchData()
 typedef int PrepUnit_t;
 const PrepUnit_t
    UNIT_PATCH      = 1,
@@ -143,7 +156,7 @@ const NSide_t
    NSIDE_26 = 26;
 
 
-// use the load-balance alternative function in "Buf_GetBufferData" and "Flag_Real"
+// use the load-balance alternative function in Buf_GetBufferData() and Flag_Real()
 typedef int UseLBFunc_t;
 const UseLBFunc_t
    USELB_NO  = 0,
@@ -157,7 +170,7 @@ const Check_t
    CHECK_ON  = 1;
 
 
-// target solver in "InvokeSolvers"
+// target solver in InvokeSolvers()
 // --> must start from 0 because of the current TIMING_SOLVER implementation
 // --> when adding new solvers, please modify the NSOLVER constant accordingly
 const int NSOLVER = 7;
@@ -180,7 +193,7 @@ const Solver_t
   ;
 
 
-// target mode in "Buf_GetBufferData and LB_GetBufferData"
+// target mode in Buf_GetBufferData() and LB_GetBufferData()
 typedef int GetBufMode_t;
 const GetBufMode_t
 #ifdef GRAVITY
@@ -210,7 +223,7 @@ const OptFluBC_t
    BC_FLU_USER       = 4;
 
 
-// the gravity boundary conditions
+// gravity boundary conditions
 typedef int OptPotBC_t;
 const OptPotBC_t
 #ifdef GRAVITY
@@ -261,10 +274,15 @@ const ParOutputDens_t
    PAR_OUTPUT_DENS_NONE     = 0,
    PAR_OUTPUT_DENS_PAR_ONLY = 1,
    PAR_OUTPUT_DENS_TOTAL    = 2;
+
+typedef int ParPass2Son_t;
+const ParPass2Son_t
+   PAR_PASS2SON_GENERAL = 1,
+   PAR_PASS2SON_EVOLVE  = 2;
 #endif // #ifdef PARTICLE
 
 
-// the gravity types (this type needs to be defined for the Fluid solver even when GRAVITY is off)
+// gravity types (this type needs to be defined for the Fluid solver even when GRAVITY is off)
 typedef int OptGravityType_t;
 const OptGravityType_t
    GRAVITY_NONE     = 0,
@@ -316,16 +334,20 @@ const OptTimeStepLevel_t
    DT_LEVEL_FLEXIBLE  = 3;
 
 
+// AddField() options
+typedef int NormPassive_t;
+const NormPassive_t
+   NORMALIZE_NO  = 0,
+   NORMALIZE_YES = 1;
+
+
+// field types
+typedef int FieldIdx_t;
+
+
 // Grackle
 #ifdef SUPPORT_GRACKLE
-// original Grackle or the reduced CPU/GPU implementation in GAMER
-typedef int GrackleMode_t;
-const GrackleMode_t
-   GRACKLE_MODE_NONE  = 0,
-   GRACKLE_MODE_ORI   = 1,
-   GRACKLE_MODE_GAMER = 2;
-
-// primordial chemistry
+// map to the "primordial_chemistry" option of Grackle
 typedef int GracklePriChe_t;
 const GracklePriChe_t
    GRACKLE_PRI_CHE_CLOUDY = 0,
@@ -342,6 +364,16 @@ typedef int SF_CreateStarScheme_t;
 const SF_CreateStarScheme_t
    SF_CREATE_STAR_SCHEME_NONE  = 0,
    SF_CREATE_STAR_SCHEME_AGORA = 1;
+#endif
+
+
+// ELBDM_REMOVE_MOTION_CM options
+#if ( MODEL == ELBDM )
+typedef int ELBDMRemoveMotionCM_t;
+const ELBDMRemoveMotionCM_t
+   ELBDM_REMOVE_MOTION_CM_NONE       = 0,
+   ELBDM_REMOVE_MOTION_CM_INIT       = 1,
+   ELBDM_REMOVE_MOTION_CM_EVERY_STEP = 2;
 #endif
 
 

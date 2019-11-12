@@ -59,7 +59,7 @@ struct KeyInfo_t
    long   AdvanceCounter[NLEVEL];
 #  ifdef PARTICLE
    long   Par_NPar;                 // amr->Par->NPar_Active_AllRank
-   int    Par_NPassive;             // PAR_NPASSIVE
+   int    Par_NAttStored;           // PAR_NATT_STORED
 #  endif
 
    double BoxSize[3];
@@ -108,6 +108,7 @@ struct Makefile_t
    int SupportHDF5;
    int SupportGSL;
    int SupportGrackle;
+   int RandomNumber;
 
 #  ifdef GRAVITY
    int PotScheme;
@@ -140,7 +141,7 @@ struct Makefile_t
 #  ifdef PARTICLE
    int StoreParAcc;
    int StarFormation;
-   int Par_NPassive;
+   int Par_NAttUser;
 #  endif
 
 }; // struct Makefile_t
@@ -191,7 +192,7 @@ struct SymConst_t
    int    USG_NxtG;
 #  endif
 
-   int    Gra_BlockSize_z;
+   int    Gra_BlockSize;
    int    ExtPotNAuxMax;
    int    ExtAccNAuxMax;
 
@@ -211,7 +212,7 @@ struct SymConst_t
 
 
 #  ifdef PARTICLE
-   int    Par_NVar;
+   int    Par_NAttStored;
    int    RhoExt_GhostSize;
 
    int    Debug_Particle;
@@ -229,7 +230,6 @@ struct SymConst_t
    int    CheckIntermediate;
    int    HLL_NoRefState;
    int    HLL_IncludeAllWaves;
-   int    WAF_Dissipate;
 
 #  ifdef N_FC_VAR
    int    N_FC_Var;
@@ -260,7 +260,7 @@ struct SymConst_t
    int    dt_Flu_BlockSize;
    int    dt_Flu_UseShuffle;
 #  ifdef GRAVITY
-   int    dt_Gra_BlockSize_z;
+   int    dt_Gra_BlockSize;
    int    dt_Gra_UseShuffle;
 #  endif
 
@@ -310,13 +310,15 @@ struct InputPara_t
 // particle
 #  ifdef PARTICLE
    int    Par_Init;
+   int    Par_ICFormat;
+   double Par_ICMass;
    int    Par_Interp;
    int    Par_Integ;
    int    Par_ImproveAcc;
    int    Par_PredictPos;
    double Par_RemoveCell;
    int    Par_GhostSize;
-   char  *PassiveFieldName_Par[PAR_NPASSIVE];
+   char  *ParAttLabel[PAR_NATT_TOTAL];
 #  endif
 
 // cosmology
@@ -382,6 +384,7 @@ struct InputPara_t
    int    Opt__Flag_NParCell;
    int    Opt__Flag_ParMassCell;
 #  endif
+   int    Opt__NoFlagNearBoundary;
    int    Opt__PatchCount;
 #  ifdef PARTICLE
    int    Opt__ParticleCount;
@@ -404,9 +407,7 @@ struct InputPara_t
    double Gamma;
    double MolecularWeight;
    double MinMod_Coeff;
-   double EP_Coeff;
    int    Opt__LR_Limiter;
-   int    Opt__WAF_Limiter;
    int    Opt__1stFluxCorr;
    int    Opt__1stFluxCorrScheme;
 #  endif
@@ -421,6 +422,7 @@ struct InputPara_t
 #  endif
    double ELBDM_Taylor3_Coeff;
    int    ELBDM_Taylor3_Auto;
+   int    ELBDM_RemoveMotionCM;
 #  endif
 
 // fluid solvers in both HYDRO/MHD/ELBDM
@@ -432,7 +434,7 @@ struct InputPara_t
    int    Opt__NormalizePassive;
    int    NormalizePassive_NVar;
    int    NormalizePassive_VarIdx[NCOMP_PASSIVE];
-   char  *PassiveFieldName_Grid[NCOMP_PASSIVE];
+   char  *FieldLabel[NCOMP_TOTAL];
    int    Opt__OverlapMPI;
    int    Opt__ResetFluid;
 #  if ( MODEL == HYDRO  ||  MODEL == MHD  ||  MODEL == ELBDM )
@@ -465,11 +467,12 @@ struct InputPara_t
    int    Opt__GraP5Gradient;
    int    Opt__GravityType;
    int    Opt__ExternalPot;
+   int    Opt__GravityExtraMass;
 #  endif
 
 // Grackle
 #  ifdef SUPPORT_GRACKLE
-   int    Grackle_Mode;
+   int    Grackle_Activate;
    int    Grackle_Verbose;
    int    Grackle_Cooling;
    int    Grackle_Primordial;
@@ -500,8 +503,10 @@ struct InputPara_t
    int    Opt__RestartReset;
    int    Opt__UM_IC_Level;
    int    Opt__UM_IC_NVar;
+   int    Opt__UM_IC_Format;
    int    Opt__UM_IC_Downgrade;
    int    Opt__UM_IC_Refine;
+   int    Opt__UM_IC_LoadNRank;
    int    Opt__InitRestrict;
    int    Opt__InitGridWithOMP;
    int    Opt__GPUID_Select;
@@ -552,6 +557,8 @@ struct InputPara_t
    int    Opt__TimingBarrier;
    int    Opt__TimingBalance;
    int    Opt__TimingMPI;
+   int    Opt__RecordNote;
+   int    Opt__RecordUnphy;
    int    Opt__RecordMemory;
    int    Opt__RecordPerformance;
    int    Opt__ManualControl;

@@ -1,4 +1,4 @@
-#include "GAMER.h"
+#include "CUAPI.h"
 #include "CUFLU.h"
 #ifdef GRAVITY
 #include "CUPOT.h"
@@ -24,7 +24,7 @@ extern "C" { int GetFreeGpuDevID( int, int ); }
 void CUAPI_SetDevice( const int Mode )
 {
 
-   if ( MPI_Rank == 0 )    Aux_Message( stdout, "CUAPI_SetDevice ... \n" );
+   if ( MPI_Rank == 0 )    Aux_Message( stdout, "CUAPI_SetDevice ...\n" );
 
 
 // check
@@ -178,6 +178,12 @@ void CUAPI_SetDevice( const int Mode )
                              "        --> Please reset GPU_ARCH in the Makefile properly\n",
                  DeviceProp.name, DeviceProp.major, DeviceProp.minor );
 
+#  elif ( GPU_ARCH == VOLTA )
+   if ( DeviceProp.major != 7 )
+      Aux_Error( ERROR_INFO, "GPU \"%s\" with the compute capability %d.%d is incompatible with the Volta architecture !!\n"
+                             "        --> Please reset GPU_ARCH in the Makefile properly\n",
+                 DeviceProp.name, DeviceProp.major, DeviceProp.minor );
+
 #  else
 #  error : UNKNOWN GPU_ARCH !!
 #  endif // GPU_ARCH
@@ -186,15 +192,6 @@ void CUAPI_SetDevice( const int Mode )
 // (6) some options are not supported
 // (6-1) fluid solver
 #  if ( MODEL == HYDRO )
-#  if ( FLU_SCHEME == WAF  &&  defined FLOAT8 )
-   if ( RuntimeVersion < 3020 )
-      Aux_Error( ERROR_INFO, "double-precision WAF scheme is not supported in CUDA version < 3.2 !!\n" );
-#  endif
-
-#  if ( FLU_SCHEME == WAF  &&  RSOLVER == EXACT )
-#     error : ERROR : Currently WAF scheme does not support the exact Riemann solver !!;
-#  endif
-
 #  if (  defined FLOAT8  &&  CHECK_INTERMEDIATE == EXACT  && \
          ( FLU_SCHEME == MHM || FLU_SCHEME == MHM_RP || FLU_SCHEME == CTU )  )
       if ( RuntimeVersion < 3020 )

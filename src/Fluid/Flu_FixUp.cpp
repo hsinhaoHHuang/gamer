@@ -33,7 +33,7 @@ void Flu_FixUp( const int lv )
 //     --> fixing pressure is found to lead to extremely small dt
 //     --> fixing specific internal energy works better since it is directly proportional to the sound speed square
 #  ifdef SUPPORT_GRACKLE
-   const bool FixSEint   = ( GRACKLE_MODE != GRACKLE_MODE_NONE );
+   const bool FixSEint   = GRACKLE_ACTIVATE;
 #  else
    const bool FixSEint   = false;
 #  endif
@@ -183,20 +183,20 @@ void Flu_FixUp( const int lv )
 */
 
 #                 if   ( DUAL_ENERGY == DE_ENPY )
-//                must determine to use CPU_GetPressure() or CPU_DensEntropy2Pres() since the fluid variables stored
-//                in CorrVal[] may not be fully consistent (as it's not corrected by CPU_DualEnergyFix())
-//                --> note that currently we adopt CPU_DensEntropy2Pres() for DE_UPDATED_BY_MIN_PRES
+//                must determine to use Hydro_GetPressure() or Hydro_DensEntropy2Pres() since the fluid variables stored
+//                in CorrVal[] may not be fully consistent (as it's not corrected by Hydro_DualEnergyFix())
+//                --> note that currently we adopt Hydro_DensEntropy2Pres() for DE_UPDATED_BY_MIN_PRES
                   Pres = ( *DE_StatusPtr1D == DE_UPDATED_BY_ETOT  ||  *DE_StatusPtr1D == DE_UPDATED_BY_ETOT_GRA ) ?
-                         CPU_GetPressure( ForPres[DENS], ForPres[MOMX], ForPres[MOMY], ForPres[MOMZ], ForPres[ENGY],
-                                          Gamma_m1, CheckMinPres_No, NULL_REAL )
-                       : CPU_DensEntropy2Pres( ForPres[DENS], ForPres[ENPY], Gamma_m1, CheckMinPres_No, NULL_REAL );
+                         Hydro_GetPressure( ForPres[DENS], ForPres[MOMX], ForPres[MOMY], ForPres[MOMZ], ForPres[ENGY],
+                                            Gamma_m1, CheckMinPres_No, NULL_REAL )
+                       : Hydro_DensEntropy2Pres( ForPres[DENS], ForPres[ENPY], Gamma_m1, CheckMinPres_No, NULL_REAL );
 
 #                 elif ( DUAL_ENERGY == DE_EINT )
 #                 error : DE_EINT is NOT supported yet !!
 
 #                 else
-                  Pres = CPU_GetPressure( ForPres[DENS], ForPres[MOMX], ForPres[MOMY], ForPres[MOMZ], ForPres[ENGY],
-                                          Gamma_m1, CheckMinPres_No, NULL_REAL );
+                  Pres = Hydro_GetPressure( ForPres[DENS], ForPres[MOMX], ForPres[MOMY], ForPres[MOMZ], ForPres[ENGY],
+                                            Gamma_m1, CheckMinPres_No, NULL_REAL );
 #                 endif // DUAL_ENERGY
 #                 endif // MODEL
 
@@ -210,7 +210,7 @@ void Flu_FixUp( const int lv )
 
 //                do not apply the flux correction if there are any unphysical results
 #                 if   ( MODEL == HYDRO  ||  MODEL == MHD )
-                  if ( CorrVal[DENS] <= MIN_DENS  ||  Pres <= MIN_PRES  ||  !isfinite(Pres)
+                  if ( CorrVal[DENS] <= MIN_DENS  ||  Pres <= MIN_PRES  ||  !Aux_IsFinite(Pres)
 #                      if   ( DUAL_ENERGY == DE_ENPY )
                        ||  ( (*DE_StatusPtr1D == DE_UPDATED_BY_DUAL || *DE_StatusPtr1D == DE_UPDATED_BY_MIN_PRES)
                               && CorrVal[ENPY] <= (real)2.0*TINY_NUMBER )
@@ -231,7 +231,7 @@ void Flu_FixUp( const int lv )
                   for (int v=NCOMP_FLUID; v<NCOMP_TOTAL; v++)  CorrVal[v] = FMAX( CorrVal[v], TINY_NUMBER );
 
                   if ( OPT__NORMALIZE_PASSIVE )
-                     CPU_NormalizePassive( CorrVal[DENS], CorrVal+NCOMP_FLUID, PassiveNorm_NVar, PassiveNorm_VarIdx );
+                     Hydro_NormalizePassive( CorrVal[DENS], CorrVal+NCOMP_FLUID, PassiveNorm_NVar, PassiveNorm_VarIdx );
 #                 endif
 
 
@@ -244,7 +244,7 @@ void Flu_FixUp( const int lv )
 
 #                 ifdef DUAL_ENERGY
 #                 if   ( DUAL_ENERGY == DE_ENPY )
-                  CorrVal[ENPY] = CPU_DensPres2Entropy( CorrVal[DENS], Pres, Gamma_m1 );
+                  CorrVal[ENPY] = Hydro_DensPres2Entropy( CorrVal[DENS], Pres, Gamma_m1 );
 
 #                 elif ( DUAL_ENERGY == DE_EINT )
 #                 error : DE_EINT is NOT supported yet !!

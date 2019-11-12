@@ -12,31 +12,31 @@
 //
 // Note        :  1. Information of both the target buffer patches "Buff_NPatchTotal, Buff_PIDList, Buff_NPatchEachRank"
 //                   and the corresponding real patches "Real_NPatchTotal, Real_PIDList, Real_NPatchEachRank" must be
-//                   provided. The information of real patches can be calculated in advance by using "Par_LB_MapBuffer2RealPatch"
-//                2. All Target patches (those in Buff_PIDList and Real_PIDList) must be patches at the same level "lv"
+//                   provided. The information of real patches can be calculated in advance by using Par_LB_MapBuffer2RealPatch()
+//                2. All Target patches (those in Buff_PIDList[] and Real_PIDList[]) must be patches at the same level "lv"
 //                3. Currently this function only collects particle mass and position
 //                   --> For particle mass assignment only
-//                   --> But it should be generalized to work with arbitrary particle attributes
-//                4. This function is called by Par_LB_CollectParticle2OneLevel
-//                5. Array ParMassPos_Copy will be allocated for all target buffer patches with particles in the
+//                   --> But it should be generalized to work with arbitrary particle attributes in the future
+//                4. This function is called by Par_LB_CollectParticle2OneLevel()
+//                5. ParMassPos_Copy[] will be allocated for all target buffer patches with particles in the
 //                   corresponding real patches
-//                   --> Must be deallocated afterward by calling Par_LB_CollectParticle2OneLevel_FreeMemory
+//                   --> Must be deallocated afterward by calling Par_LB_CollectParticle2OneLevel_FreeMemory()
 //
-// Parameter   :  lv                   : Target refinement level
-//                Buff_NPatchTotal     : Total number of buffer patches in Buff_PIDList
-//                Buff_PIDList         : Target buffer patch indices
-//                Buff_NPatchEachRank  : Number of buffer patches to receive particles from each rank
-//                Real_NPatchTotal     : Total number of real patches in Real_PIDList
-//                Real_PIDList         : Target real patch indices
-//                Real_NPatchEachRank  : Number of real patches to send particles to each rank
-//                PredictPos           : Predict particle position, which is useful for particle mass assignement
-//                                       --> We send particle position **after** prediction so that we don't have to
-//                                           send particle velocity
-//                TargetTime           : Target time for predicting the particle position
-//                Timer                : Timer used by "Par_LB_SendParticleData"
-//                Timer_Comment        : String used by "Par_LB_SendParticleData"
+// Parameter   :  lv                  : Target refinement level
+//                Buff_NPatchTotal    : Total number of buffer patches in Buff_PIDList
+//                Buff_PIDList        : Target buffer patch indices
+//                Buff_NPatchEachRank : Number of buffer patches to receive particles from each rank
+//                Real_NPatchTotal    : Total number of real patches in Real_PIDList
+//                Real_PIDList        : Target real patch indices
+//                Real_NPatchEachRank : Number of real patches to send particles to each rank
+//                PredictPos          : Predict particle position, which is useful for particle mass assignement
+//                                      --> We send particle position **after** prediction so that we don't have to
+//                                          send particle velocity
+//                TargetTime          : Target time for predicting the particle position
+//                Timer               : Timer used by Par_LB_SendParticleData()
+//                Timer_Comment       : String used by Par_LB_SendParticleData()
 //
-// Return      :  NPar_Copy and ParMassPos_Copy (if NPar_Copy > 0) for all buffer patches specified in Buff_PIDList
+// Return      :  NPar_Copy and ParMassPos_Copy[] (if NPar_Copy > 0) for all buffer patches specified in Buff_PIDList[]
 //-------------------------------------------------------------------------------------------------------
 void Par_LB_CollectParticleFromRealPatch( const int lv,
                                           const int Buff_NPatchTotal, const int *Buff_PIDList, int *Buff_NPatchEachRank,
@@ -137,13 +137,13 @@ void Par_LB_CollectParticleFromRealPatch( const int lv,
 #  endif // #ifdef DEBUG_PARTICLE
 
 
-// must NOT call "return" here even if Buff/Real_NPatchTotal==0 since this rank still needs to call Par_LB_SendParticleData
+// must NOT call "return" here even if Buff/Real_NPatchTotal==0 since this rank still needs to call Par_LB_SendParticleData()
 // if ( Real_NPatchTotal == 0 )   return;
 // if ( Buff_NPatchTotal == 0 )   return;
 
 
 // 1. get the number of particles to be sent
-   const int NParVar = 4;  // mass + position*3
+   const int NParAtt = 4;  // mass + position*3
 
    int  *SendBuf_NParEachPatch = new int  [Real_NPatchTotal];
    long *SendBuf_Offset        = new long [Real_NPatchTotal];
@@ -172,12 +172,12 @@ void Par_LB_CollectParticleFromRealPatch( const int lv,
 
 // get the array offset of each patch (mainly for the OpenMP parallelization)
    SendBuf_Offset[0] = 0L;
-   for (int t=0; t<Real_NPatchTotal-1; t++)  SendBuf_Offset[t+1] = SendBuf_Offset[t] + long(SendBuf_NParEachPatch[t]*NParVar);
+   for (int t=0; t<Real_NPatchTotal-1; t++)  SendBuf_Offset[t+1] = SendBuf_Offset[t] + long(SendBuf_NParEachPatch[t]*NParAtt);
 
 
 // 2. prepare the particle data to be sent
 // reuse the MPI send buffer declared in LB_GetBufferData for better MPI performance
-   real *SendBuf_ParDataEachPatch = LB_GetBufferData_MemAllocate_Send( NSendParTotal*NParVar );
+   real *SendBuf_ParDataEachPatch = LB_GetBufferData_MemAllocate_Send( NSendParTotal*NParAtt );
 
    real  *SendPtr         = NULL;
    long  *ParList         = NULL;
@@ -209,19 +209,19 @@ void Par_LB_CollectParticleFromRealPatch( const int lv,
          {
             ParID = ParList[p];
 
-//          here we have assumed that both PAR_MASS, PAR_POSX/Y/Z < NParVar
-            SendPtr[PAR_MASS] = amr->Par->ParVar[PAR_MASS][ParID];
-            SendPtr[PAR_POSX] = amr->Par->ParVar[PAR_POSX][ParID];
-            SendPtr[PAR_POSY] = amr->Par->ParVar[PAR_POSY][ParID];
-            SendPtr[PAR_POSZ] = amr->Par->ParVar[PAR_POSZ][ParID];
+//          here we have assumed that PAR_MASS, PAR_POSX/Y/Z < NParAtt
+            SendPtr[PAR_MASS] = amr->Par->Attribute[PAR_MASS][ParID];
+            SendPtr[PAR_POSX] = amr->Par->Attribute[PAR_POSX][ParID];
+            SendPtr[PAR_POSY] = amr->Par->Attribute[PAR_POSY][ParID];
+            SendPtr[PAR_POSZ] = amr->Par->Attribute[PAR_POSZ][ParID];
 
 //          predict particle position to TargetTime
 //          --> note that we need to skip particles waiting for velocity correction since these are leaf real patches
 //              which may have particles just been updated
-//          --> also note that we don't have to worry about the periodic BC here (in other word, Pos can lie outside the box)
+//          --> also note that we don't have to worry about the periodic BC here (in other words, Pos can lie outside the box)
             if ( PredictPos )    Par_PredictPos( 1, &ParID, SendPtr+PAR_POSX, SendPtr+PAR_POSY, SendPtr+PAR_POSZ, TargetTime );
 
-            SendPtr += NParVar;
+            SendPtr += NParAtt;
          } // for (int p=0; p<NParThisPatch; p++)
       } // if ( amr->patch[0][lv][PID]->son == -1 )
 
@@ -238,15 +238,15 @@ void Par_LB_CollectParticleFromRealPatch( const int lv,
 
          for (int p=0; p<NParThisPatch; p++)
          {
-//          here we have assumed that both PAR_MASS, PAR_POSX/Y/Z < NParVar
+//          here we have assumed that PAR_MASS, PAR_POSX/Y/Z < NParAtt
 //          (also note that these particle position should have already been predicted to TargetTime
-//          by Par_LB_CollectParticle2OneLevel)
+//          by Par_LB_CollectParticle2OneLevel())
             SendPtr[PAR_MASS] = ParMassPos_Copy[PAR_MASS][p];
             SendPtr[PAR_POSX] = ParMassPos_Copy[PAR_POSX][p];
             SendPtr[PAR_POSY] = ParMassPos_Copy[PAR_POSY][p];
             SendPtr[PAR_POSZ] = ParMassPos_Copy[PAR_POSZ][p];
 
-            SendPtr += NParVar;
+            SendPtr += NParAtt;
          }
       } // if ( amr->patch[0][lv][PID]->son == -1 ) ... else ...
    } // for (int t=0; t<Real_NPatchTotal; t++)
@@ -270,7 +270,7 @@ void Par_LB_CollectParticleFromRealPatch( const int lv,
 
 // note that we don't exchange NPatchEachRank (which is already known) and LBIdxEachRank (which is useless here)
    Par_LB_SendParticleData(
-      NParVar,
+      NParAtt,
       SendBuf_NPatchEachRank, SendBuf_NParEachPatch, SendBuf_LBIdxEachRank, SendBuf_ParDataEachPatch, NSendParTotal,
       RecvBuf_NPatchEachRank, RecvBuf_NParEachPatch, RecvBuf_LBIdxEachRank, RecvBuf_ParDataEachPatch,
       NRecvPatchTotal, NRecvParTotal, Exchange_NPatchEachRank_No, Exchange_LBIdxEachRank_No, Exchange_ParDataEachRank_Yes,
@@ -293,7 +293,7 @@ void Par_LB_CollectParticleFromRealPatch( const int lv,
 // 4-0. get the array offset of each patch (mainly for the OpenMP parallelization)
    long *RecvBuf_Offset = new long [Buff_NPatchTotal];
    RecvBuf_Offset[0] = 0L;
-   for (int t=0; t<Buff_NPatchTotal-1; t++)  RecvBuf_Offset[t+1] = RecvBuf_Offset[t] + long(RecvBuf_NParEachPatch[t]*NParVar);
+   for (int t=0; t<Buff_NPatchTotal-1; t++)  RecvBuf_Offset[t+1] = RecvBuf_Offset[t] + long(RecvBuf_NParEachPatch[t]*NParAtt);
 
 #  pragma omp parallel for private( PID, NParThisPatch, RecvPtr ) schedule( PAR_OMP_SCHED, PAR_OMP_SCHED_CHUNK )
    for (int t=0; t<Buff_NPatchTotal; t++)
@@ -308,13 +308,13 @@ void Par_LB_CollectParticleFromRealPatch( const int lv,
       if ( NParThisPatch > 0 )
       {
 //       4-2. allocate the ParMassPos_Copy array
-         for (int v=0; v<NParVar; v++)
+         for (int v=0; v<NParAtt; v++)
             amr->patch[0][lv][PID]->ParMassPos_Copy[v] = new real [NParThisPatch];
 
          for (int p=0; p<NParThisPatch; p++)
          {
 //          4-3. store the particle mass and position
-            for (int v=0; v<NParVar; v++)
+            for (int v=0; v<NParAtt; v++)
                amr->patch[0][lv][PID]->ParMassPos_Copy[v][p] = *RecvPtr++;
 
 //          4-4. check

@@ -45,10 +45,8 @@
 #define MPI_ExchangeBoundaryFlag( lv ) {}
 #define MPI_ExchangeBufferPosition( NSend, NRecv, Send_PosList, Recv_PosList ) {}
 #define MPI_ExchangeData( TargetRank, SendSize, RecvSize, SendBuffer, RecvBuffer ) {}
-#define MPI_CubeSlice( Dir, SendBuf, RecvBuf ) {}
-#define Init_MPI( argc, argv )   { MPI_Rank = 0; }
 #define MPI_Exit() \
-   {  cout << flush; fprintf( stderr, "\nProgram termination ...... rank %d\n\n", MPI_Rank ); exit( 1 );   }
+   {  fflush( stdout ); fflush( stderr ); fprintf( stderr, "\nProgram termination ...... rank %d\n\n", MPI_Rank ); exit( 1 );   }
 #define Flag_Buffer( lv ) {}
 #define Refine_Buffer( lv, SonTable, GrandTable ) {}
 #define Flu_AllocateFluxArray_Buffer( lv ) {}

@@ -1,10 +1,11 @@
 #include "GAMER.h"
 
+extern void (*Init_User_Ptr)();
 #ifdef PARTICLE
 extern void (*Par_Init_ByFunction_Ptr)( const long NPar_ThisRank, const long NPar_AllRank,
                                         real *ParMass, real *ParPosX, real *ParPosY, real *ParPosZ,
                                         real *ParVelX, real *ParVelY, real *ParVelZ, real *ParTime,
-                                        real *ParPassive[PAR_NPASSIVE] );
+                                        real *AllAttribute[PAR_NATT_TOTAL] );
 #endif
 
 
@@ -18,7 +19,12 @@ void Init_GAMER( int *argc, char ***argv )
 {
 
 // initialize MPI
+#  ifdef SERIAL
+   MPI_Rank  = 0;
+   MPI_NRank = 1;
+#  else
    Init_MPI( argc, argv );
+#  endif
 
 
 // initialize the AMR structure
@@ -57,7 +63,7 @@ void Init_GAMER( int *argc, char ***argv )
 
 // initialize Grackle
 #  ifdef SUPPORT_GRACKLE
-   if ( GRACKLE_MODE != GRACKLE_MODE_NONE )  Grackle_Init();
+   if ( GRACKLE_ACTIVATE )    Grackle_Init();
 #  endif
 
 
@@ -75,6 +81,14 @@ void Init_GAMER( int *argc, char ***argv )
    Init_TestProb();
 
 
+// initialize all fields and particle attributes
+// --> Init_Field() must be called BEFORE CUAPI_Set_Default_GPU_Parameter()
+   Init_Field();
+#  ifdef PARTICLE
+   Par_Init_Attribute();
+#  endif
+
+
 // initialize the external potential and acceleration parameters
 // --> must be called AFTER Init_TestProb()
 #  ifdef GRAVITY
@@ -82,13 +96,8 @@ void Init_GAMER( int *argc, char ***argv )
 #  endif
 
 
-// initialize settings for the passive variables
-// --> must be called BEFORE CUAPI_Set_Default_GPU_Parameter()
-   Init_PassiveVariable();
-
-
 // set the GPU ID and several GPU parameters
-// --> must be called AFTER Init_PassiveVariable()
+// --> must be called AFTER Init_Field()
 #  ifdef GPU
 #  ifndef GRAVITY
    int POT_GPU_NPGROUP = NULL_INT;
@@ -144,7 +153,7 @@ void Init_GAMER( int *argc, char ***argv )
          Par_Init_ByFunction_Ptr( amr->Par->NPar_Active, amr->Par->NPar_Active_AllRank,
                                   amr->Par->Mass, amr->Par->PosX, amr->Par->PosY, amr->Par->PosZ,
                                   amr->Par->VelX, amr->Par->VelY, amr->Par->VelZ, amr->Par->Time,
-                                  amr->Par->Passive );
+                                  amr->Par->Attribute );
          break;
 
       case PAR_INIT_BY_RESTART:
@@ -159,14 +168,7 @@ void Init_GAMER( int *argc, char ***argv )
                     "PAR_INIT", (int)amr->Par->Init );
    }
 
-   if ( amr->Par->Init != PAR_INIT_BY_RESTART )
-   {
-      Par_Aux_InitCheck();
-
-#     ifndef SERIAL
-      Par_LB_Init_RedistributeByRectangular();
-#     endif
-   }
+   if ( amr->Par->Init != PAR_INIT_BY_RESTART )    Par_Aux_InitCheck();
 #  endif // #ifdef PARTICLE
 
 
@@ -183,51 +185,14 @@ void Init_GAMER( int *argc, char ***argv )
    }
 
 
-// get the total number of patches at all ranks
-   for (int lv=0; lv<NLEVEL; lv++)     Mis_GetTotalPatchNumber( lv );
-
-
-// improve load balance
-#  ifdef LOAD_BALANCE
-
-// we don't have to redistribute all patches during the RESTART process since we already did that in Init_ByRestart()
-// --> but note that Init_ByRestart() does NOT consider load-balance weighting of particles
-// we don't have enough information to calculate the load-balance weighting of particles when
-// calling LB_Init_LoadBalance() for the first time
-// --> must disable particle weighting (by setting ParWeight==0.0) first
-// must not reset load-balance variables (i.e., must adopt ResetLB_No) when calling LB_Init_LoadBalance() for the first time
-// since we MUST NOT overwrite IdxList_Real and IdxList_Real_IdxList set during the restart process
-   const double ParWeight_Zero   = 0.0;
-   const bool   Redistribute_Yes = true;
-   const bool   Redistribute_No  = false;
-   const bool   ResetLB_Yes      = true;
-   const bool   ResetLB_No       = false;
-
-   LB_Init_LoadBalance( (OPT__INIT==INIT_BY_RESTART)?Redistribute_No:Redistribute_Yes, ParWeight_Zero, ResetLB_No );
-
-// redistribute patches again if we want to take into account the load-balance weighting of particles
-#  ifdef PARTICLE
-   if ( amr->LB->Par_Weight > 0.0 )
-   LB_Init_LoadBalance( Redistribute_Yes, amr->LB->Par_Weight, ResetLB_Yes );
-#  endif
+// user-defined initialization
+   if ( Init_User_Ptr != NULL )  Init_User_Ptr();
 
 
 // record the initial weighted load-imbalance factor
+#  ifdef LOAD_BALANCE
    if ( OPT__RECORD_LOAD_BALANCE )  LB_EstimateLoadImbalance();
-
-
-// fill up the data of non-leaf patches (for RESTART only)
-// --> actually, it's only necessary when restarting from a C-binary snapshot since it does not store non-leaf data
-   if ( OPT__INIT == INIT_BY_RESTART )
-   for (int lv=NLEVEL-2; lv>=0; lv--)
-   {
-      Flu_Restrict( lv, amr->FluSg[lv+1], amr->FluSg[lv], NULL_INT, NULL_INT, _TOTAL );
-
-      LB_GetBufferData( lv, amr->FluSg[lv], NULL_INT, DATA_RESTRICT, _TOTAL, NULL_INT );
-
-      Buf_GetBufferData( lv, amr->FluSg[lv], NULL_INT, DATA_GENERAL, _TOTAL, Flu_ParaBuf, USELB_YES );
-   }
-#  endif // #ifdef LOAD_BALANCE
+#  endif
 
 
 #  ifdef GRAVITY

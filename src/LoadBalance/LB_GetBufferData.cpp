@@ -110,13 +110,14 @@ void LB_GetBufferData( const int lv, const int FluSg, const int PotSg, const Get
 
 // determine the components to be prepared (TFluVarIdx : target fluid variable indices ( = [0 ... NCOMP_TOTAL-1/NFLUX_TOTAL-1] )
    bool ExchangeFlu = ( GetBufMode == COARSE_FINE_FLUX ) ?
-                      TVar & _FLUX_TOTAL : TVar & _TOTAL;                        // whether or not to exchage the fluid data 
+                      TVar & _FLUX_TOTAL : TVar & _TOTAL;                        // whether or not to exchage the fluid data
 #  ifdef GRAVITY
    bool ExchangePot = (  GetBufMode != COARSE_FINE_FLUX  &&  (TVar & _POTE)  );  // whether or not to exchange the potential data
 #  endif
 
    const int NFluid_Max = ( GetBufMode == COARSE_FINE_FLUX ) ? NFLUX_TOTAL : NCOMP_TOTAL;
-   int NVar_Flu, NVar_Tot, TFluVarIdx, TFluVarIdxList[NFluid_Max];
+   int NVar_Flu, NVar_Tot, TFluVarIdx, *TFluVarIdxList;
+   TFluVarIdxList = new int [NFluid_Max];
    NVar_Flu = 0;
 
    for (int v=0; v<NFluid_Max; v++)
@@ -1015,6 +1016,7 @@ void LB_GetBufferData( const int lv, const int FluSg, const int PotSg, const Get
    delete [] Recv_NCount;
    delete [] Send_NDisp;
    delete [] Recv_NDisp;
+   delete [] TFluVarIdxList;
 
 } // FUNCTION : LB_GetBufferData
 

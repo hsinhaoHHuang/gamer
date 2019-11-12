@@ -14,7 +14,7 @@
 void Aux_Check_Parameter()
 {
 
-   if ( MPI_Rank == 0 )    Aux_Message( stdout, "Aux_Check_Parameter ... \n" );
+   if ( MPI_Rank == 0 )    Aux_Message( stdout, "Aux_Check_Parameter ...\n" );
 
 
 // general errors
@@ -66,8 +66,9 @@ void Aux_Check_Parameter()
    if ( MPI_NRank != NRank )
       Aux_Error( ERROR_INFO, "MPI_NRank (%d) != MPI_Comm_size (%d) !!\n", MPI_NRank, NRank );
 
-   if ( NX0_TOT[0]%PS2 != 0  ||  NX0_TOT[1]%PS2 != 0  ||  NX0_TOT[2]%PS2 != 0 )
-      Aux_Error( ERROR_INFO, "number of base-level patches in each direction must be \"a multiple of TWO\" !!\n" );
+   for (int d=0; d<3; d++)
+      if ( NX0_TOT[d]%PS2 != 0 )
+         Aux_Error( ERROR_INFO, "NX0_TOT_%c (%d) is NOT a multiple of %d (i.e., two patches) !!\n", 'X'+d, NX0_TOT[d], PS2 );
 
    if ( END_STEP < 0  &&  OPT__INIT != INIT_BY_RESTART )
       Aux_Error( ERROR_INFO, "incorrect parameter \"%s = %d\" [>=0] !!\n", "END_STEP", END_STEP );
@@ -75,20 +76,16 @@ void Aux_Check_Parameter()
    if ( END_T < 0.0  &&  OPT__INIT != INIT_BY_RESTART )
       Aux_Error( ERROR_INFO, "incorrect parameter \"%s = %14.7e\" [>=0] !!\n", "END_T", END_T );
 
-#  ifdef LOAD_BALANCE
-   if ( OPT__INIT != INIT_BY_RESTART )
-#  endif
+#  ifndef LOAD_BALANCE
    if ( NX0_TOT[0]%(PS2*MPI_NRank_X[0]) != 0  ||  NX0_TOT[1]%(PS2*MPI_NRank_X[1]) != 0  ||
         NX0_TOT[2]%(PS2*MPI_NRank_X[2]) != 0 )
       Aux_Error( ERROR_INFO, "number of base-level patches in each direction and in each MPI rank must be \"%s\" !!\n",
                  "a multiple of TWO" );
 
-#  ifdef LOAD_BALANCE
-   if ( OPT__INIT != INIT_BY_RESTART )
-#  endif
    if ( MPI_NRank_X[0]*MPI_NRank_X[1]*MPI_NRank_X[2] != MPI_NRank )
-      Aux_Error( ERROR_INFO, "MPI_NRank_X[0]*MPI_NRank_X[1]*MPI_NRank_X[2] (%d) != MPI_NRank (%d) !!\n",
-                 MPI_NRank_X[0]*MPI_NRank_X[1]*MPI_NRank_X[2], MPI_NRank );
+      Aux_Error( ERROR_INFO, "MPI_NRANK_X (%d) * MPI_NRANK_Y (%d) * MPI_NRANK_Z (%d) = %d != MPI_Comm_size (%d) !!\n",
+                 MPI_NRank_X[0], MPI_NRank_X[1], MPI_NRank_X[2], MPI_NRank_X[0]*MPI_NRank_X[1]*MPI_NRank_X[2], MPI_NRank );
+#  endif
 
    if ( OPT__OUTPUT_MODE == OUTPUT_CONST_STEP  &&  OUTPUT_STEP <= 0 )
       Aux_Error( ERROR_INFO, "OUTPUT_STEP (%ld) <= 0 !!\n", OUTPUT_STEP );
@@ -147,11 +144,9 @@ void Aux_Check_Parameter()
 #  ifdef SERIAL
    if ( MPI_NRank != 1 )   Aux_Error( ERROR_INFO, "\"MPI_NRank != 1\" in the serial code !!\n" );
 
-   if ( MPI_NRank_X[0] != 1 )    Aux_Error( ERROR_INFO, "\"MPI_NRank_X[0] != 1\" in the serial code !!\n" );
-
-   if ( MPI_NRank_X[1] != 1 )    Aux_Error( ERROR_INFO, "\"MPI_NRank_X[1] != 1\" in the serial code !!\n" );
-
-   if ( MPI_NRank_X[2] != 1 )    Aux_Error( ERROR_INFO, "\"MPI_NRank_X[2] != 1\" in the serial code !!\n" );
+   for (int d=0; d<3; d++)
+      if ( MPI_NRank_X[d] != 1 )
+         Aux_Error( ERROR_INFO, "\"MPI_NRank_%c (%d) != 1\" in the serial code !!\n", 'X'+d, MPI_NRank_X[d] );
 #  endif // #ifdef SERIAL
 
 #  ifndef OVERLAP_MPI
@@ -176,15 +171,19 @@ void Aux_Check_Parameter()
 
 #  if ( MODEL != HYDRO )
    for (int f=0; f<6; f++)
-   if ( OPT__BC_FLU[f] == BC_FLU_OUTFLOW  ||  OPT__BC_FLU[f] == BC_FLU_REFLECTING )
-      Aux_Error( ERROR_INFO, "outflow and reflecting boundary conditions (OPT__BC_FLU=2/3) only work with HYDRO !!\n" );
+      if ( OPT__BC_FLU[f] == BC_FLU_OUTFLOW )
+         Aux_Error( ERROR_INFO, "outflow boundary condition (OPT__BC_FLU=2) only works with HYDRO !!\n" );
+
+   for (int f=0; f<6; f++)
+      if ( OPT__BC_FLU[f] == BC_FLU_REFLECTING )
+         Aux_Error( ERROR_INFO, "reflecting boundary condition (OPT__BC_FLU=3) only works with HYDRO !!\n" );
 #  endif
 
-   if (  ( OPT__BC_FLU[0] == BC_FLU_PERIODIC || OPT__BC_FLU[1] == BC_FLU_PERIODIC || OPT__BC_FLU[2] == BC_FLU_PERIODIC ||
-           OPT__BC_FLU[3] == BC_FLU_PERIODIC || OPT__BC_FLU[4] == BC_FLU_PERIODIC || OPT__BC_FLU[5] == BC_FLU_PERIODIC   ) &&
-         ( OPT__BC_FLU[0] != BC_FLU_PERIODIC || OPT__BC_FLU[1] != BC_FLU_PERIODIC || OPT__BC_FLU[2] != BC_FLU_PERIODIC ||
-           OPT__BC_FLU[3] != BC_FLU_PERIODIC || OPT__BC_FLU[4] != BC_FLU_PERIODIC || OPT__BC_FLU[5] != BC_FLU_PERIODIC   )   )
-      Aux_Error( ERROR_INFO, "currently the periodic BC cannot be mixed with non-periodic BC. !!\n" );
+   for (int f=0; f<6; f+=2)
+      if (  ( OPT__BC_FLU[f] == BC_FLU_PERIODIC  &&  OPT__BC_FLU[f+1] != BC_FLU_PERIODIC )  ||
+            ( OPT__BC_FLU[f] != BC_FLU_PERIODIC  &&  OPT__BC_FLU[f+1] == BC_FLU_PERIODIC )   )
+         Aux_Error( ERROR_INFO, "periodic and non-periodic boundary conditions cannot be mixed along the same dimension"
+                                "--> please modify OPT__BC_FLU[%d/%d] !!\n", f, f+1 );
 
 #  ifndef TIMING
    if ( OPT__TIMING_MPI )  Aux_Error( ERROR_INFO, "OPT__TIMING_MPI must work with TIMING !!\n" );
@@ -227,6 +226,12 @@ void Aux_Check_Parameter()
    if ( OPT__CORR_AFTER_ALL_SYNC != CORR_AFTER_SYNC_BEFORE_DUMP  &&  OPT__CORR_AFTER_ALL_SYNC != CORR_AFTER_SYNC_EVERY_STEP )
       Aux_Error( ERROR_INFO, "please set OPT__CORR_AFTER_ALL_SYNC to 1/2 when BITWISE_REPRODUCIBILITY is enabled !!\n" );
 #  endif
+
+#  if ( !defined SERIAL  &&  !defined LOAD_BALANCE )
+   if ( OPT__INIT == INIT_BY_FILE )
+      Aux_Error( ERROR_INFO, "must enable either SERIAL or LOAD_BALANCE for OPT__INIT=3 !!\n" );
+#  endif
+
 
 
 // general warnings
@@ -300,10 +305,11 @@ void Aux_Check_Parameter()
 #  endif
 
    if ( !Flag )
-   {
-      Aux_Message( stderr, "WARNING : all flag criteria are turned off --> no refinement will be " );
-      Aux_Message( stderr, "performed !!\n" );
-   }
+      Aux_Message( stderr, "WARNING : all flag criteria are turned off --> no refinement will be performed !!" );
+
+   if ( OPT__NO_FLAG_NEAR_BOUNDARY  )
+      Aux_Message( stderr, "WARNING : OPT__NO_FLAG_NEAR_BOUNDARY is on --> patches adjacent to the "
+                           "simulation boundaries are NOT allowed for refinement !!\n" );
 
    if ( OPT__OVERLAP_MPI )
    {
@@ -322,12 +328,6 @@ void Aux_Check_Parameter()
       Aux_Message( stderr, "WARNING : OpenMP is NOT turned on for \"%s\" !!\n", "OPT__OVERLAP_MPI" );
 #     endif
    } // if ( OPT__OVERLAP_MPI )
-
-   if (  ( OPT__BC_FLU[0] == BC_FLU_USER || OPT__BC_FLU[1] == BC_FLU_USER || OPT__BC_FLU[2] == BC_FLU_USER ||
-           OPT__BC_FLU[3] == BC_FLU_USER || OPT__BC_FLU[4] == BC_FLU_USER || OPT__BC_FLU[5] == BC_FLU_USER   ) &&
-         ( OPT__BC_FLU[0] != BC_FLU_USER || OPT__BC_FLU[1] != BC_FLU_USER || OPT__BC_FLU[2] != BC_FLU_USER ||
-           OPT__BC_FLU[3] != BC_FLU_USER || OPT__BC_FLU[4] != BC_FLU_USER || OPT__BC_FLU[5] != BC_FLU_USER   )   )
-      Aux_Message( stderr, "WARNING : corner cells may not be well defined when mixing user-defined BC with others !!\n" );
 
    if ( OPT__TIMING_BARRIER )
       Aux_Message( stderr, "WARNING : \"%s\" may deteriorate performance (especially if %s is on) ...\n",
@@ -401,7 +401,7 @@ void Aux_Check_Parameter()
 
 // for sending fluid data fixed by coarse-fine fluxes correctly
    if ( OPT__FIXUP_FLUX  &&  Flu_ParaBuf >= PATCH_SIZE )
-      Aux_Error( ERROR_INFO, "we must have \"%s\" for \"%s\" in LOAD_BALANCE !!\n",
+      Aux_Error( ERROR_INFO, "\"%s\" is required for \"%s\" in LOAD_BALANCE --> check LB_RecordExchangeFixUpDataPatchID() !!\n",
                  "Flu_ParaBuf < PATCH_SIZE", "OPT__FIXUP_FLUX" );
 
 // ensure that the variable "PaddedCr1D" will not overflow
@@ -541,17 +541,16 @@ void Aux_Check_Parameter()
 #     error : ERROR : NCOMP_TOTAL != NFLUX_TOTAL !!
 #  endif
 
-#  if (  NCOMP_PASSIVE != 0  &&  ( FLU_SCHEME == RTVD || FLU_SCHEME == WAF )  )
-#     error : RTVD and WAF schemes do NOT support passive scalars !!
+#  if ( NCOMP_PASSIVE != 0  &&  FLU_SCHEME == RTVD )
+#     error : RTVD does NOT support passive scalars !!
 #  endif
 
-#  if ( FLU_SCHEME != RTVD  &&  FLU_SCHEME != MHM  &&  FLU_SCHEME != MHM_RP  &&  FLU_SCHEME != CTU  &&  \
-        FLU_SCHEME != WAF )
+#  if ( FLU_SCHEME != RTVD  &&  FLU_SCHEME != MHM  &&  FLU_SCHEME != MHM_RP  &&  FLU_SCHEME != CTU )
 #     error : ERROR : unsupported hydro scheme in the makefile !!
 #  endif
 
-#  if (  defined UNSPLIT_GRAVITY  &&  ( FLU_SCHEME == RTVD || FLU_SCHEME == WAF )  )
-#     error : ERROR : RTVD and WAF do not support UNSPLIT_GRAVITY !!
+#  if ( defined UNSPLIT_GRAVITY  &&  FLU_SCHEME == RTVD )
+#     error : ERROR : RTVD does not support UNSPLIT_GRAVITY !!
 #  endif
 
 #  if ( defined LR_SCHEME  &&  LR_SCHEME != PLM  &&  LR_SCHEME != PPM )
@@ -563,8 +562,8 @@ void Aux_Check_Parameter()
 #  endif
 
 #  ifdef DUAL_ENERGY
-#  if ( FLU_SCHEME == RTVD  ||  FLU_SCHEME == WAF )
-#     error : RTVD and WAF schemes do NOT support DUAL_ENERGY !!
+#  if ( FLU_SCHEME == RTVD )
+#     error : RTVD does NOT support DUAL_ENERGY !!
 #  endif
 
 #  if ( DUAL_ENERGY != DE_ENPY )
@@ -583,8 +582,8 @@ void Aux_Check_Parameter()
            OPT__1ST_FLUX_CORR_SCHEME != RSOLVER_1ST_HLLE )
          Aux_Error( ERROR_INFO, "unsupported parameter \"%s = %d\" !!\n", "OPT__1ST_FLUX_CORR_SCHEME", OPT__1ST_FLUX_CORR_SCHEME );
 
-#     if ( FLU_SCHEME == RTVD  ||  FLU_SCHEME == WAF )
-         Aux_Error( ERROR_INFO, "RTVD and WAF fluid schemes do not support \"OPT__1ST_FLUX_CORR\" !!\n" );
+#     if ( FLU_SCHEME == RTVD )
+         Aux_Error( ERROR_INFO, "RTVD does not support \"OPT__1ST_FLUX_CORR\" !!\n" );
 #     endif
    }
 
@@ -598,9 +597,9 @@ void Aux_Check_Parameter()
    else if ( MPI_Rank == 0 )
       Aux_Message( stderr, "WARNING : MIN_PRES (%13.7e) is on --> please ensure that this value is reasonable !!\n", MIN_PRES );
 
-#  if ( FLU_SCHEME == RTVD  ||  FLU_SCHEME == WAF )
+#  if ( FLU_SCHEME == RTVD )
    if ( JEANS_MIN_PRES )
-      Aux_Error( ERROR_INFO, "RTVD and WAF fluid schemes do not support \"JEANS_MIN_PRES\" !!\n" );
+      Aux_Error( ERROR_INFO, "RTVD does not support \"JEANS_MIN_PRES\" !!\n" );
 #  endif
 
 
@@ -630,20 +629,13 @@ void Aux_Check_Parameter()
       Aux_Message( stderr, "WARNING : %s is useless since %s is off !!\n", "OPT__CK_FLUX_ALLOCATE", "OPT__FIXUP_FLUX" );
 
    if ( OPT__INIT == INIT_BY_FILE )
-   {
       Aux_Message( stderr, "WARNING : currently we don't check MIN_DENS/PRES for the initial data loaded from UM_IC !!\n" );
-
-#     ifdef DUAL_ENERGY
-      Aux_Message( stderr, "REMINDER : when adopting DUAL_ENERGY and OPT__INIT=3, store the gas entropy\n"
-                           "           as the last variable in the file \"UM_IC\"\n" );
-#     endif
-   }
 
    if ( OPT__1ST_FLUX_CORR != FIRST_FLUX_CORR_NONE )
       Aux_Message( stderr, "REMINDER : OPT__1ST_FLUX_CORR may break the strict conservation of fluid variables\n" );
 
 #  ifdef SUPPORT_GRACKLE
-   if (  GRACKLE_MODE != GRACKLE_MODE_NONE  &&  OPT__FLAG_LOHNER_TEMP )
+   if ( GRACKLE_ACTIVATE && OPT__FLAG_LOHNER_TEMP )
       Aux_Message( stderr, "WARNING : currently we do not use Grackle to calculate temperature for OPT__FLAG_LOHNER_TEMP !!\n" );
 #  endif
 
@@ -747,24 +739,6 @@ void Aux_Check_Parameter()
 #  endif // #if ( FLU_SCHEME == MHM_RP )
 
 
-// check for WAF
-// ------------------------------
-#  if ( FLU_SCHEME == WAF )
-
-#  if ( RSOLVER == HLLE  ||  RSOLVER == HLLC )
-#     error : ERROR : currently the WAF scheme does not support HLLE/HLLC Riemann solvers
-#  endif
-
-#  if ( FLU_GHOST_SIZE != 2 )
-#     error : ERROR : please set FLU_GHOST_SIZE = 2 for the WAF scheme !!
-#  endif
-
-   if ( OPT__WAF_LIMITER != WAF_SUPERBEE  &&  OPT__WAF_LIMITER != WAF_VANLEER  &&
-        OPT__WAF_LIMITER != WAF_ALBADA    &&  OPT__WAF_LIMITER != WAF_MINBEE      )
-      Aux_Error( ERROR_INFO, "unsupported WAF flux limiter (%d) !!\n", OPT__WAF_LIMITER );
-#  endif // if ( FLU_SCHEME == WAF )
-
-
 // check for RTVD
 // ------------------------------
 #  if ( FLU_SCHEME == RTVD )
@@ -835,14 +809,18 @@ void Aux_Check_Parameter()
       Aux_Error( ERROR_INFO, "unsupported interpolation scheme \"%s = %d\" when OPT__INT_PHASE is on !!\n",
                  "OPT__FLU_INT_SCHEME", OPT__FLU_INT_SCHEME );
 
-   for (int f=0; f<6; f++)
-   if ( OPT__BC_FLU[f] == BC_FLU_REFLECTING  ||  OPT__BC_FLU[f] == BC_FLU_OUTFLOW )
-      Aux_Error( ERROR_INFO, "unsupported option \"OPT__BC_FLU[%d] = %d\" [1/4] !!\n", f, OPT__BC_FLU[f] );
-
    if ( MIN_DENS == 0.0  &&  MPI_Rank == 0 )
       Aux_Message( stderr, "WARNING : MIN_DENS == 0.0 could be dangerous and is mainly for debugging only !!\n" );
    else if ( MPI_Rank == 0 )
       Aux_Message( stderr, "WARNING : MIN_DENS (%13.7e) is on --> please ensure that this value is reasonable !!\n", MIN_DENS );
+
+   if ( ELBDM_REMOVE_MOTION_CM != ELBDM_REMOVE_MOTION_CM_NONE  &&  !OPT__CK_CONSERVATION )
+      Aux_Error( ERROR_INFO, "\"%s\" must work with \"%s\" !!\n", "ELBDM_REMOVE_MOTION_CM", "OPT__CK_CONSERVATION" );
+
+#  ifdef BITWISE_REPRODUCIBILITY
+   if ( ELBDM_REMOVE_MOTION_CM != ELBDM_REMOVE_MOTION_CM_NONE )
+      Aux_Error( ERROR_INFO, "\"%s\" does NOT support \"%s\" !!\n", "ELBDM_REMOVE_MOTION_CM", "BITWISE_REPRODUCIBILITY" );
+#  endif
 
 
 // warnings
@@ -989,11 +967,6 @@ void Aux_Check_Parameter()
                  Pot_ParaBuf, NGhost_RefPot );
 #  endif
 
-   if ( OPT__GRAVITY_TYPE == GRAVITY_SELF  ||  OPT__GRAVITY_TYPE == GRAVITY_BOTH )
-   if (  ( OPT__BC_FLU[0] == BC_FLU_PERIODIC && OPT__BC_POT != BC_POT_PERIODIC )  ||
-         ( OPT__BC_FLU[0] != BC_FLU_PERIODIC && OPT__BC_POT == BC_POT_PERIODIC )    )
-      Aux_Error( ERROR_INFO, "periodic BC must be applied to both fluid and self-gravity solvers at the same time !!\n" );
-
    if ( OPT__BC_POT != BC_POT_PERIODIC  &&  OPT__BC_POT != BC_POT_ISOLATED )
       Aux_Error( ERROR_INFO, "unsupported option \"OPT__BC_POT = %d\" [1/2] !!\n", OPT__BC_POT );
 
@@ -1029,12 +1002,6 @@ void Aux_Check_Parameter()
    if ( DT__GRAVITY < 0.0  ||  DT__GRAVITY > 1.0 )
       Aux_Message( stderr, "WARNING : DT__GRAVITY (%14.7e) is not within the normal range [0...1] !!\n",
                    DT__GRAVITY );
-
-   if (  ( OPT__GRAVITY_TYPE == GRAVITY_SELF || OPT__GRAVITY_TYPE == GRAVITY_BOTH )  &&  OPT__BC_POT == BC_POT_ISOLATED  )
-   {
-      Aux_Message( stderr, "WARNING : currently the patches adjacent to the simulation boundary are NOT allowed to be\n" );
-      Aux_Message( stderr, "          refined if the self-gravity with the isolated BC is adopted !!\n" );
-   }
 
    if ( OPT__EXTERNAL_POT  &&  OPT__OUTPUT_POT )
       Aux_Message( stderr, "WARNING : currently OPT__OUTPUT_POT does NOT include the external potential !!\n" );
@@ -1166,10 +1133,10 @@ void Aux_Check_Parameter()
       Aux_Error( ERROR_INFO, "DT__PARACC (%14.7e) is NOT supported when STORE_PAR_ACC is off !!\n", DT__PARACC );
 #  endif
 
-   if ( OPT__BC_FLU[0] == BC_FLU_PERIODIC )
    for (int d=0; d<3; d++)
    {
-      if ( NX0_TOT[d]/PS2 == 1 )
+//    we have assumed that OPT__BC_FLU[2*d] == OPT__BC_FLU[2*d+1] when adopting the periodic BC
+      if ( OPT__BC_FLU[2*d] == BC_FLU_PERIODIC  &&  NX0_TOT[d]/PS2 == 1 )
          Aux_Error( ERROR_INFO, "\"%s\" does NOT work for NX0_TOT[%d] = 2*PATCH_SIZE when periodic BC is adopted !!\n",
                     "Par_MassAssignment()", d );
    }
@@ -1198,11 +1165,20 @@ void Aux_Check_Parameter()
 
    } // if ( MPI_Rank == 0 )
 
+
 #else // #ifdef PARTICLE
+
+
+// warning
+// ------------------------------
+   if ( MPI_Rank == 0 ) {
 
 #  ifdef STORE_POT_GHOST
    Aux_Message( stderr, "WARNING : currently STORE_POT_GHOST is useless when PARTICLE is disabled !!\n" );
 #  endif
+
+   }
+
 
 #endif // PARTICLE
 
@@ -1260,7 +1236,6 @@ void Aux_Check_Parameter()
       Aux_Message( stderr, "WARNING : SF_CREATE_STAR_SCHEME == 1 will break bitwise reproducibility due to the \n" );
       Aux_Message( stderr, "          random values used for the stochastic star formation !!\n" );
       Aux_Message( stderr, "          --> Enable \"SF_CREATE_STAR_DET_RANDOM\" if reproducibility is of great concern\n" );
-      Aux_Message( stderr, "              (note that it is automatically enabled when BITWISE_REPRODUCIBILITY is adopted)\n" );
    }
 
    } // if ( MPI_Rank == 0 )

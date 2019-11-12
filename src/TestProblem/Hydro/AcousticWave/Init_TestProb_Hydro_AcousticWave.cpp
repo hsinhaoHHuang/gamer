@@ -3,6 +3,9 @@
 
 
 
+static void OutputError();
+
+
 // problem-specific global variables
 // =======================================================================================
 static double Acoustic_RhoAmp;      // amplitude of the density perturbation (assuming background density = 1.0)
@@ -55,7 +58,8 @@ void Validate()
    if ( amr->BoxSize[0] != amr->BoxSize[1]  ||  amr->BoxSize[0] != amr->BoxSize[2] )
       Aux_Error( ERROR_INFO, "simulation domain must be cubic !!\n" );
 
-   if ( OPT__BC_FLU[0] != BC_FLU_PERIODIC )
+   for (int f=0; f<6; f++)
+   if ( OPT__BC_FLU[f] != BC_FLU_PERIODIC )
       Aux_Error( ERROR_INFO, "please set \"OPT__BC_FLU_* = 1\" (i.e., periodic BC) !!\n" );
 
 

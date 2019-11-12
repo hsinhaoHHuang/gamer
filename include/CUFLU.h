@@ -8,9 +8,13 @@
 // *********************************************************************
 
 
-// include "Macro" and "Typedef" here since the header "GAMER.h" is NOT included in GPU solvers
-#include "Macro.h"
-#include "Typedef.h"
+// include "Macro.h" and "Typedef.h" here since the header "GAMER.h" is NOT included in GPU solvers
+#ifdef __CUDACC__
+# include "Macro.h"
+# include "Typedef.h"
+#else
+# include "GAMER.h"
+#endif
 
 
 // allow GPU to output messages in the debug mode
@@ -33,16 +37,22 @@
 // 1. hydro macro
 //=========================================================================================
 #if   ( MODEL == HYDRO )
-// structure data type for the GPU hydro kernels
-// --> note that for FluVar we must define Passive[] even when NCOMP_PASSIVE == 0
-// --> FluVar5 is used for variables which do not need to consider passive scalars even when NCOMP_PASSIVE > 0
-//     (e.g., eigenvectors/eigenvalues in CUFLU_Shared_RiemannSolver_Roe() )
-struct FluVar  { real Rho, Px, Py, Pz, Egy, Passive[NCOMP_PASSIVE]; };
-struct FluVar5 { real Rho, Px, Py, Pz, Egy; };
-
 
 // size of different arrays
 #if ( FLU_SCHEME == MHM  ||  FLU_SCHEME == MHM_RP  ||  FLU_SCHEME == CTU )
+
+// ** to reduce the GPU memory consumption, large arrays in the fluid solvers are reused as much as possible
+// ** --> the strides of arrays can change when accessed by different routines for different purposes
+
+// N_SLOPE_PPM : size of Slope_PPM[]
+// N_FC_VAR    : size of FC_Var[]
+// N_FC_FLUX   : size of FC_Flux[]
+// N_FL_FLUX   : for accessing FC_Flux[] in CPU_Shared_ComputeFlux() and CPU_Shared_FullStepUpdate()
+//               --> different from N_FC_FLUX in MHM_RP since for which FC_Flux[] is also linked
+//                   to Half_Flux[] used by Hydro_RiemannPredict_Flux() and Hydro_RiemannPredict()
+//               --> for the latter two routines, Half_Flux[] is accessed with N_FC_FLUX
+// N_HF_VAR    : for accessing Half_Var[], which is linked to PriVar[] with the size FLU_NXT^3
+//               --> used by MHM_RP only
 
 #  define N_FC_VAR        ( PS2 + 2      )
 #  define N_SLOPE_PPM     ( N_FC_VAR + 2 )
@@ -56,27 +66,26 @@ struct FluVar5 { real Rho, Px, Py, Pz, Egy; };
 
 #     define N_FL_FLUX    ( PS2 + 1      )
 #     define N_HF_VAR     ( FLU_NXT - 2  )
-#     define N_HF_FLUX    ( FLU_NXT - 1  )
-#     define N_FC_FLUX    ( N_HF_FLUX    )
+#     define N_FC_FLUX    ( FLU_NXT - 1  )
 
 #  elif ( FLU_SCHEME == CTU )
 
 #     define N_FL_FLUX    ( N_FC_VAR     )
-#     define N_HF_FLUX    ( N_FC_VAR     )
-#     define N_FC_FLUX    ( N_FC_VAR     )
+#     define N_FC_FLUX    ( N_FL_FLUX    )
 
 #  endif
 
 #endif // #if ( FLU_SCHEME == MHM  ||  FLU_SCHEME == MHM_RP  ||  FLU_SCHEME == CTU )
 
 
-// check the non-physical negative values (e.g., negative density) inside the fluid solver
-#ifdef GAMER_DEBUG
+// check non-physical negative values (e.g., negative density) for the fluid solver
+#if (  defined GAMER_DEBUG  &&  ( MODEL == HYDRO || MODEL == MHD )  )
 #  define CHECK_NEGATIVE_IN_FLUID
 #endif
 
 #ifdef CHECK_NEGATIVE_IN_FLUID
 #  include "stdio.h"
+   bool Hydro_CheckNegative( const real Input );
 #endif
 
 
@@ -109,14 +118,8 @@ struct FluVar5 { real Rho, Px, Py, Pz, Egy; };
 #endif
 
 
-// use the dissipative structure for the WAF scheme
-#if ( FLU_SCHEME == WAF )
-// #define WAF_DISSIPATE
-#endif
-
-
-// maximum allowed error for the exact Riemann solver and the WAF scheme
-#if ( FLU_SCHEME == WAF  ||  ( FLU_SCHEME != RTVD && RSOLVER == EXACT )  ||  CHECK_INTERMEDIATE == EXACT )
+// maximum allowed error for the exact Riemann solver
+#if ( ( FLU_SCHEME != RTVD && RSOLVER == EXACT )  ||  CHECK_INTERMEDIATE == EXACT )
 #  ifdef FLOAT8
 #     define MAX_ERROR    1.e-15
 #  else
@@ -166,16 +169,6 @@ struct FluVar5 { real Rho, Px, Py, Pz, Egy; };
 #     define FLU_BLOCK_SIZE_Y       8
 #  endif
 
-#elif ( FLU_SCHEME == WAF )
-
-#     define FLU_BLOCK_SIZE_X       FLU_NXT
-
-#  ifdef FLOAT8
-#     define FLU_BLOCK_SIZE_Y       4
-#  else
-#     define FLU_BLOCK_SIZE_Y       8
-#  endif
-
 #elif ( FLU_SCHEME == MHM  ||  FLU_SCHEME == MHM_RP )
 
 #  if   ( GPU_ARCH == FERMI )
@@ -197,6 +190,12 @@ struct FluVar5 { real Rho, Px, Py, Pz, Egy; };
 #     define FLU_BLOCK_SIZE_X       512      // not optimized yet
 #     endif
 #  elif ( GPU_ARCH == PASCAL )
+#     ifdef FLOAT8
+#     define FLU_BLOCK_SIZE_X       256
+#     else
+#     define FLU_BLOCK_SIZE_X       512      // not optimized yet
+#     endif
+#  elif ( GPU_ARCH == VOLTA )
 #     ifdef FLOAT8
 #     define FLU_BLOCK_SIZE_X       256
 #     else
@@ -232,6 +231,12 @@ struct FluVar5 { real Rho, Px, Py, Pz, Egy; };
 #     define FLU_BLOCK_SIZE_X       512      // not optimized yet
 #     endif
 #  elif ( GPU_ARCH == PASCAL )
+#     ifdef FLOAT8
+#     define FLU_BLOCK_SIZE_X       256
+#     else
+#     define FLU_BLOCK_SIZE_X       512      // not optimized yet
+#     endif
+#  elif ( GPU_ARCH == VOLTA )
 #     ifdef FLOAT8
 #     define FLU_BLOCK_SIZE_X       256
 #     else
@@ -291,6 +296,13 @@ struct FluVar5 { real Rho, Px, Py, Pz, Egy; };
 #        define FLU_BLOCK_SIZE_Y    32    // not optimized yet
 #     endif
 
+#  elif ( GPU_ARCH == VOLTA )
+#     ifdef FLOAT8
+#        define FLU_BLOCK_SIZE_Y    16    // not optimized yet
+#     else
+#        define FLU_BLOCK_SIZE_Y    32    // not optimized yet
+#     endif
+
 #  else
 #        define FLU_BLOCK_SIZE_Y    NULL_INT
 #        ifdef GPU
@@ -306,7 +318,7 @@ struct FluVar5 { real Rho, Px, Py, Pz, Egy; };
 #     define DT_FLU_BLOCK_SIZE      512
 
 // use shuffle reduction in the KEPLER and later GPUs
-#  if ( GPU_ARCH == KEPLER  ||  GPU_ARCH == MAXWELL  ||  GPU_ARCH == PASCAL )
+#  if ( GPU_ARCH == FERMI  ||  GPU_ARCH == KEPLER  ||  GPU_ARCH == MAXWELL  ||  GPU_ARCH == PASCAL  ||  GPU_ARCH == VOLTA )
 #     define DT_FLU_USE_SHUFFLE
 #  endif
 
@@ -316,7 +328,7 @@ struct FluVar5 { real Rho, Px, Py, Pz, Egy; };
 // --> please refer to https://en.wikipedia.org/wiki/CUDA#Version_features_and_specifications
 //     for information on warp size
 #ifdef __CUDACC__
-#if ( GPU_ARCH == FERMI  ||  GPU_ARCH == KEPLER  ||  GPU_ARCH == MAXWELL  ||  GPU_ARCH == PASCAL )
+#if ( GPU_ARCH == FERMI  ||  GPU_ARCH == KEPLER  ||  GPU_ARCH == MAXWELL  ||  GPU_ARCH == PASCAL  ||  GPU_ARCH == VOLTA )
 // CUPOT.h will define WARP_SIZE as well
 #  ifndef WARP_SIZE
 #  define WARP_SIZE 32
@@ -328,12 +340,22 @@ struct FluVar5 { real Rho, Px, Py, Pz, Egy; };
 
 
 
-// ##########################
-// ## function prototypes  ##
-// ##########################
+// #########################
+// ## CPU/GPU integration ##
+// #########################
 
-#if (  ( MODEL == HYDRO || MODEL == MHD )  &&  defined CHECK_NEGATIVE_IN_FLUID  )
-extern bool CPU_CheckNegative( const real Input );
+// GPU device function specifier
+#ifdef __CUDACC__
+# define GPU_DEVICE __forceinline__ __device__
+#else
+# define GPU_DEVICE
+#endif
+
+// unified CPU/GPU loop
+#ifdef __CUDACC__
+# define CGPU_LOOP( var, niter )    for (int (var)=threadIdx.x; (var)<(niter); (var)+=blockDim.x)
+#else
+# define CGPU_LOOP( var, niter )    for (int (var)=0;           (var)<(niter); (var)++          )
 #endif
 
 

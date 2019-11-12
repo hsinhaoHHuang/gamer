@@ -151,7 +151,7 @@ void Init_ByRestart_v1( const char FileName[] )
 
 // c. load the simulation information
 // =================================================================================================
-   if ( MPI_Rank == 0 )    Aux_Message( stdout, "   Loading simulation information ... \n" );
+   if ( MPI_Rank == 0 )    Aux_Message( stdout, "   Loading simulation information ...\n" );
 
    int  NDataPatch_Total[NLv_Restart];
    uint Counter_tmp     [NLv_Restart];
@@ -317,7 +317,8 @@ void Init_ByRestart_v1( const char FileName[] )
 //    d0-2. set the cut points
 //    --> do NOT consider load-balance weighting of particles since at this point we don't have that information
       const double ParWeight_Zero = 0.0;
-      LB_SetCutPoint( lv, amr->LB->CutPoint[lv], InputLBIdx0AndLoad_Yes, LBIdx0_AllRank, Load_AllRank, ParWeight_Zero );
+      LB_SetCutPoint( lv, NPatchTotal[lv]/8, amr->LB->CutPoint[lv], InputLBIdx0AndLoad_Yes, LBIdx0_AllRank, Load_AllRank,
+                      ParWeight_Zero );
 
       if ( MPI_Rank == 0 )
       {
@@ -448,14 +449,51 @@ void Init_ByRestart_v1( const char FileName[] )
    if ( DataOrder_xyzv )  delete [] InvData_Flu;
 
 
-#  ifndef LOAD_BALANCE
-// the following operations are useful only when LOAD_BALANCE is NOT enabled
+// get the total number of real patches at all ranks
+   for (int lv=0; lv<NLEVEL; lv++)     Mis_GetTotalPatchNumber( lv );
+
+
+// e-1. improve load balance
 // ===================================================================================================================
+#  ifdef LOAD_BALANCE
 
-// g. construct the relation "father <-> son" for the out-of-core computing (no longer useful)
+// no need to redistribute all patches again since we already did that when loading data from disks
+// --> but note that we have not considerer load-balance weighting of particles yet
+
+// we don't have enough information to calculate the load-balance weighting of particles when
+// calling LB_Init_LoadBalance() for the first time
+// --> for example, LB_EstimateWorkload_AllPatchGroup()->Par_CollectParticle2OneLevel()->Par_LB_CollectParticle2OneLevel()
+//     needs amr->LB->IdxList_Real[], which will be constructed only AFTER calling LB_Init_LoadBalance()
+// --> must disable particle weighting (by setting ParWeight==0.0) first
+
+// must not reset load-balance variables (i.e., must adopt ResetLB_No) when calling LB_Init_LoadBalance() for the first time
+// since we MUST NOT overwrite IdxList_Real[] and IdxList_Real_IdxList[] already set above
+   const double ParWeight_Zero   = 0.0;
+   const bool   Redistribute_Yes = true;
+   const bool   Redistribute_No  = false;
+   const bool   ResetLB_Yes      = true;
+   const bool   ResetLB_No       = false;
+   const int    AllLv            = -1;
+
+   LB_Init_LoadBalance( Redistribute_No, ParWeight_Zero, ResetLB_No, AllLv );
 
 
-// h. complete all levels
+// fill up the data of non-leaf patches
+// --> only necessary when restarting from a C-binary snapshot since it does not store non-leaf data
+   for (int lv=NLEVEL-2; lv>=0; lv--)
+   {
+      Flu_Restrict( lv, amr->FluSg[lv+1], amr->FluSg[lv], NULL_INT, NULL_INT, _TOTAL );
+
+      LB_GetBufferData( lv, amr->FluSg[lv], NULL_INT, DATA_RESTRICT, _TOTAL, NULL_INT );
+
+      Buf_GetBufferData( lv, amr->FluSg[lv], NULL_INT, DATA_GENERAL, _TOTAL, Flu_ParaBuf, USELB_YES );
+   }
+
+
+// e-2. complete all levels for the case without LOAD_BALANCE
+// ===================================================================================================================
+#  else // #ifdef LOAD_BALANCE
+
    for (int lv=0; lv<NLEVEL; lv++)
    {
 //    construct the relation "father <-> son" for the in-core computing
@@ -481,11 +519,11 @@ void Init_ByRestart_v1( const char FileName[] )
    } // for (int lv=0; lv<NLEVEL; lv++)
 
 
-// i. fill up the data for top-level buffer patches
+// fill up the data for top-level buffer patches
    Buf_GetBufferData( NLEVEL-1, amr->FluSg[NLEVEL-1], NULL_INT, DATA_GENERAL, _TOTAL, Flu_ParaBuf, USELB_NO );
 
 
-// j. fill up the data for patches that are not leaf patches
+// fill up the data for patches that are not leaf patches
    for (int lv=NLEVEL-2; lv>=0; lv--)
    {
 //    data restriction: lv+1 --> lv
@@ -495,8 +533,7 @@ void Init_ByRestart_v1( const char FileName[] )
       Buf_GetBufferData( lv, amr->FluSg[lv], NULL_INT, DATA_GENERAL, _TOTAL, Flu_ParaBuf, USELB_NO );
    } // for (int lv=NLEVEL-2; lv>=0; lv--)
 
-// ===================================================================================================================
-#  endif // #ifndef LOAD_BALANCE
+#  endif // #ifdef LOAD_BALANCE ... else ...
 
 
    if ( MPI_Rank == 0 )    Aux_Message( stdout, "%s ... done\n", __FUNCTION__ );
@@ -866,10 +903,10 @@ void Load_Parameter_After_1200( FILE *File, const int FormatVersion, int &NLv_Re
 
 // b. load the symbolic constants defined in "Macro.h, CUPOT.h, and CUFLU.h"
 // =================================================================================================
-   bool enforce_positive, char_reconstruction, hll_no_ref_state, hll_include_all_waves, waf_dissipate;
+   bool enforce_positive, char_reconstruction, hll_no_ref_state, hll_include_all_waves, waf_dissipate_useless;
    bool use_psolver_10to14;
    int  ncomp_fluid, patch_size, flu_ghost_size, pot_ghost_size, gra_ghost_size, check_intermediate;
-   int  flu_block_size_x, flu_block_size_y, pot_block_size_x, pot_block_size_z, gra_block_size_z;
+   int  flu_block_size_x, flu_block_size_y, pot_block_size_x, pot_block_size_z, gra_block_size;
    real min_pres, max_error;
 
    fread( &ncomp_fluid,                sizeof(int),                     1,             File );
@@ -883,14 +920,14 @@ void Load_Parameter_After_1200( FILE *File, const int FormatVersion, int &NLv_Re
    fread( &check_intermediate,         sizeof(int),                     1,             File );
    fread( &hll_no_ref_state,           sizeof(bool),                    1,             File );
    fread( &hll_include_all_waves,      sizeof(bool),                    1,             File );
-   fread( &waf_dissipate,              sizeof(bool),                    1,             File );
+   fread( &waf_dissipate_useless,      sizeof(bool),                    1,             File );
    fread( &max_error,                  sizeof(real),                    1,             File );
    fread( &flu_block_size_x,           sizeof(int),                     1,             File );
    fread( &flu_block_size_y,           sizeof(int),                     1,             File );
    fread( &use_psolver_10to14,         sizeof(bool),                    1,             File );
    fread( &pot_block_size_x,           sizeof(int),                     1,             File );
    fread( &pot_block_size_z,           sizeof(int),                     1,             File );
-   fread( &gra_block_size_z,           sizeof(int),                     1,             File );
+   fread( &gra_block_size,             sizeof(int),                     1,             File );
 
 // skip the buffer space
    fseek( File, NBuf_Constant, SEEK_CUR );
@@ -903,7 +940,7 @@ void Load_Parameter_After_1200( FILE *File, const int FormatVersion, int &NLv_Re
    bool   opt__gra_p5_gradient, opt__int_time, opt__output_user, opt__output_base, opt__output_pot;
    bool   opt__output_baseps, opt__timing_balance, opt__int_phase;
    int    nx0_tot[3], mpi_nrank, mpi_nrank_x[3], omp_nthread, ooc_nrank, ooc_nrank_x[3], regrid_count;
-   int    flag_buffer_size, max_level, opt__lr_limiter, opt__waf_limiter, flu_gpu_npgroup, gpu_nstream;
+   int    flag_buffer_size, max_level, opt__lr_limiter, opt__waf_limiter_useless, flu_gpu_npgroup, gpu_nstream;
    int    sor_max_iter, sor_min_iter, mg_max_iter, mg_npre_smooth, mg_npost_smooth, pot_gpu_npgroup;
    int    opt__flu_int_scheme, opt__pot_int_scheme, opt__rho_int_scheme;
    int    opt__gra_int_scheme, opt__ref_flu_int_scheme, opt__ref_pot_int_scheme;
@@ -942,7 +979,7 @@ void Load_Parameter_After_1200( FILE *File, const int FormatVersion, int &NLv_Re
    fread( &minmod_coeff,               sizeof(real),                    1,             File );
    fread( &ep_coeff,                   sizeof(real),                    1,             File );
    fread( &opt__lr_limiter,            sizeof(int),                     1,             File );
-   fread( &opt__waf_limiter,           sizeof(int),                     1,             File );
+   fread( &opt__waf_limiter_useless,   sizeof(int),                     1,             File );
    fread( &elbdm_mass1,                sizeof(real),                    1,             File );
    fread( &elbdm_mass2,                sizeof(real),                    1,             File );
    fread( &elbdm_planck_const,         sizeof(real),                    1,             File );
@@ -1187,8 +1224,8 @@ void Load_Parameter_After_1200( FILE *File, const int FormatVersion, int &NLv_Re
       CompareVar( "POT_BLOCK_SIZE_Z",        pot_block_size_z,       POT_BLOCK_SIZE_Z,          NonFatal );
 #     endif
 
-#     ifdef GRA_BLOCK_SIZE_Z
-      CompareVar( "GRA_BLOCK_SIZE_Z",        gra_block_size_z,       GRA_BLOCK_SIZE_Z,          NonFatal );
+#     ifdef GRA_BLOCK_SIZE
+      CompareVar( "GRA_BLOCK_SIZE",          gra_block_size,         GRA_BLOCK_SIZE,            NonFatal );
 #     endif
 
 #     if ( POT_SCHEME == SOR )
@@ -1260,16 +1297,6 @@ void Load_Parameter_After_1200( FILE *File, const int FormatVersion, int &NLv_Re
       if (  hll_include_all_waves )
          Aux_Message( stderr, "WARNING : %s : RESTART file (%s) != runtime (%s) !!\n",
                       "HLL_INCLUDE_ALL_WAVES", "ON", "OFF" );
-#     endif
-
-#     ifdef WAF_DISSIPATE
-      if ( !waf_dissipate )
-         Aux_Message( stderr, "WARNING : %s : RESTART file (%s) != runtime (%s) !!\n",
-                      "WAF_DISSIPATE", "OFF", "ON" );
-#     else
-      if (  waf_dissipate )
-         Aux_Message( stderr, "WARNING : %s : RESTART file (%s) != runtime (%s) !!\n",
-                      "WAF_DISSIPATE", "ON", "OFF" );
 #     endif
 
 
@@ -1382,9 +1409,7 @@ void Load_Parameter_After_1200( FILE *File, const int FormatVersion, int &NLv_Re
       CompareVar( "OPT__FLAG_PRES_GRADIENT", opt__flag_pres_gradient,      OPT__FLAG_PRES_GRADIENT,   NonFatal );
       CompareVar( "GAMMA",                   gamma,                  (real)GAMMA,                     NonFatal );
       CompareVar( "MINMOD_COEFF",            minmod_coeff,           (real)MINMOD_COEFF,              NonFatal );
-      CompareVar( "EP_COEFF",                ep_coeff,               (real)EP_COEFF,                  NonFatal );
       CompareVar( "OPT__LR_LIMITER",         opt__lr_limiter,         (int)OPT__LR_LIMITER,           NonFatal );
-      CompareVar( "OPT__WAF_LIMITER",        opt__waf_limiter,        (int)OPT__WAF_LIMITER,          NonFatal );
 
 #     elif ( MODEL == MHD )
 #     warning : WAIT MHD !!!

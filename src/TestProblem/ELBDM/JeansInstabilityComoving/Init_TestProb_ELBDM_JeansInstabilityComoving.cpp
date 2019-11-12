@@ -36,6 +36,9 @@ inline double Jeans_ImagAmp( const double ImagAmp0, const double y )
 }
 // =======================================================================================
 
+static void OutputError();
+
+
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -75,9 +78,13 @@ void Validate()
    Aux_Error( ERROR_INFO, "FLOAT8 must be enabled !!\n" );
 #  endif
 
+   for (int f=0; f<6; f++)
+   if ( OPT__BC_FLU[f] != BC_FLU_PERIODIC )
+      Aux_Error( ERROR_INFO, "must adopt periodic BC for fluid --> reset OPT__BC_FLU* !!\n" );
+
 #  ifdef GRAVITY
-   if ( OPT__BC_FLU[0] != BC_FLU_PERIODIC  ||  OPT__BC_POT != BC_POT_PERIODIC )
-      Aux_Error( ERROR_INFO, "must adopt periodic BC --> reset OPT__BC_FLU and OPT__BC_POT !!\n" );
+   if ( OPT__BC_POT != BC_POT_PERIODIC )
+      Aux_Error( ERROR_INFO, "must adopt periodic BC for gravity --> reset OPT__BC_POT !!\n" );
 #  endif
 
 #  ifdef COMOVING
