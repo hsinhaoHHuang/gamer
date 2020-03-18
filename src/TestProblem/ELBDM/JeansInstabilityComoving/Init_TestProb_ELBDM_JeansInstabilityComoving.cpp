@@ -158,7 +158,7 @@ void SetParameter()
    Jeans_ImagAmp0   = Jeans_RealAmp0;
    Jeans_Wavelength = amr->BoxSize[0]/sqrt(3.0);   // assuming cubic simulation domain
    Jeans_WaveK      = 2.0*M_PI/Jeans_Wavelength;
-   Jeans_WaveKj     = POW( 6.0*Time[0]*SQR(ELBDM_ETA), 0.25 );
+   Jeans_WaveKj     = POW( 6.0*Time[0]*SQR(ELBDM_ETA1), 0.25 );
    Jeans_Stable     = ( Jeans_WaveK > Jeans_WaveKj ) ? true : false;
 
 
@@ -167,7 +167,7 @@ void SetParameter()
    const long   End_Step_Default = __INT_MAX__;
 // End_T : (stable/unstable) --> (1 period in the high-k limit / grow by a factor of 50 in the low-k limit)
    const double End_T_Default    = ( Jeans_Stable) ?
-                                    A_INIT + pow( 0.5*Jeans_WaveK*Jeans_WaveK/M_PI/ELBDM_ETA, 2.0 ) :
+                                    A_INIT + pow( 0.5*Jeans_WaveK*Jeans_WaveK/M_PI/ELBDM_ETA1, 2.0 ) :
                                     A_INIT*50;
    if ( END_STEP < 0 ) {
       END_STEP = End_Step_Default;
@@ -183,7 +183,7 @@ void SetParameter()
 // (4) make a note
    if ( MPI_Rank == 0 )
    {
-      const double y = SQR(Jeans_WaveK)/ELBDM_ETA*pow( Time[0], -0.5 );
+      const double y = SQR(Jeans_WaveK)/ELBDM_ETA1*pow( Time[0], -0.5 );
 
       Aux_Message( stdout, "=============================================================================\n" );
       Aux_Message( stdout, "  test problem ID       = %d\n",     TESTPROB_ID                      );
@@ -228,13 +228,18 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
 {
 
    const double r       = 1.0/sqrt(3.0)*( x + y + z );
-   const double Jeans_y = SQR(Jeans_WaveK)/ELBDM_ETA*pow( Time, -0.5 );
+   const double Jeans_y = SQR(Jeans_WaveK)/ELBDM_ETA1*pow( Time, -0.5 );
    const double Phase   = Jeans_WaveK*r + Jeans_Phase0;
 
-   fluid[REAL] = 1.0 + Jeans_RealAmp( Jeans_RealAmp0, Jeans_y )*cos( Phase );
-   fluid[IMAG] =       Jeans_ImagAmp( Jeans_ImagAmp0, Jeans_y )*cos( Phase );
+   fluid[REAL1] = 1.0 + Jeans_RealAmp( Jeans_RealAmp0, Jeans_y )*cos( Phase );
+   fluid[IMAG1] =       Jeans_ImagAmp( Jeans_ImagAmp0, Jeans_y )*cos( Phase );
 
-   fluid[DENS] = SQR(fluid[REAL]) + SQR(fluid[IMAG]);
+   fluid[DENS1] = SQR(fluid[REAL1]) + SQR(fluid[IMAG1]);
+
+
+   fluid[REAL2] = (real)0.0;
+   fluid[IMAG2] = (real)0.0;
+   fluid[DENS2] = (real)0.0;
 
 } // FUNCTION : SetGridIC
 

@@ -135,7 +135,7 @@ void SetParameter()
 
 //    convert to code units (assuming the input units are dimensionless)
       const double H0    = 100.0*Const_km/Const_s/Const_Mpc*HUBBLE0*UNIT_T;      // Hubble parameter at z=0 in the code units
-      const double Eta2x = pow( 1.5*H0*ELBDM_ETA, -0.5 )*pow( Time[0], -0.25 );  // conversion factor between eta and the comoving distance
+      const double Eta2x = pow( 1.5*H0*ELBDM_ETA1, -0.5 )*pow( Time[0], -0.25 );  // conversion factor between eta and the comoving distance
 
       for (int b=0; b<SelSimHalo_NBin; b++)
       {
@@ -212,9 +212,13 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
    if ( Dens == NULL_REAL  ||  Phase == NULL_REAL )
       Aux_Error( ERROR_INFO, "interpolation failed at radius %13.7e (probably outside the input table) !!\n", r );
 
-   fluid[DENS] = Dens;
-   fluid[REAL] = sqrt( Dens )*cos( Phase );
-   fluid[IMAG] = sqrt( Dens )*sin( Phase );
+   fluid[DENS1] = Dens;
+   fluid[REAL1] = sqrt( Dens )*cos( Phase );
+   fluid[IMAG1] = sqrt( Dens )*sin( Phase );
+
+   fluid[REAL2] = (real) 0.0;
+   fluid[IMAG2] = (real) 0.0;
+   fluid[DENS2] = (real) 0.0;
 
 } // FUNCTION : SetGridIC
 
