@@ -168,8 +168,8 @@ void Init_ByFile_ELBDM_LSS( real fluid_out[], const real fluid_in[], const int n
          const double AveDens     = 1.0;        // assuming background density = 1.0
          const double GrowingFrac = 3.0/5.0;    // growing-mode amplitude = total amplitude * 3/5
 
-         fluid_out[REAL] = sqrt( (fluid_in[0]-AveDens )/GrowingFrac + AveDens );
-         fluid_out[IMAG] = 0.0;  // constant phase
+         fluid_out[REAL1] = sqrt( (fluid_in[0]-AveDens )/GrowingFrac + AveDens );
+         fluid_out[IMAG1] = 0.0;  // constant phase
          break;
 
       default:
@@ -177,7 +177,7 @@ void Init_ByFile_ELBDM_LSS( real fluid_out[], const real fluid_in[], const int n
                     "LSS_InitMode", LSS_InitMode );
    } // switch ( LSS_InitMode )
 
-   fluid_out[DENS] = SQR( fluid_out[REAL] ) + SQR( fluid_out[IMAG] );
+   fluid_out[DENS1] = SQR( fluid_out[REAL1] ) + SQR( fluid_out[IMAG1] );
 
 } // Init_ByFile_ELBDM_LSS
 #endif // #if ( MODEL == ELBDM )
