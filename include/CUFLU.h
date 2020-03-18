@@ -318,7 +318,7 @@
 #     define DT_FLU_BLOCK_SIZE      512
 
 // use shuffle reduction in the KEPLER and later GPUs
-#  if ( GPU_ARCH == FERMI  ||  GPU_ARCH == KEPLER  ||  GPU_ARCH == MAXWELL  ||  GPU_ARCH == PASCAL  ||  GPU_ARCH == VOLTA )
+#  if ( GPU_ARCH == KEPLER  ||  GPU_ARCH == MAXWELL  ||  GPU_ARCH == PASCAL  ||  GPU_ARCH == VOLTA )
 #     define DT_FLU_USE_SHUFFLE
 #  endif
 
