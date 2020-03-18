@@ -66,6 +66,12 @@ void Output_BasePowerSpectrum( const char *FileName )
 
    double *PS_total     = NULL;
    real   *RhoK         = new real [ total_local_size ];                         // array storing both density and potential
+#  if ( MODEL == ELBDM )
+   double *PS_total1    = NULL;
+   double *PS_total2    = NULL;
+   real   *RhoK1        = new real [ total_local_size ];                         // array storing both density and potential
+   real   *RhoK2        = new real [ total_local_size ];                         // array storing both density and potential
+#  endif
    real   *SendBuf      = new real [ amr->NPatchComma[0][1]*CUBE(PS1) ];         // MPI send buffer for density and potential
    real   *RecvBuf      = new real [ NX0_TOT[0]*NX0_TOT[1]*NRecvSlice ];         // MPI recv buffer for density and potentia
    long   *SendBuf_SIdx = new long [ amr->NPatchComma[0][1]*PS1 ];               // MPI send buffer for 1D coordinate in slab
@@ -77,6 +83,13 @@ void Output_BasePowerSpectrum( const char *FileName )
    int   List_NRecv  [MPI_NRank];   // size of data (density/potential) received from each rank
 
    if ( MPI_Rank == 0 )    PS_total = new double [Nx_Padded];
+#  if ( MODEL == ELBDM )
+   if ( MPI_Rank == 0 ){
+
+      PS_total1 = new double [Nx_Padded];
+      PS_total2 = new double [Nx_Padded];
+   }
+#  endif
 
 
 // 3. initialize the particle density array (rho_ext) and collect particles to the target level
@@ -102,11 +115,20 @@ void Output_BasePowerSpectrum( const char *FileName )
 
 // 4. rearrange data from patch to slab
    Patch2Slab( RhoK, SendBuf, RecvBuf, SendBuf_SIdx, RecvBuf_SIdx, List_PID, List_k, List_NSend, List_NRecv, List_z_start,
-               local_nz, FFT_Size, NRecvSlice, Time[0] );
-
+               local_nz, FFT_Size, NRecvSlice, Time[0], _TOTAL_DENS );
+#  if ( MODEL == ELBDM )
+   Patch2Slab( RhoK1, SendBuf, RecvBuf, SendBuf_SIdx, RecvBuf_SIdx, List_PID, List_k, List_NSend, List_NRecv, List_z_start,
+               local_nz, FFT_Size, NRecvSlice, Time[0], _DENS1 );
+   Patch2Slab( RhoK2, SendBuf, RecvBuf, SendBuf_SIdx, RecvBuf_SIdx, List_PID, List_k, List_NSend, List_NRecv, List_z_start,
+               local_nz, FFT_Size, NRecvSlice, Time[0], _DENS2 );
+#  endif
 
 // 5. evaluate the base-level power spectrum by FFT
    GetBasePowerSpectrum( RhoK, local_y_start_after_transpose, local_ny_after_transpose, PS_total );
+#  if ( MODEL == ELBDM )
+   GetBasePowerSpectrum( RhoK1, local_y_start_after_transpose, local_ny_after_transpose, PS_total1 );
+   GetBasePowerSpectrum( RhoK2, local_y_start_after_transpose, local_ny_after_transpose, PS_total2 );
+#  endif
 
 
 // 6. output the power spectrum
@@ -119,11 +141,18 @@ void Output_BasePowerSpectrum( const char *FileName )
 //    output the power spectrum
       const double WaveK0 = 2.0*M_PI/amr->BoxSize[0];
       FILE *File = fopen( FileName, "w" );
+#     if ( MODEL == ELBDM )
+      fprintf( File, "%13s%4s%13s%4s%13s%4s%13s\n", "k", "", "Power", "", "Power1", "", "Power2" );
 
+//    DC mode is not output
+      for (int b=1; b<Nx_Padded; b++)     fprintf( File, "%13.6e%4s%13.6e%4s%13.6e%4s%13.6e\n", WaveK0*b, "", PS_total[b], "", PS_total1[b], "", PS_total2[b] );
+
+#     else
       fprintf( File, "%13s%4s%13s\n", "k", "", "Power" );
 
 //    DC mode is not output
       for (int b=1; b<Nx_Padded; b++)     fprintf( File, "%13.6e%4s%13.6e\n", WaveK0*b, "", PS_total[b] );
+#     endif
 
       fclose( File );
    } // if ( MPI_Rank == 0 )
@@ -131,11 +160,21 @@ void Output_BasePowerSpectrum( const char *FileName )
 
 // 7. free memory
    delete [] RhoK;
+#  if ( MODEL == ELBDM )
+   delete [] RhoK1;
+   delete [] RhoK2;
+#  endif
    delete [] SendBuf;
    delete [] RecvBuf;
    delete [] SendBuf_SIdx;
    delete [] RecvBuf_SIdx;
    if ( MPI_Rank == 0 )    delete [] PS_total;
+#  if ( MODEL == ELBDM )
+   if ( MPI_Rank == 0 ){
+       delete [] PS_total1;
+       delete [] PS_total2;
+   }
+#  endif
 
 // free memory for collecting particles from other ranks and levels, and free density arrays with ghost zones (rho_ext)
 #  ifdef PARTICLE

@@ -38,11 +38,12 @@ extern real (*Poi_AddExtraMassForGravity_Ptr)( const double x, const double y, c
 //                FFT_Size       : Size of the FFT operation including the zero-padding regions
 //                NRecvSlice     : Total number of z slices received from other ranks (could be zero in the isolated BC)
 //                PrepTime       : Physical time for preparing the density field
+//                TVar           : Target variables to be prepared ( _TOTAL_DENS, _DENS1, _DENS2 )
 //-------------------------------------------------------------------------------------------------------
 void Patch2Slab( real *RhoK, real *SendBuf_Rho, real *RecvBuf_Rho, long *SendBuf_SIdx, long *RecvBuf_SIdx,
                  int **List_PID, int **List_k, int *List_NSend_Rho, int *List_NRecv_Rho,
                  const int *List_z_start, const int local_nz, const int FFT_Size[], const int NRecvSlice,
-                 const double PrepTime )
+                 const double PrepTime, int TVar )
 {
 
 // check
@@ -51,6 +52,9 @@ void Patch2Slab( real *RhoK, real *SendBuf_Rho, real *RecvBuf_Rho, long *SendBuf
       Aux_Error( ERROR_INFO, "local_nz (%d) != expectation (%d) !!\n",
                  local_nz, List_z_start[MPI_Rank+1] - List_z_start[MPI_Rank] );
 #  endif // GAMER_DEBUG
+
+   if ( !(TVar & _DENS1) && !(TVar & _DENS2)  &&  !(TVar & _TOTAL_DENS) )
+      Aux_Error( ERROR_INFO, " not _DENS1 nor _DENS2 nor _TOTAL_DENS !!\n" );
 
 
    const int SSize[2]   = { 2*(FFT_Size[0]/2+1), FFT_Size[1] };   // padded slab size in the x and y directions
@@ -102,7 +106,7 @@ void Patch2Slab( real *RhoK, real *SendBuf_Rho, real *RecvBuf_Rho, long *SendBuf
 //    even with NSIDE_00 and GhostSize=0, we still need OPT__BC_FLU to determine whether periodic BC is adopted
 //    for depositing particle mass onto grids.
 //    also note that we do not check minimum density here since no ghost zones are required
-      Prepare_PatchData( 0, PrepTime, Dens[0][0][0], GhostSize, NPG, &PID0, _TOTAL_DENS,
+      Prepare_PatchData( 0, PrepTime, Dens[0][0][0], GhostSize, NPG, &PID0, TVar,
                          IntScheme, UNIT_PATCH, NSide_None, IntPhase_No, OPT__BC_FLU, PotBC_None,
                          MinDens_No, MinPres_No, DE_Consistency_No );
 
@@ -677,7 +681,7 @@ void CPU_PoissonSolver_FFT( const real Poi_Coeff, const int SaveSg, const double
 
 // rearrange data from patch to slab
    Patch2Slab( RhoK, SendBuf, RecvBuf, SendBuf_SIdx, RecvBuf_SIdx, List_PID, List_k, List_NSend, List_NRecv, List_z_start,
-               local_nz, FFT_Size, NRecvSlice, PrepTime );
+               local_nz, FFT_Size, NRecvSlice, PrepTime, _TOTAL_DENS );
 
 
 // evaluate potential by FFT

@@ -152,7 +152,7 @@ void Prepare_PatchData( const int lv, const double PrepTime, real *h_Input_Array
 #     endif
 #     elif ( MODEL == ELBDM )
 #     ifdef PARTICLE
-      if ( !(TVar & _DENS1) && !(TVar & _DEN2)  &&  !(TVar & _TOTAL_DENS) )
+      if ( !(TVar & _DENS1) && !(TVar & _DENS2)  &&  !(TVar & _TOTAL_DENS) )
          Aux_Error( ERROR_INFO, "MinDens (%13.7e) >= 0.0, but neither _DENS1 nor _DENS2 nor _TOTAL_DENS is found !!\n", MinDens );
 #     else
       if ( !(TVar & _DENS1) && !(TVar & _DENS2) )
