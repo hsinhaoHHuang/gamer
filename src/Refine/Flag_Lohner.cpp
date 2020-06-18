@@ -193,7 +193,7 @@ bool Flag_Lohner( const int i, const int j, const int k, const OptLohnerForm_t F
 
 //    3. check the flag
 #     if ( MODEL == ELBDM )
-      if ( v == NVar - 1 )    // we check "SQRT(REAL^2 + IMAG^2)" in ELBDM
+//      if ( v == NVar - 1 )    // we check "SQRT(REAL^2 + IMAG^2)" in ELBDM
 #     endif
       {
          if ( Stencil == 2 )
