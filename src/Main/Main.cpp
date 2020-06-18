@@ -101,7 +101,8 @@ bool                 OPT__INIT_BFIELD_BYFILE;
 
 #elif ( MODEL == ELBDM )
 double               DT__PHASE, FlagTable_EngyDensity[NLEVEL-1][2];
-bool                 OPT__FLAG_ENGY_DENSITY, OPT__INT_PHASE;
+double               FlagTable_LohnerELBDMAuto[NLEVEL-1];
+bool                 OPT__FLAG_ENGY_DENSITY, OPT__INT_PHASE, OPT__FLAG_LOHNER_ELBDM_AUTO;
 bool                 ELBDM_TAYLOR3_AUTO;
 double               ELBDM_TAYLOR3_COEFF;
 double               ELBDM_MASS, ELBDM_PLANCK_CONST, ELBDM_ETA, MIN_DENS;

@@ -145,6 +145,7 @@ void Init_Load_Parameter()
 #  endif
 #  if ( MODEL == ELBDM )
    ReadPara->Add( "OPT__FLAG_ENGY_DENSITY",     &OPT__FLAG_ENGY_DENSITY,          false,           Useless_bool,  Useless_bool   );
+   ReadPara->Add( "OPT__FLAG_LOHNER_ELBDM_AUTO",&OPT__FLAG_LOHNER_ELBDM_AUTO,     false,           Useless_bool,  Useless_bool   );
 #  endif
    ReadPara->Add( "OPT__FLAG_LOHNER_FORM",      &OPT__FLAG_LOHNER_FORM,           LOHNER_FLASH2,   1,             4              );
    ReadPara->Add( "OPT__FLAG_USER",             &OPT__FLAG_USER,                  false,           Useless_bool,  Useless_bool   );

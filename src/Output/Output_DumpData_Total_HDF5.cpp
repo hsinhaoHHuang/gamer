@@ -1958,6 +1958,7 @@ void FillIn_InputPara( InputPara_t &InputPara )
 #  endif
 #  if ( MODEL == ELBDM )
    InputPara.Opt__Flag_EngyDensity   = OPT__FLAG_ENGY_DENSITY;
+   InputPara.Opt__Flag_LohnerELBDMAuto= OPT__FLAG_LOHNER_ELBDM_AUTO;
 #  endif
    InputPara.Opt__Flag_LohnerDens    = OPT__FLAG_LOHNER_DENS;
 #  if ( MODEL == HYDRO )
@@ -2227,6 +2228,7 @@ void FillIn_InputPara( InputPara_t &InputPara )
 #     elif ( MODEL == ELBDM )
       for (int t=0; t<2; t++)
       InputPara.FlagTable_EngyDensity [lv][t] = FlagTable_EngyDensity [lv][t];
+      InputPara.FlagTable_LohnerELBDMAuto [lv]= FlagTable_LohnerELBDMAuto [lv];
 #     endif
 
 #     ifdef PARTICLE
@@ -2678,6 +2680,7 @@ void GetCompound_InputPara( hid_t &H5_TypeID )
 #  endif
 #  if ( MODEL == ELBDM )
    H5Tinsert( H5_TypeID, "Opt__Flag_EngyDensity",   HOFFSET(InputPara_t,Opt__Flag_EngyDensity  ), H5T_NATIVE_INT     );
+   H5Tinsert( H5_TypeID, "Opt__Flag_LohnerELBDMAuto",HOFFSET(InputPara_t,Opt__Flag_LohnerELBDMAuto), H5T_NATIVE_INT  );
 #  endif
    H5Tinsert( H5_TypeID, "Opt__Flag_LohnerDens",    HOFFSET(InputPara_t,Opt__Flag_LohnerDens   ), H5T_NATIVE_INT     );
 #  if ( MODEL == HYDRO )
@@ -2946,6 +2949,7 @@ void GetCompound_InputPara( hid_t &H5_TypeID )
 #  endif
 #  elif ( MODEL == ELBDM )
    H5Tinsert( H5_TypeID, "FlagTable_EngyDensity",  HOFFSET(InputPara_t,FlagTable_EngyDensity   ), H5_TypeID_Arr_NLvM1_2Double );
+   H5Tinsert( H5_TypeID, "FlagTable_LohnerELBDMAuto",HOFFSET(InputPara_t,FlagTable_LohnerELBDMAuto), H5_TypeID_Arr_NLvM1Double);
 #  endif
 #  ifdef PARTICLE
    H5Tinsert( H5_TypeID, "FlagTable_NParPatch",    HOFFSET(InputPara_t,FlagTable_NParPatch     ), H5_TypeID_Arr_NLvM1Int      );

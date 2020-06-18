@@ -80,6 +80,7 @@ OPT__FLAG_RHO                 1           # flag: density (Input__Flag_Rho) [0]
 OPT__FLAG_RHO_GRADIENT        0           # flag: density gradient (Input__Flag_RhoGradient) [0]
 OPT__FLAG_ENGY_DENSITY        0           # flag: energy density (Input_Flag_EngyDensity) [0] ##ELBDM ONLY##
 OPT__FLAG_LOHNER_DENS         1           # flag: Lohner for mass density   (Input__Flag_Lohner) [0] ##BOTH HYDRO AND ELBDM##
+OPT__FLAG_LOHNER_ELBDM_AUTO   1           # flag: Auto-generated Lohner error from wavelength over cell size (Input__Flag_Lohner_ELBDM_Auto) [0] ##ELBDM ONLY##
 OPT__FLAG_LOHNER_FORM         1           # form of Lohner: (1=FLASH-1, 2=FLASH-2, 3=form-invariant-1, 4=form-invariant-2) [2]
 OPT__FLAG_USER                0           # flag: user-defined (Input__Flag_User) -> edit "Flag_User.cpp" [0]
 OPT__FLAG_REGION              0           # flag: specify the regions **allowed** to be refined -> edit "Flag_Region.cpp" [0]

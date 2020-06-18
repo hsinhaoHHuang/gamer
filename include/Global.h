@@ -109,8 +109,8 @@ extern bool             OPT__INIT_BFIELD_BYFILE;
 #endif
 
 #elif ( MODEL == ELBDM )
-extern double           DT__PHASE, FlagTable_EngyDensity[NLEVEL-1][2];
-extern bool             OPT__FLAG_ENGY_DENSITY, OPT__INT_PHASE, ELBDM_TAYLOR3_AUTO;
+extern double           DT__PHASE, FlagTable_EngyDensity[NLEVEL-1][2], FlagTable_LohnerELBDMAuto[NLEVEL-1];
+extern bool             OPT__FLAG_ENGY_DENSITY, OPT__INT_PHASE, ELBDM_TAYLOR3_AUTO, OPT__FLAG_LOHNER_ELBDM_AUTO;
 extern double           ELBDM_TAYLOR3_COEFF, ELBDM_MASS, ELBDM_PLANCK_CONST, ELBDM_ETA, MIN_DENS;
 #ifdef QUARTIC_SELF_INTERACTION
 extern double           ELBDM_LAMBDA;

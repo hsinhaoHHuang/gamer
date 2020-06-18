@@ -178,7 +178,11 @@ bool Flag_Check( const int lv, const int PID, const int i, const int j, const in
 
 // check Lohner's error estimator
 // ===========================================================================================
+#  if ( MODEL == ELBDM )
+   if ( OPT__FLAG_LOHNER_DENS )
+#  else
    if ( Lohner_NVar > 0 )
+#  endif
    {
 //    check Lohner only if density is greater than the minimum threshold
 #     ifdef DENS
@@ -188,6 +192,29 @@ bool Flag_Check( const int lv, const int PID, const int i, const int j, const in
                            FlagTable_Lohner[lv][0], FlagTable_Lohner[lv][1], FlagTable_Lohner[lv][2] );
       if ( Flag )    return Flag;
    }
+
+
+#  if ( MODEL == ELBDM )
+   if ( OPT__FLAG_LOHNER_ELBDM_AUTO )
+   {
+      const real Wavelength_dx = FlagTable_LohnerELBDMAuto[lv];
+      if ( Wavelength_dx < 3.0 ) Aux_Error( ERROR_INFO, "lambda / dh < 3 is not supported for OPT__FLAG_LOHNER_EDLBDM_AUTO !!\n");
+      const real Filter = (real)0.01;
+      const real Soften = (real)0.0;
+      const real kdx = (real)2.0*M_PI/Wavelength_dx;
+      real Threshold;
+      if( OPT__FLAG_LOHNER_FORM == LOHNER_FLASH1 )
+         Threshold = (2.0-2.0*cos(kdx))/sqrt( SQR((cos(kdx)-cos(2.0*kdx)) + Filter*0.5*(1.0+fabs(cos(kdx)))) + 2.0*SQR(1.0-cos(kdx) + Filter*0.5*(1.0+abs(cos(kdx)))) + 4.0*SQR(Filter) + 2.0*SQR(Filter*0.5*(1.0+fabs(cos(kdx)))) );
+      else if( OPT__FLAG_LOHNER_FORM == LOHNER_FLASH2 )
+         Threshold = (2.0-2.0*cos(2.0*kdx))/sqrt( SQR(2.0-2.0*cos(2.0*kdx)+Filter*2.0*(1.0+fabs(cos(2.0*kdx)))) + 4.0*SQR(Filter*4.0) + 4.0*SQR(Filter*4.0*(fabs(cos(kdx)))) );
+      else
+         Aux_Error( ERROR_INFO, "OPT__FLAG_LOHNER_FORM == %d is not supported for OPT__FLAG_LOHNER_EDLBDM_AUTO !!\n", OPT__FLAG_LOHNER_FORM );
+
+      Flag |= Flag_Lohner( i, j, k, OPT__FLAG_LOHNER_FORM, Lohner_Var, Lohner_Ave, Lohner_Slope, Lohner_NVar,
+                           Threshold, Filter, Soften );
+      if ( Flag )    return Flag;
+   }
+#  endif
 
 
 // check user-defined criteria

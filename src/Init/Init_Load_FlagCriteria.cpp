@@ -34,6 +34,8 @@ void Init_Load_FlagCriteria()
 #  if ( MODEL != ELBDM )
    const bool OPT__FLAG_ENGY_DENSITY  = false;
    double FlagTable_EngyDensity[NLEVEL-1][2];
+   const bool OPT__FLAG_LOHNER_ELBDM_AUTO  = false;
+   double *FlagTable_LohnerELBDMAuto  = NULL;
 #  endif
 
 #  ifndef PARTICLE
@@ -55,22 +57,22 @@ void Init_Load_FlagCriteria()
 #  error : unsupported MODEL !!
 #  endif
 
-   const int  NFlagMode         = 12;
+   const int  NFlagMode         = 13;
    const bool Flag[NFlagMode]   = { OPT__FLAG_RHO, OPT__FLAG_RHO_GRADIENT, OPT__FLAG_PRES_GRADIENT,
                                     OPT__FLAG_ENGY_DENSITY, OPT__FLAG_LOHNER, OPT__FLAG_USER,
                                     (bool)OPT__FLAG_NPAR_PATCH, OPT__FLAG_NPAR_CELL, OPT__FLAG_PAR_MASS_CELL,
-                                    OPT__FLAG_VORTICITY, OPT__FLAG_JEANS, OPT__FLAG_CURRENT };
+                                    OPT__FLAG_VORTICITY, OPT__FLAG_JEANS, OPT__FLAG_CURRENT, OPT__FLAG_LOHNER_ELBDM_AUTO };
    const char ModeName[][100]   = { "OPT__FLAG_RHO", "OPT__FLAG_RHO_GRADIENT", "OPT__FLAG_PRES_GRADIENT",
                                     "OPT__FLAG_ENGY_DENSITY", "OPT__FLAG_LOHNER", "OPT__FLAG_USER",
                                     "OPT__FLAG_NPAR_PATCH", "OPT__FLAG_NPAR_CELL", "OPT__FLAG_PAR_MASS_CELL",
-                                    "OPT__FLAG_VORTICITY", "OPT__FLAG_JEANS", "OPT__FLAG_CURRENT" };
+                                    "OPT__FLAG_VORTICITY", "OPT__FLAG_JEANS", "OPT__FLAG_CURRENT", "OPT__FLAG_LOHNER_ELBDM_AUTO" };
    const char FileName[][100]   = { "Input__Flag_Rho", "Input__Flag_RhoGradient", "Input__Flag_PresGradient",
                                     "Input__Flag_EngyDensity", "Input__Flag_Lohner", "Input__Flag_User",
                                     "Input__Flag_NParPatch", "Input__Flag_NParCell", "Input__Flag_ParMassCell",
-                                    "Input__Flag_Vorticity", "Input__Flag_Jeans", "Input__Flag_Current" };
+                                    "Input__Flag_Vorticity", "Input__Flag_Jeans", "Input__Flag_Current", "Input__Flag_Lohner_ELBDM_Auto" };
    double *FlagTable[NFlagMode] = { FlagTable_Rho, FlagTable_RhoGradient, FlagTable_PresGradient,
                                     NULL, NULL, FlagTable_User, NULL, NULL, FlagTable_ParMassCell,
-                                    FlagTable_Vorticity, FlagTable_Jeans, FlagTable_Current };
+                                    FlagTable_Vorticity, FlagTable_Jeans, FlagTable_Current, FlagTable_LohnerELBDMAuto };
 
    FILE *File;
    char *input_line = NULL, TargetName[100];
@@ -100,6 +102,7 @@ void Init_Load_FlagCriteria()
 #     elif ( MODEL == ELBDM )
       for (int t=0; t<2; t++)
       FlagTable_EngyDensity [lv][t] = -1.0;
+      FlagTable_LohnerELBDMAuto[lv] = -1.0;
 #     endif
 
 #     ifdef PARTICLE

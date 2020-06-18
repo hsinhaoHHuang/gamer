@@ -1758,6 +1758,7 @@ void Check_InputPara( const char *FileName, const int FormatVersion )
 #  endif
 #  if ( MODEL == ELBDM )
    LoadField( "Opt__Flag_EngyDensity",   &RS.Opt__Flag_EngyDensity,   SID, TID, NonFatal, &RT.Opt__Flag_EngyDensity,    1, NonFatal );
+   LoadField( "Opt__Flag_LohnerELBDMAuto",&RS.Opt__Flag_LohnerELBDMAuto,SID, TID, NonFatal, &RT.Opt__Flag_LohnerELBDMAuto,1, NonFatal);
 #  endif
    LoadField( "Opt__Flag_LohnerDens",    &RS.Opt__Flag_LohnerDens,    SID, TID, NonFatal, &RT.Opt__Flag_LohnerDens,     1, NonFatal );
 #  if ( MODEL == HYDRO )
@@ -2025,6 +2026,7 @@ void Check_InputPara( const char *FileName, const int FormatVersion )
 #     elif ( MODEL == ELBDM )
       for (int t=0; t<2; t++)
       RS.FlagTable_EngyDensity [lv][t] = -1.0;
+      RS.FlagTable_LohnerELBDMAuto[lv] = -1.0;
 #     endif
 
 #     ifdef PARTICLE
@@ -2080,6 +2082,9 @@ void Check_InputPara( const char *FileName, const int FormatVersion )
          Aux_Message( stderr, "WARNING : \"%s[%d][%d]\" : RESTART file (%20.14e) != runtime (%20.14e) !!\n",
                        "FlagTable_EngyDensity", lv, t, RS.FlagTable_EngyDensity[lv][t],  RT.FlagTable_EngyDensity[lv][t] );
    }}
+
+   if ( OPT__FLAG_LOHNER_ELBDM_AUTO )
+   LoadField( "FlagTable_LohnerELBDMAuto",RS.FlagTable_LohnerELBDMAuto,SID,TID, NonFatal,  RT.FlagTable_LohnerELBDMAuto,N1,NonFatal );
 #  endif
 
 #  ifdef PARTICLE

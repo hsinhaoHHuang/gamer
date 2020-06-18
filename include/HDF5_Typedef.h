@@ -378,6 +378,7 @@ struct InputPara_t
 #  endif
 #  if ( MODEL == ELBDM )
    int    Opt__Flag_EngyDensity;
+   int    Opt__Flag_LohnerELBDMAuto;
 #  endif
    int    Opt__Flag_LohnerDens;
 #  if ( MODEL == HYDRO )
@@ -625,6 +626,7 @@ struct InputPara_t
 #  endif
 #  elif ( MODEL == ELBDM )
    double FlagTable_EngyDensity [NLEVEL-1][2];
+   double FlagTable_LohnerELBDMAuto[NLEVEL-1];
 #  endif
 #  ifdef PARTICLE
    int    FlagTable_NParPatch   [NLEVEL-1];

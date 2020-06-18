@@ -128,6 +128,8 @@ void Aux_Check_Parameter()
 #  elif ( MODEL == ELBDM )
    if (  OPT__FLAG_LOHNER_DENS  &&  Flu_ParaBuf < 2  )
       Aux_Error( ERROR_INFO, "Lohner error estimator does NOT work when Flu_ParaBuf (%d) < 2 !!\n", Flu_ParaBuf );
+   if (  OPT__FLAG_LOHNER_ELBDM_AUTO  &&  Flu_ParaBuf < 2  )
+      Aux_Error( ERROR_INFO, "Lohner error estimator does NOT work when Flu_ParaBuf (%d) < 2 !!\n", Flu_ParaBuf );
 #  else
 #  error : ERROR : unsupported MODEL !!
 #  endif
@@ -303,6 +305,7 @@ void Aux_Check_Parameter()
 #  endif
 #  if ( MODEL == ELBDM )
    Flag |= OPT__FLAG_ENGY_DENSITY;
+   Flag |= OPT__FLAG_LOHNER_ELBDM_AUTO;
 #  endif
 #  ifdef PARTICLE
    Flag |= OPT__FLAG_NPAR_PATCH;

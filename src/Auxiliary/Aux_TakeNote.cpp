@@ -727,6 +727,9 @@ void Aux_TakeNote()
       fprintf( Note, "OPT__FLAG_LOHNER_PRES           %d\n",      OPT__FLAG_LOHNER_PRES     );
       fprintf( Note, "OPT__FLAG_LOHNER_TEMP           %d\n",      OPT__FLAG_LOHNER_TEMP     );
 #     endif
+#     if ( MODEL == ELBDM )
+      fprintf( Note, "OPT__FLAG_LOHNER_ELBDM_AUTO     %d\n",      OPT__FLAG_LOHNER_ELBDM_AUTO);
+#     endif
       fprintf( Note, "OPT__FLAG_LOHNER_FORM           %s\n",      (OPT__FLAG_LOHNER_FORM==LOHNER_FLASH1   ) ? "LOHNER_FLASH1"    :
                                                                   (OPT__FLAG_LOHNER_FORM==LOHNER_FLASH2   ) ? "LOHNER_FLASH2"    :
                                                                   (OPT__FLAG_LOHNER_FORM==LOHNER_FORM_INV1) ? "LOHNER_FORM_INV1" :
@@ -1228,6 +1231,16 @@ void Aux_TakeNote()
          fprintf( Note, "  Level     Angle_over_2*PI              Soften\n" );
          for (int lv=0; lv<MAX_LEVEL; lv++)
             fprintf( Note, "%7d%20.7e%20.7e\n", lv, FlagTable_EngyDensity[lv][0], FlagTable_EngyDensity[lv][1] );
+         fprintf( Note, "***********************************************************************************\n" );
+         fprintf( Note, "\n\n");
+      }
+
+      if ( OPT__FLAG_LOHNER_ELBDM_AUTO )
+      {
+         fprintf( Note, "Flag Criterion ( Auto-generated Lohner Error Estimator from Wavelength over Cell Size in ELBDM)\n" );
+         fprintf( Note, "***********************************************************************************\n" );
+         fprintf( Note, "  Level         lambda / dh\n" );
+         for (int lv=0; lv<MAX_LEVEL; lv++)  fprintf( Note, "%7d%20.7e\n", lv, FlagTable_LohnerELBDMAuto[lv] );
          fprintf( Note, "***********************************************************************************\n" );
          fprintf( Note, "\n\n");
       }
