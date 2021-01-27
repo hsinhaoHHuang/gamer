@@ -6,13 +6,19 @@
 // problem-specific global variables
 // =======================================================================================
 static double Jeans_RealAmp0;       // proportional coefficient of the real part of the wave function
+static double Jeans_RealAmp0_2;       // proportional coefficient of the real part of the wave function
 static double Jeans_Phase0;         // initial phase shift
+static double Jeans_RhoBG1;
+static double Jeans_RhoBG2;
 
 static double Jeans_ImagAmp0;       // proportional coefficient of the imaginary part of the wave function
+static double Jeans_ImagAmp0_2;       // proportional coefficient of the imaginary part of the wave function
 static double Jeans_Wavelength;     // wavelength
 static double Jeans_WaveK;          // wavenumber
-static double Jeans_WaveKj;         // critical wavenumber
-static bool   Jeans_Stable;         // true/false --> Jeans stable/unstable
+static double Jeans_WaveKj1;         // critical wavenumber
+static double Jeans_WaveKj2;         // critical wavenumber
+static bool   Jeans_Stable1;         // true/false --> Jeans stable/unstable
+static bool   Jeans_Stable2;         // true/false --> Jeans stable/unstable
 // =======================================================================================
 
 
@@ -142,8 +148,13 @@ void SetParameter()
 // ********************************************************************************************************************************
 // ReadPara->Add( "KEY_IN_THE_FILE",   &VARIABLE,              DEFAULT,       MIN,              MAX               );
 // ********************************************************************************************************************************
-   ReadPara->Add( "Jeans_RealAmp0",    &Jeans_RealAmp0,       -1.0,           Eps_double,       NoMax_double      );
+   ReadPara->Add( "Jeans_RealAmp0",    &Jeans_RealAmp0,       -1.0,           0.0,       NoMax_double      );
+   ReadPara->Add( "Jeans_RealAmp0_2",  &Jeans_RealAmp0_2,     -1.0,           0.0,       NoMax_double      );
+//   ReadPara->Add( "Jeans_RealAmp0",    &Jeans_RealAmp0,       -1.0,           Eps_double,       NoMax_double      );
+//   ReadPara->Add( "Jeans_RealAmp0_2",  &Jeans_RealAmp0_2,     -1.0,           Eps_double,       NoMax_double      );
    ReadPara->Add( "Jeans_Phase0",      &Jeans_Phase0,          0.0,           NoMin_double,     NoMax_double      );
+   ReadPara->Add( "Jeans_RhoBG1",      &Jeans_RhoBG1,          1.0,           0.0,              NoMax_double      );
+   ReadPara->Add( "Jeans_RhoBG2",      &Jeans_RhoBG2,          0.0,           0.0,              NoMax_double      );
 
    ReadPara->Read( FileName );
 
@@ -156,17 +167,20 @@ void SetParameter()
 
 // (2) set the problem-specific derived parameters
    Jeans_ImagAmp0   = Jeans_RealAmp0;
+   Jeans_ImagAmp0_2 = Jeans_RealAmp0_2;
    Jeans_Wavelength = amr->BoxSize[0]/sqrt(3.0);   // assuming cubic simulation domain
    Jeans_WaveK      = 2.0*M_PI/Jeans_Wavelength;
-   Jeans_WaveKj     = POW( 6.0*Time[0]*SQR(ELBDM_ETA1), 0.25 );
-   Jeans_Stable     = ( Jeans_WaveK > Jeans_WaveKj ) ? true : false;
+   Jeans_WaveKj1    = POW( 6.0*Time[0]*SQR(ELBDM_ETA1), 0.25 );
+   Jeans_WaveKj2    = POW( 6.0*Time[0]*SQR(ELBDM_ETA2), 0.25 );
+   Jeans_Stable1     = ( Jeans_WaveK > Jeans_WaveKj1 ) ? true : false;
+   Jeans_Stable2     = ( Jeans_WaveK > Jeans_WaveKj2 ) ? true : false;
 
 
 // (3) reset other general-purpose parameters
 //     --> a helper macro PRINT_WARNING is defined in TestProb.h
    const long   End_Step_Default = __INT_MAX__;
 // End_T : (stable/unstable) --> (1 period in the high-k limit / grow by a factor of 50 in the low-k limit)
-   const double End_T_Default    = ( Jeans_Stable) ?
+   const double End_T_Default    = ( Jeans_Stable1) ?
                                     A_INIT + pow( 0.5*Jeans_WaveK*Jeans_WaveK/M_PI/ELBDM_ETA1, 2.0 ) :
                                     A_INIT*50;
    if ( END_STEP < 0 ) {
@@ -189,13 +203,21 @@ void SetParameter()
       Aux_Message( stdout, "  test problem ID       = %d\n",     TESTPROB_ID                      );
       Aux_Message( stdout, "  real part coefficient = %13.7e\n", Jeans_RealAmp0                   );
       Aux_Message( stdout, "  imag part coefficient = %13.7e\n", Jeans_ImagAmp0                   );
+      Aux_Message( stdout, "  real part coefficient2= %13.7e\n", Jeans_RealAmp0_2                 );
+      Aux_Message( stdout, "  imag part coefficient2= %13.7e\n", Jeans_ImagAmp0_2                 );
       Aux_Message( stdout, "  initial phase shift   = %13.7e\n", Jeans_Phase0                     );
+      Aux_Message( stdout, "  RhoBG1                = %13.7e\n", Jeans_RhoBG1                     );
+      Aux_Message( stdout, "  RhoBG2                = %13.7e\n", Jeans_RhoBG2                     );
       Aux_Message( stdout, "  real part amplitude   = %13.7e\n", Jeans_RealAmp(Jeans_RealAmp0, y) );
       Aux_Message( stdout, "  imag part amplitude   = %13.7e\n", Jeans_ImagAmp(Jeans_ImagAmp0, y) );
+      Aux_Message( stdout, "  real part amplitude2  = %13.7e\n", Jeans_RealAmp(Jeans_RealAmp0_2, y) );
+      Aux_Message( stdout, "  imag part amplitude2  = %13.7e\n", Jeans_ImagAmp(Jeans_ImagAmp0_2, y) );
       Aux_Message( stdout, "  wavelength            = %13.7e\n", Jeans_Wavelength                 );
       Aux_Message( stdout, "  wavenumber            = %13.7e\n", Jeans_WaveK                      );
-      Aux_Message( stdout, "  critical wavenumber   = %13.7e\n", Jeans_WaveKj                     );
-      Aux_Message( stdout, "  Jeans stable          = %s\n",     (Jeans_Stable)?"YES":"NO"        );
+      Aux_Message( stdout, "  critical wavenumber1  = %13.7e\n", Jeans_WaveKj1                    );
+      Aux_Message( stdout, "  critical wavenumber2  = %13.7e\n", Jeans_WaveKj2                    );
+      Aux_Message( stdout, "  Jeans stable1         = %s\n",     (Jeans_Stable1)?"YES":"NO"       );
+      Aux_Message( stdout, "  Jeans stable2         = %s\n",     (Jeans_Stable2)?"YES":"NO"       );
       Aux_Message( stdout, "=============================================================================\n" );
    }
 
@@ -231,15 +253,15 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
    const double Jeans_y = SQR(Jeans_WaveK)/ELBDM_ETA1*pow( Time, -0.5 );
    const double Phase   = Jeans_WaveK*r + Jeans_Phase0;
 
-   fluid[REAL1] = 1.0 + Jeans_RealAmp( Jeans_RealAmp0, Jeans_y )*cos( Phase );
+   fluid[REAL1] = sqrt(Jeans_RhoBG1/(Jeans_RhoBG1+Jeans_RhoBG2)) + Jeans_RealAmp( Jeans_RealAmp0, Jeans_y )*cos( Phase );
    fluid[IMAG1] =       Jeans_ImagAmp( Jeans_ImagAmp0, Jeans_y )*cos( Phase );
 
    fluid[DENS1] = SQR(fluid[REAL1]) + SQR(fluid[IMAG1]);
 
 
-   fluid[REAL2] = (real)0.0;
-   fluid[IMAG2] = (real)0.0;
-   fluid[DENS2] = (real)0.0;
+   fluid[REAL2] = sqrt(Jeans_RhoBG2/(Jeans_RhoBG1+Jeans_RhoBG2)) + Jeans_RealAmp( Jeans_RealAmp0_2, Jeans_y )*cos( Phase );//(real)0.0;
+   fluid[IMAG2] =       Jeans_ImagAmp( Jeans_ImagAmp0_2, Jeans_y )*cos( Phase );//(real)0.0;
+   fluid[DENS2] = SQR(fluid[REAL2]) + SQR(fluid[IMAG2]);//(real)0.0;
 
 } // FUNCTION : SetGridIC
 
