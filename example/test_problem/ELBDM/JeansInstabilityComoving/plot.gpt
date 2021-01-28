@@ -3,7 +3,8 @@ reset
 
 # target files
 # -----------------------------------------------------------
-FILE_IN_PREFIX  = 'JeansInstabilityComoving_Dens'
+FILE_IN1_PREFIX  = 'JeansInstabilityComoving_Dens1'
+FILE_IN2_PREFIX  = 'JeansInstabilityComoving_Dens2'
 FILE_IN_SUFFIX  = ''
 FILE_OUT_PREFIX = 'Fig__JeansInstabilityComoving_Dens'
 START_ID        = 0
@@ -54,7 +55,8 @@ print "Start plotting ..."
 do for [ID=START_ID:END_ID:DELTA_ID] {
 
 #  set the input and output filenames
-   FILE_IN = sprintf( '%s_%06d', FILE_IN_PREFIX, ID, FILE_IN_SUFFIX )
+   FILE_IN1 = sprintf( '%s_%06d', FILE_IN1_PREFIX, ID, FILE_IN_SUFFIX )
+   FILE_IN2 = sprintf( '%s_%06d', FILE_IN2_PREFIX, ID, FILE_IN_SUFFIX )
 
    if ( GPVAL_TERM ne 'x11' ) { set output sprintf( '%s_%06d.%s', FILE_OUT_PREFIX, ID, FILE_OUT_EXT ) }
 
@@ -74,8 +76,8 @@ do for [ID=START_ID:END_ID:DELTA_ID] {
 #  plot
    first = 0
 
-   plot FILE_IN u 1:2 w  p pt 6 lc 7 title 'Simulation' \
-       ,FILE_IN u 1:3 w l       lc 8 title 'Analytical'
+   plot FILE_IN1 u 1:2 w  p pt 6 lc 7 title 'Simulation1' \
+       ,FILE_IN1 u 1:3 w l       lc 8 title 'Analytical1'
 
 
    if ( GPVAL_TERM eq 'x11' ) { if ( PAUSE <= 0.0 ) { pause mouse }   else { pause PAUSE } };

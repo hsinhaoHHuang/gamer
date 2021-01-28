@@ -99,7 +99,8 @@ OPT__MINIMIZE_MPI_BARRIER     0           # minimize MPI barriers to improve loa
 
 
 # fluid solver in ELBDM (MODEL==ELBDM only)
-ELBDM_MASS                    2.5e-22     # particle mass in ev/c^2 (input unit is fixed even when OPT__UNIT or COMOVING is on)
+ELBDM_MASS1                   2.5e-22     # particle mass1 in ev/c^2 (input unit is fixed even when OPT__UNIT or COMOVING is on)
+ELBDM_MASS2                   2.5e-22     # particle mass1 in ev/c^2 (input unit is fixed even when OPT__UNIT or COMOVING is on)
 ELBDM_PLANCK_CONST            1.0         # reduced Planck constant (will be overwritten if OPT__UNIT or COMOVING is on)
 ELBDM_LAMBDA                  1.0         # quartic self-interaction coefficient [1.0] ##QUARTIC_SELF_INTERACTION ONLY##
 ELBDM_TAYLOR3_COEFF           0.166666667 # 3rd Taylor expansion coefficient [1.0/6.0] ##USELESS if ELBDM_TAYLOR3_AUTO is on##
