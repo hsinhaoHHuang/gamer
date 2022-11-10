@@ -825,9 +825,10 @@ void Aux_TakeNote()
       fprintf( Note, "ELBDM_MASS2                      %13.7e %s\n",  ELBDM_MASS2*UNIT_M/(Const_eV/SQR(Const_c)), "ev/c^2" );
 #     endif
       }
-      else
+      else{
       fprintf( Note, "ELBDM_MASS1                      %13.7e\n",    ELBDM_MASS1           );
       fprintf( Note, "ELBDM_MASS2                      %13.7e\n",    ELBDM_MASS2           );
+      }
       fprintf( Note, "ELBDM_PLANCK_CONST              %13.7e\n",     ELBDM_PLANCK_CONST    );
       fprintf( Note, "ELBDM_ETA1                       %13.7e\n",    ELBDM_ETA1            );
       fprintf( Note, "ELBDM_ETA2                       %13.7e\n",    ELBDM_ETA2            );
