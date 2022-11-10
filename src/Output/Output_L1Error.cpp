@@ -3,7 +3,7 @@
 static void WriteFile( void (*AnalFunc)( real fluid[], const double x, const double y, const double z, const double Time,
                                          const int lv, double AuxArray[] ),
                        FILE *File[], const int lv, const int PID, const int i, const int j, const int k,
-                       double L1_Err[], const OptOutputPart_t Part );
+                       double L1_AErr[], double L1_RErr[], const OptOutputPart_t Part );
 
 
 
@@ -99,10 +99,12 @@ void Output_L1Error( void (*AnalFunc)( real fluid[], const double x, const doubl
    bool    Check_y = false;
    bool    Check_z = false;
 
-   double L1_Err[NCOMP_FLUID];
+   double L1_AErr[NCOMP_FLUID];
+   double L1_RErr[NCOMP_FLUID];
    static bool FirstTime = true;
 
-   for (int v=0; v<NCOMP_FLUID; v++)   L1_Err[v] = 0.0;
+   for (int v=0; v<NCOMP_FLUID; v++)   L1_AErr[v] = 0.0;
+   for (int v=0; v<NCOMP_FLUID; v++)   L1_RErr[v] = 0.0;
 
    switch ( Part )
    {
@@ -126,7 +128,7 @@ void Output_L1Error( void (*AnalFunc)( real fluid[], const double x, const doubl
          if ( TRank == 0 )
          {
             for (int v=0; v<NCOMP_FLUID; v++)
-               fprintf( File[v], "#%20s %20s %20s %20s\n", "Coord.", "Numerical", "Analytical", "Error" );
+               fprintf( File[v], "#%20s %20s %20s %20s %20s\n", "Coord.", "Numerical", "Analytical", "AError", "RError" );
          }
 
 
@@ -150,7 +152,7 @@ void Output_L1Error( void (*AnalFunc)( real fluid[], const double x, const doubl
                      {
                         for (int k=0; k<PS1; k++)
                         {
-                           WriteFile( AnalFunc, File, lv, PID, k, k, k, L1_Err, Part );
+                           WriteFile( AnalFunc, File, lv, PID, k, k, k, L1_AErr, L1_RErr, Part );
                         }
                      }
                   } // if ( Part == OUTPUT_DIAG )
@@ -173,7 +175,7 @@ void Output_L1Error( void (*AnalFunc)( real fluid[], const double x, const doubl
                         for (int i=0; i<PS1; i++)  {  xx = EdgeL[0] + i*dh;
                                                       if ( Check_x && ( xx>x || xx+dh<=x ) )    continue;
 
-                           WriteFile( AnalFunc, File, lv, PID, i, j, k, L1_Err, Part );
+                           WriteFile( AnalFunc, File, lv, PID, i, j, k, L1_AErr, L1_RErr, Part );
 
                         }}}
                      }
@@ -192,8 +194,9 @@ void Output_L1Error( void (*AnalFunc)( real fluid[], const double x, const doubl
 
 
 // gather the L1 error from all ranks and output the results
-   double L1_Err_Sum[NCOMP_FLUID], Norm;
-   MPI_Reduce( L1_Err, L1_Err_Sum, NCOMP_FLUID, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD );
+   double L1_AErr_Sum[NCOMP_FLUID], L1_RErr_Sum[NCOMP_FLUID], Norm;
+   MPI_Reduce( L1_AErr, L1_AErr_Sum, NCOMP_FLUID, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD );
+   MPI_Reduce( L1_RErr, L1_RErr_Sum, NCOMP_FLUID, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD );
 
    if ( MPI_Rank == 0 )
    {
@@ -206,7 +209,8 @@ void Output_L1Error( void (*AnalFunc)( real fluid[], const double x, const doubl
          default          :  Aux_Error( ERROR_INFO, "unsupported option \"Part = %d\" [4/5/6/7] !!\n", Part );
       }
 
-      for (int v=0; v<NCOMP_FLUID; v++)   L1_Err_Sum[v] /= Norm;
+      for (int v=0; v<NCOMP_FLUID; v++)   L1_AErr_Sum[v] /= Norm;
+      for (int v=0; v<NCOMP_FLUID; v++)   L1_RErr_Sum[v] /= Norm;
 
       FILE *File_L1 = fopen( "Record__L1Err", "a" );
 
@@ -214,15 +218,15 @@ void Output_L1Error( void (*AnalFunc)( real fluid[], const double x, const doubl
       if ( FirstTime )
       {
 #        if   ( MODEL == HYDRO )
-         fprintf( File_L1, "#%5s %13s %19s %19s %19s %19s %19s\n",
-                  "NGrid", "Time", "Error(Dens)", "Error(MomX)", "Error(MomY)", "Error(MomZ)", "Error(Pres)" );
+         fprintf( File_L1, "#%5s %13s %19s %19s %19s %19s %19s %19s %19s %19s %19s %19s\n",
+                  "NGrid", "Time", "AError(Dens)", "RError(Dens)", "AError(MomX)", "RError(MomX)", "AError(MomY)", "RError(MomY)", "AError(MomZ)", "RError(MomZ)", "AError(Pres)", "RError(Pres)" );
 
 #        elif ( MODEL == MHD )
 #        warning : WAIT MHD !!!
 
 #        elif ( MODEL == ELBDM )
-         fprintf( File_L1, "#%5s %13s %19s %19s %19s %19s %19s %19s\n",
-                  "NGrid", "Time", "Error(Dens1)", "Error(Real1)", "Error(Imag1)" ,"Error(Dens2)" ,"Error(Real2)" ,"Error(Imag2)");
+         fprintf( File_L1, "#%5s %13s %19s %19s %19s %19s %19s %19s %19s %19s %19s %19s %19s %19s\n",
+                  "NGrid", "Time", "AError(Dens1)", "RError(Dens1)", "AError(Real1)", "RError(Real1)", "AError(Imag1)", "RError(Imag1)", "AError(Dens2)", "RError(Dens2)", "AError(Real2)", "RError(Real2)", "AError(Imag2)", "RError(Imag2)");
 
 #        else
 #        error : unsupported MODEL !!
@@ -234,8 +238,10 @@ void Output_L1Error( void (*AnalFunc)( real fluid[], const double x, const doubl
 //    output data
       fprintf( File_L1, "%6d %13.7e", NX0_TOT[0], Time[0] );
 
-      for (int v=0; v<NCOMP_FLUID; v++)
-      fprintf( File_L1, " %19.12e", L1_Err_Sum[v] );
+      for (int v=0; v<NCOMP_FLUID; v++){
+      fprintf( File_L1, " %19.12e", L1_AErr_Sum[v] );
+      fprintf( File_L1, " %19.12e", L1_RErr_Sum[v] );
+      }
 
       fprintf( File_L1, "\n" );
 
@@ -260,7 +266,8 @@ void Output_L1Error( void (*AnalFunc)( real fluid[], const double x, const doubl
 //                lv       : Target refinement level
 //                PID      : Patch ID
 //                i/j/k    : Cell indices within the patch
-//                L1_Err   : Array to record the L1 errors of all variables
+//                L1_AErr   : Array to record the absolute L1 errors of all variables
+//                L1_RErr   : Array to record the relative L1 errors of all variables
 //                Part     : OUTPUT_X    : x line
 //                           OUTPUT_Y    : y line
 //                           OUTPUT_Z    : z line
@@ -271,10 +278,10 @@ void Output_L1Error( void (*AnalFunc)( real fluid[], const double x, const doubl
 void WriteFile( void (*AnalFunc)( real fluid[], const double x, const double y, const double z, const double Time,
                                   const int lv, double AuxArray[] ),
                 FILE *File[], const int lv, const int PID, const int i, const int j, const int k,
-                double L1_Err[], const OptOutputPart_t Part )
+                double L1_AErr[], double L1_RErr[], const OptOutputPart_t Part )
 {
 
-   real fluid[NCOMP_FLUID], Anal[NCOMP_FLUID], Err[NCOMP_FLUID];
+   real fluid[NCOMP_FLUID], Anal[NCOMP_FLUID], AErr[NCOMP_FLUID], RErr[NCOMP_FLUID];
 
 
 // get the numerical solution
@@ -323,10 +330,12 @@ void WriteFile( void (*AnalFunc)( real fluid[], const double x, const double y, 
 // estimate and output errors
    for (int v=0; v<NCOMP_FLUID; v++)
    {
-      Err   [v]  = FABS( Anal[v] - fluid[v] );
-      L1_Err[v] += Err[v]*dh;
+      AErr   [v]  = FABS( Anal[v] - fluid[v] );
+      RErr   [v]  = FABS( 1.0 - fluid[v] / Anal[v] );
+      L1_AErr[v] += AErr[v]*dh;
+      L1_RErr[v] += RErr[v]*dh;
 
-      fprintf( File[v], " %20.13e %20.13e %20.13e %20.13e\n", r, fluid[v], Anal[v], Err[v] );
+      fprintf( File[v], " %20.13e %20.13e %20.13e %20.13e %20.13e\n", r, fluid[v], Anal[v], AErr[v], RErr[v] );
    }
 
 } // FUNCTION : WriteFile
