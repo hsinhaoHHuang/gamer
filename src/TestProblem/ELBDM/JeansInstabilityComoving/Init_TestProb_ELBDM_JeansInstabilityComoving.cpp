@@ -5,41 +5,130 @@
 
 // problem-specific global variables
 // =======================================================================================
-static double Jeans_RealAmp0;       // proportional coefficient of the real part of the wave function
-static double Jeans_RealAmp0_2;       // proportional coefficient of the real part of the wave function
+static double Jeans_Coeff0_1;       // proportional coefficient of the growing mode of the wave function 1
+static double Jeans_Coeff0_2;       // proportional coefficient of the growing mode of the wave function 2
+static double Jeans_Coeff1;         // proportional coefficient 1 for two-component small y approximation solution
+static double Jeans_Coeff2;         // proportional coefficient 2 for two-component small y approximation solution
+static double Jeans_Coeff3;         // proportional coefficient 3 for two-component small y approximation solution
+static double Jeans_Coeff4;         // proportional coefficient 4 for two-component small y approximation solution
+static double Jeans_Coeff5;         // proportional coefficient 5 for two-component large y approximation solution
+static double Jeans_Coeff6;         // proportional coefficient 6 for two-component large y approximation solution
+static double Jeans_Coeff7;         // proportional coefficient 7 for two-component large y approximation solution
+static double Jeans_Coeff8;         // proportional coefficient 8 for two-component large y approximation solution
 static double Jeans_Phase0;         // initial phase shift
-static double Jeans_RhoBG1;
-static double Jeans_RhoBG2;
+static double Jeans_RhoBG;          // Background density
+static double Jeans_RhoBG_frac_1;   // Background density fraction 1
+static double Jeans_RhoBG_frac_2;   // Background density fraction 2
+static int    Jeans_AnalyticalForm; // Form of analytical solution (1:Single Exact, 2:Two Large Y, 3:Two Small Y)
 
-static double Jeans_ImagAmp0;       // proportional coefficient of the imaginary part of the wave function
-static double Jeans_ImagAmp0_2;       // proportional coefficient of the imaginary part of the wave function
 static double Jeans_Wavelength;     // wavelength
 static double Jeans_WaveK;          // wavenumber
-static double Jeans_WaveKj1;         // critical wavenumber
-static double Jeans_WaveKj2;         // critical wavenumber
-static bool   Jeans_Stable1;         // true/false --> Jeans stable/unstable
-static bool   Jeans_Stable2;         // true/false --> Jeans stable/unstable
+static double Jeans_WaveKj_1;       // critical wavenumber 1
+static double Jeans_WaveKj_2;       // critical wavenumber 2
+static bool   Jeans_Stable_1;       // true/false --> Jeans stable/unstable for 1
+static bool   Jeans_Stable_2;       // true/false --> Jeans stable/unstable for 2
 // =======================================================================================
 
 
 
 // inline functions to calculate the amplitudes of the real and imaginary parts
 // =======================================================================================
-inline double Jeans_RealAmp( const double RealAmp0, const double y )
+inline double Jeans_Single_deltaK( const double Coeff0, const double y )
 {
    const double y2 = y*y;
 
-   return RealAmp0 * ( 3.0*cos(y) + 3.0*y*sin(y) - y2*cos(y) ) / y2;
+   return Coeff0 * ( 3.0*cos(y) + 3.0*y*sin(y) - y2*cos(y) ) / y2; // single exact
 }
 
-inline double Jeans_ImagAmp( const double ImagAmp0, const double y )
+inline double Jeans_Single_MddydeltaK( const double Coeff0, const double y )
 {
    const double y2 = y*y;
    const double y3 = y*y2;
    const double y4 = y2*y2;
 
-   return -ImagAmp0 * ( -6.0*y*cos(y) - 6.0*y2*sin(y) + 3.0*y3*cos(y) + y4*sin(y) ) / y4;
+   return -Coeff0 * ( -6.0*y*cos(y) - 6.0*y2*sin(y) + 3.0*y3*cos(y) + y4*sin(y) ) / y4; // single exact
 }
+
+inline double Jeans_Single_deltaK_LargeY( const double Coeff0, const double y )
+{
+
+   return -Coeff0 * cos(y); //approx when y>>1
+}
+
+
+inline double Jeans_Single_MddydeltaK_LargeY( const double Coeff0, const double y )
+{
+   return -Coeff0 * sin(y); //approx when y>>1
+}
+
+
+inline double Jeans_Single_deltaK_SmallY( const double Coeff0, const double y )
+{
+   const double y2 = y*y;
+
+   return Coeff0 * 3.0/y2;  //approx when y<<1
+}
+
+inline double Jeans_Single_MddydeltaK_SmallY( const double Coeff0, const double y )
+{
+   const double y2 = y*y;
+   const double y3 = y*y2;
+
+   return -Coeff0 * ( -6.0 ) / y3; //approx when y<<1
+}
+
+// =======================================================================================
+inline double Jeans_Two_deltaK1_SmallY( const double Coeff1, const double Coeff2, const double RhoBG_frac_1, const double RhoBG_frac_2 , const double y )
+{
+   const double y2 = y*y;
+
+   return Coeff1 * 1.0/y2 - Coeff2*(RhoBG_frac_2);  //approx when y<<1
+}
+
+inline double Jeans_Two_deltaK2_SmallY( const double Coeff1, const double Coeff2, const double RhoBG_frac_1, const double RhoBG_frac_2 , const double y )
+{
+   const double y2 = y*y;
+
+   return Coeff1 * 1.0/y2 + Coeff2*(RhoBG_frac_1);  //approx when y<<1
+}
+
+inline double Jeans_Two_MddydeltaK1_SmallY( const double Coeff1, const double m1_m, const double y )
+{
+   const double y2 = y*y;
+   const double y3 = y*y2;
+
+   return -Coeff1 * m1_m *( -2.0 ) / y3; //approx when y<<1
+}
+
+inline double Jeans_Two_MddydeltaK2_SmallY( const double Coeff1, const double m2_m, const double y )
+{
+   const double y2 = y*y;
+   const double y3 = y*y2;
+
+   return -Coeff1 * m2_m *( -2.0 ) / y3; //approx when y<<1
+}
+
+// =======================================================================================
+inline double Jeans_Two_deltaK1_LargeY( const double Coeff5, const double m_m1, const double y )
+{
+   return Coeff5 * cos(m_m1*y);  //approx when y>>1
+}
+
+inline double Jeans_Two_deltaK2_LargeY( const double Coeff7, const double m_m2, const double y )
+{
+   return Coeff7 * cos(m_m2*y);  //approx when y>>1
+}
+
+inline double Jeans_Two_MddydeltaK1_LargeY( const double Coeff5, const double m_m1, const double y )
+{
+   return Coeff5 * sin(m_m1*y);  //approx when y>>1
+}
+
+inline double Jeans_Two_MddydeltaK2_LargeY( const double Coeff7, const double m_m2, const double y )
+{
+   return Coeff7 * sin(m_m2*y);  //approx when y>>1
+}
+
 // =======================================================================================
 
 static void OutputError();
@@ -148,13 +237,20 @@ void SetParameter()
 // ********************************************************************************************************************************
 // ReadPara->Add( "KEY_IN_THE_FILE",   &VARIABLE,              DEFAULT,       MIN,              MAX               );
 // ********************************************************************************************************************************
-   ReadPara->Add( "Jeans_RealAmp0",    &Jeans_RealAmp0,       -1.0,           0.0,       NoMax_double      );
-   ReadPara->Add( "Jeans_RealAmp0_2",  &Jeans_RealAmp0_2,     -1.0,           0.0,       NoMax_double      );
-//   ReadPara->Add( "Jeans_RealAmp0",    &Jeans_RealAmp0,       -1.0,           Eps_double,       NoMax_double      );
-//   ReadPara->Add( "Jeans_RealAmp0_2",  &Jeans_RealAmp0_2,     -1.0,           Eps_double,       NoMax_double      );
+   ReadPara->Add( "Jeans_Coeff0_1",    &Jeans_Coeff0_1,       -1.0,           0.0,              NoMax_double      );
+   ReadPara->Add( "Jeans_Coeff0_2",    &Jeans_Coeff0_2,       -1.0,           0.0,              NoMax_double      );
+   ReadPara->Add( "Jeans_Coeff1",      &Jeans_Coeff1,          0.0,           NoMin_double,     NoMax_double      );
+   ReadPara->Add( "Jeans_Coeff2",      &Jeans_Coeff2,          0.0,           NoMin_double,     NoMax_double      );
+   ReadPara->Add( "Jeans_Coeff3",      &Jeans_Coeff3,          0.0,           NoMin_double,     NoMax_double      );
+   ReadPara->Add( "Jeans_Coeff4",      &Jeans_Coeff4,          0.0,           NoMin_double,     NoMax_double      );
+   ReadPara->Add( "Jeans_Coeff5",      &Jeans_Coeff5,          0.0,           NoMin_double,     NoMax_double      );
+   ReadPara->Add( "Jeans_Coeff6",      &Jeans_Coeff6,          0.0,           NoMin_double,     NoMax_double      );
+   ReadPara->Add( "Jeans_Coeff7",      &Jeans_Coeff7,          0.0,           NoMin_double,     NoMax_double      );
+   ReadPara->Add( "Jeans_Coeff8",      &Jeans_Coeff8,          0.0,           NoMin_double,     NoMax_double      );
    ReadPara->Add( "Jeans_Phase0",      &Jeans_Phase0,          0.0,           NoMin_double,     NoMax_double      );
-   ReadPara->Add( "Jeans_RhoBG1",      &Jeans_RhoBG1,          1.0,           0.0,              NoMax_double      );
-   ReadPara->Add( "Jeans_RhoBG2",      &Jeans_RhoBG2,          0.0,           0.0,              NoMax_double      );
+   ReadPara->Add( "Jeans_RhoBG_frac_1",&Jeans_RhoBG_frac_1,    1.0,           0.0,                       1.0      );
+   ReadPara->Add( "Jeans_RhoBG_frac_2",&Jeans_RhoBG_frac_2,    0.0,           0.0,                       1.0      );
+   ReadPara->Add( "Jeans_AnalyticalForm",&Jeans_AnalyticalForm,  1,             1,                         5      );
 
    ReadPara->Read( FileName );
 
@@ -166,21 +262,20 @@ void SetParameter()
 
 
 // (2) set the problem-specific derived parameters
-   Jeans_ImagAmp0   = Jeans_RealAmp0;
-   Jeans_ImagAmp0_2 = Jeans_RealAmp0_2;
+   Jeans_RhoBG      = 1.0;
    Jeans_Wavelength = amr->BoxSize[0]/sqrt(3.0);   // assuming cubic simulation domain
    Jeans_WaveK      = 2.0*M_PI/Jeans_Wavelength;
-   Jeans_WaveKj1    = POW( 6.0*Time[0]*SQR(ELBDM_ETA1), 0.25 );
-   Jeans_WaveKj2    = POW( 6.0*Time[0]*SQR(ELBDM_ETA2), 0.25 );
-   Jeans_Stable1     = ( Jeans_WaveK > Jeans_WaveKj1 ) ? true : false;
-   Jeans_Stable2     = ( Jeans_WaveK > Jeans_WaveKj2 ) ? true : false;
+   Jeans_WaveKj_1   = POW( 6.0*Time[0]*SQR(ELBDM_ETA1), 0.25 );
+   Jeans_WaveKj_2   = POW( 6.0*Time[0]*SQR(ELBDM_ETA2), 0.25 );
+   Jeans_Stable_1   = ( Jeans_WaveK > Jeans_WaveKj_1 ) ? true : false;
+   Jeans_Stable_2   = ( Jeans_WaveK > Jeans_WaveKj_2 ) ? true : false;
 
 
 // (3) reset other general-purpose parameters
 //     --> a helper macro PRINT_WARNING is defined in TestProb.h
    const long   End_Step_Default = __INT_MAX__;
 // End_T : (stable/unstable) --> (1 period in the high-k limit / grow by a factor of 50 in the low-k limit)
-   const double End_T_Default    = ( Jeans_Stable1) ?
+   const double End_T_Default    = ( Jeans_Stable_1) ?
                                     A_INIT + pow( 0.5*Jeans_WaveK*Jeans_WaveK/M_PI/ELBDM_ETA1, 2.0 ) :
                                     A_INIT*50;
    if ( END_STEP < 0 ) {
@@ -197,27 +292,106 @@ void SetParameter()
 // (4) make a note
    if ( MPI_Rank == 0 )
    {
-      const double y = SQR(Jeans_WaveK)/ELBDM_ETA1*pow( Time[0], -0.5 );
+      const double y  = SQR(Jeans_WaveK)/ELBDM_ETA1*pow( Time[0], -0.5 );
+      const double y1 = SQR(Jeans_WaveK)/ELBDM_ETA1*pow( Time[0], -0.5 );
+      const double y2 = SQR(Jeans_WaveK)/ELBDM_ETA2*pow( Time[0], -0.5 );
+      const double y1_end = SQR(Jeans_WaveK)/ELBDM_ETA1*pow( END_T, -0.5 );
+      const double y2_end = SQR(Jeans_WaveK)/ELBDM_ETA2*pow( END_T, -0.5 );
 
       Aux_Message( stdout, "=============================================================================\n" );
       Aux_Message( stdout, "  test problem ID       = %d\n",     TESTPROB_ID                      );
-      Aux_Message( stdout, "  real part coefficient = %13.7e\n", Jeans_RealAmp0                   );
-      Aux_Message( stdout, "  imag part coefficient = %13.7e\n", Jeans_ImagAmp0                   );
-      Aux_Message( stdout, "  real part coefficient2= %13.7e\n", Jeans_RealAmp0_2                 );
-      Aux_Message( stdout, "  imag part coefficient2= %13.7e\n", Jeans_ImagAmp0_2                 );
+      Aux_Message( stdout, "  coefficient 0 for 1   = %13.7e\n", Jeans_Coeff0_1                   );
+      Aux_Message( stdout, "  coefficient 0 for 2   = %13.7e\n", Jeans_Coeff0_2                   );
+      Aux_Message( stdout, "  coefficient 1         = %13.7e\n", Jeans_Coeff1                     );
+      Aux_Message( stdout, "  coefficient 2         = %13.7e\n", Jeans_Coeff2                     );
+      Aux_Message( stdout, "  coefficient 3         = %13.7e\n", Jeans_Coeff3                     );
+      Aux_Message( stdout, "  coefficient 4         = %13.7e\n", Jeans_Coeff4                     );
+      Aux_Message( stdout, "  coefficient 5         = %13.7e\n", Jeans_Coeff5                     );
+      Aux_Message( stdout, "  coefficient 6         = %13.7e\n", Jeans_Coeff6                     );
+      Aux_Message( stdout, "  coefficient 7         = %13.7e\n", Jeans_Coeff7                     );
+      Aux_Message( stdout, "  coefficient 8         = %13.7e\n", Jeans_Coeff8                     );
       Aux_Message( stdout, "  initial phase shift   = %13.7e\n", Jeans_Phase0                     );
-      Aux_Message( stdout, "  RhoBG1                = %13.7e\n", Jeans_RhoBG1                     );
-      Aux_Message( stdout, "  RhoBG2                = %13.7e\n", Jeans_RhoBG2                     );
-      Aux_Message( stdout, "  real part amplitude   = %13.7e\n", Jeans_RealAmp(Jeans_RealAmp0, y) );
-      Aux_Message( stdout, "  imag part amplitude   = %13.7e\n", Jeans_ImagAmp(Jeans_ImagAmp0, y) );
-      Aux_Message( stdout, "  real part amplitude2  = %13.7e\n", Jeans_RealAmp(Jeans_RealAmp0_2, y) );
-      Aux_Message( stdout, "  imag part amplitude2  = %13.7e\n", Jeans_ImagAmp(Jeans_ImagAmp0_2, y) );
+      Aux_Message( stdout, "  RhoBG                 = %13.7e\n", Jeans_RhoBG                      );
+      Aux_Message( stdout, "  RhoBG fraction1       = %13.7e\n", Jeans_RhoBG_frac_1               );
+      Aux_Message( stdout, "  RhoBG1                = %13.7e\n", Jeans_RhoBG*Jeans_RhoBG_frac_1   );
+      Aux_Message( stdout, "  RhoBG fraction2       = %13.7e\n", Jeans_RhoBG_frac_2               );
+      Aux_Message( stdout, "  RhoBG2                = %13.7e\n", Jeans_RhoBG*Jeans_RhoBG_frac_2   );
+      if ( Jeans_AnalyticalForm == 1 ){
+         Aux_Message( stdout, "  Analytical Form       = %d\n",     Jeans_AnalyticalForm              );
+         Aux_Message( stdout, "             -> Single Exact\n"                                        );
+         Aux_Message( stdout, "  real part 1 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Single_deltaK(Jeans_Coeff0_1, y1));
+         Aux_Message( stdout, "  imag part 1 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Single_MddydeltaK(Jeans_Coeff0_1, y1));
+         Aux_Message( stdout, "  real part 2 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Single_deltaK(Jeans_Coeff0_2, y2));
+         Aux_Message( stdout, "  imag part 2 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Single_MddydeltaK(Jeans_Coeff0_2, y2));
+         Aux_Message( stdout, "  real part 1 normalized amplitude = %13.7e\n", 0.5*Jeans_Single_deltaK(Jeans_Coeff0_1, y1));
+         Aux_Message( stdout, "  imag part 1 normalized amplitude = %13.7e\n", 0.5*Jeans_Single_MddydeltaK(Jeans_Coeff0_1, y1));
+         Aux_Message( stdout, "  real part 2 normalized amplitude = %13.7e\n", 0.5*Jeans_Single_deltaK(Jeans_Coeff0_2, y2));
+         Aux_Message( stdout, "  imag part 2 normalized amplitude = %13.7e\n", 0.5*Jeans_Single_MddydeltaK(Jeans_Coeff0_2, y2));
+      }
+      if ( Jeans_AnalyticalForm == 2 ){
+         Aux_Message( stdout, "  Analytical Form       = %d\n",     Jeans_AnalyticalForm              );
+         Aux_Message( stdout, "  -> Two Large Y Approximation\n"                                      );
+         Aux_Message( stdout, "  real part 1 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Two_deltaK1_LargeY(Jeans_Coeff5, ELBDM_ETA1/ELBDM_ETA1, y));
+         Aux_Message( stdout, "  imag part 1 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Two_MddydeltaK1_LargeY(Jeans_Coeff5, ELBDM_ETA1/ELBDM_ETA1, y));
+         Aux_Message( stdout, "  real part 2 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Two_deltaK2_LargeY(Jeans_Coeff7, ELBDM_ETA1/ELBDM_ETA2, y));
+         Aux_Message( stdout, "  imag part 2 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Two_MddydeltaK2_LargeY(Jeans_Coeff7, ELBDM_ETA1/ELBDM_ETA2, y));
+         Aux_Message( stdout, "  real part 1 normalized amplitude = %13.7e\n", 0.5*Jeans_Two_deltaK1_LargeY(Jeans_Coeff5, ELBDM_ETA1/ELBDM_ETA1, y));
+         Aux_Message( stdout, "  imag part 1 normalized amplitude = %13.7e\n", 0.5*Jeans_Two_MddydeltaK1_LargeY(Jeans_Coeff5, ELBDM_ETA1/ELBDM_ETA1, y));
+         Aux_Message( stdout, "  real part 2 normalized amplitude = %13.7e\n", 0.5*Jeans_Two_deltaK2_LargeY(Jeans_Coeff7, ELBDM_ETA1/ELBDM_ETA2, y));
+         Aux_Message( stdout, "  imag part 2 normalized amplitude = %13.7e\n", 0.5*Jeans_Two_MddydeltaK2_LargeY(Jeans_Coeff7, ELBDM_ETA1/ELBDM_ETA2, y));
+      }
+      if ( Jeans_AnalyticalForm == 3 ){
+         Aux_Message( stdout, "  Analytical Form       = %d\n",     Jeans_AnalyticalForm              );
+         Aux_Message( stdout, "  -> Two Small Y Approximation\n"                                      );
+         Aux_Message( stdout, "  real part 1 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Two_deltaK1_SmallY(Jeans_Coeff1, Jeans_Coeff2, Jeans_RhoBG_frac_1, Jeans_RhoBG_frac_2, y));
+         Aux_Message( stdout, "  imag part 1 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Two_MddydeltaK1_SmallY(Jeans_Coeff1, ELBDM_ETA1/ELBDM_ETA1, y));
+         Aux_Message( stdout, "  real part 2 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Two_deltaK2_SmallY(Jeans_Coeff1, Jeans_Coeff2, Jeans_RhoBG_frac_1, Jeans_RhoBG_frac_2, y));
+         Aux_Message( stdout, "  imag part 2 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Two_MddydeltaK2_SmallY(Jeans_Coeff1, ELBDM_ETA2/ELBDM_ETA1, y));
+         Aux_Message( stdout, "  real part 1 normalized amplitude = %13.7e\n", 0.5*Jeans_Two_deltaK1_SmallY(Jeans_Coeff1, Jeans_Coeff2, Jeans_RhoBG_frac_1, Jeans_RhoBG_frac_2, y));
+         Aux_Message( stdout, "  imag part 1 normalized amplitude = %13.7e\n", 0.5*Jeans_Two_MddydeltaK1_SmallY(Jeans_Coeff1, ELBDM_ETA1/ELBDM_ETA1, y));
+         Aux_Message( stdout, "  real part 2 normalized amplitude = %13.7e\n", 0.5*Jeans_Two_deltaK2_SmallY(Jeans_Coeff1, Jeans_Coeff2, Jeans_RhoBG_frac_1, Jeans_RhoBG_frac_2, y));
+         Aux_Message( stdout, "  imag part 2 normalized amplitude = %13.7e\n", 0.5*Jeans_Two_MddydeltaK2_SmallY(Jeans_Coeff1, ELBDM_ETA2/ELBDM_ETA1, y));
+      }
+      if ( Jeans_AnalyticalForm == 4 ){
+         Aux_Message( stdout, "  Analytical Form       = %d\n",     Jeans_AnalyticalForm              );
+         Aux_Message( stdout, "    -> Single LargeY Approx \n"                                        );
+         Aux_Message( stdout, "  real part 1 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Single_deltaK_LargeY(Jeans_Coeff0_1, y1));
+         Aux_Message( stdout, "  imag part 1 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Single_MddydeltaK_LargeY(Jeans_Coeff0_1, y1));
+         Aux_Message( stdout, "  real part 2 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Single_deltaK_LargeY(Jeans_Coeff0_2, y2));
+         Aux_Message( stdout, "  imag part 2 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Single_MddydeltaK_LargeY(Jeans_Coeff0_2, y2));
+         Aux_Message( stdout, "  real part 1 normalized amplitude = %13.7e\n", 0.5*Jeans_Single_deltaK_LargeY(Jeans_Coeff0_1, y1));
+         Aux_Message( stdout, "  imag part 1 normalized amplitude = %13.7e\n", 0.5*Jeans_Single_MddydeltaK_LargeY(Jeans_Coeff0_1, y1));
+         Aux_Message( stdout, "  real part 2 normalized amplitude = %13.7e\n", 0.5*Jeans_Single_deltaK_LargeY(Jeans_Coeff0_2, y2));
+         Aux_Message( stdout, "  imag part 2 normalized amplitude = %13.7e\n", 0.5*Jeans_Single_MddydeltaK_LargeY(Jeans_Coeff0_2, y2));
+      }
+      if ( Jeans_AnalyticalForm == 5 ){
+         Aux_Message( stdout, "  Analytical Form       = %d\n",     Jeans_AnalyticalForm              );
+         Aux_Message( stdout, "     -> Single SmallY Approx\n"                                        );
+         Aux_Message( stdout, "  real part 1 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Single_deltaK_SmallY(Jeans_Coeff0_1, y1));
+         Aux_Message( stdout, "  imag part 1 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Single_MddydeltaK_SmallY(Jeans_Coeff0_1, y1));
+         Aux_Message( stdout, "  real part 2 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Single_deltaK_SmallY(Jeans_Coeff0_2, y2));
+         Aux_Message( stdout, "  imag part 2 amplitude = %13.7e\n", 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Single_MddydeltaK_SmallY(Jeans_Coeff0_2, y2));
+         Aux_Message( stdout, "  real part 1 normalized amplitude = %13.7e\n", 0.5*Jeans_Single_deltaK_SmallY(Jeans_Coeff0_1, y1));
+         Aux_Message( stdout, "  imag part 1 normalized amplitude = %13.7e\n", 0.5*Jeans_Single_MddydeltaK_SmallY(Jeans_Coeff0_1, y1));
+         Aux_Message( stdout, "  real part 2 normalized amplitude = %13.7e\n", 0.5*Jeans_Single_deltaK_SmallY(Jeans_Coeff0_2, y2));
+         Aux_Message( stdout, "  imag part 2 normalized amplitude = %13.7e\n", 0.5*Jeans_Single_MddydeltaK_SmallY(Jeans_Coeff0_2, y2));
+      }
+      Aux_Message( stdout, "  box size              = %13.7e\n", amr->BoxSize[0]                  );
       Aux_Message( stdout, "  wavelength            = %13.7e\n", Jeans_Wavelength                 );
       Aux_Message( stdout, "  wavenumber            = %13.7e\n", Jeans_WaveK                      );
-      Aux_Message( stdout, "  critical wavenumber1  = %13.7e\n", Jeans_WaveKj1                    );
-      Aux_Message( stdout, "  critical wavenumber2  = %13.7e\n", Jeans_WaveKj2                    );
-      Aux_Message( stdout, "  Jeans stable1         = %s\n",     (Jeans_Stable1)?"YES":"NO"       );
-      Aux_Message( stdout, "  Jeans stable2         = %s\n",     (Jeans_Stable2)?"YES":"NO"       );
+      Aux_Message( stdout, "  ETA1                  = %13.7e\n", ELBDM_ETA1                       );
+      Aux_Message( stdout, "  ETA2                  = %13.7e\n", ELBDM_ETA2                       );
+      Aux_Message( stdout, "  initial a             = %13.7e\n", Time[0]                          );
+      Aux_Message( stdout, "  end     a             = %13.7e\n", END_T                            );
+      Aux_Message( stdout, "  initial y1            = %13.7e\n", y1                               );
+      Aux_Message( stdout, "  end     y1            = %13.7e\n", y1_end                           );
+      Aux_Message( stdout, "  initial y2            = %13.7e\n", y2                               );
+      Aux_Message( stdout, "  end     y2            = %13.7e\n", y2_end                           );
+      Aux_Message( stdout, "  critical y            = %13.7e\n", sqrt(6)                          );
+      Aux_Message( stdout, "  critical wavenumber1  = %13.7e\n", Jeans_WaveKj_1                   );
+      Aux_Message( stdout, "  critical wavenumber2  = %13.7e\n", Jeans_WaveKj_2                   );
+      Aux_Message( stdout, "  Jeans stable1         = %s\n",     (Jeans_Stable_1)?"YES":"NO"      );
+      Aux_Message( stdout, "  Jeans stable2         = %s\n",     (Jeans_Stable_2)?"YES":"NO"      );
       Aux_Message( stdout, "=============================================================================\n" );
    }
 
@@ -251,17 +425,70 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
 
    const double r       = 1.0/sqrt(3.0)*( x + y + z );
    const double Jeans_y = SQR(Jeans_WaveK)/ELBDM_ETA1*pow( Time, -0.5 );
+   const double Jeans_y1= SQR(Jeans_WaveK)/ELBDM_ETA1*pow( Time, -0.5 );
+   const double Jeans_y2= SQR(Jeans_WaveK)/ELBDM_ETA2*pow( Time, -0.5 );
    const double Phase   = Jeans_WaveK*r + Jeans_Phase0;
 
-   fluid[REAL1] = sqrt(Jeans_RhoBG1/(Jeans_RhoBG1+Jeans_RhoBG2)) + Jeans_RealAmp( Jeans_RealAmp0, Jeans_y )*cos( Phase );
-   fluid[IMAG1] =       Jeans_ImagAmp( Jeans_ImagAmp0, Jeans_y )*cos( Phase );
+   if ( Jeans_AnalyticalForm == 1 ){
+      // Exact Single
+      fluid[REAL1] = sqrt(Jeans_RhoBG_frac_1 * Jeans_RhoBG) + 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Single_deltaK(Jeans_Coeff0_1, Jeans_y1)*cos( Phase );
+      fluid[IMAG1] =                                          0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Single_MddydeltaK(Jeans_Coeff0_1, Jeans_y1)*cos( Phase );
+      fluid[DENS1] = SQR(fluid[REAL1]) + SQR(fluid[IMAG1]);
 
-   fluid[DENS1] = SQR(fluid[REAL1]) + SQR(fluid[IMAG1]);
+      fluid[REAL2] = sqrt(Jeans_RhoBG_frac_2 * Jeans_RhoBG) + 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Single_deltaK(Jeans_Coeff0_2, Jeans_y2)*cos( Phase );
+      fluid[IMAG2] =                                          0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Single_MddydeltaK(Jeans_Coeff0_2, Jeans_y2)*cos( Phase );
+      fluid[DENS2] = SQR(fluid[REAL2]) + SQR(fluid[IMAG2]);
+   }
+   else if ( Jeans_AnalyticalForm == 2 ){
+      // Two Large Y Approximation
+      fluid[REAL1] = sqrt(Jeans_RhoBG_frac_1 * Jeans_RhoBG) + 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Two_deltaK1_LargeY(Jeans_Coeff5, ELBDM_ETA1/ELBDM_ETA1, Jeans_y)*cos( Phase );
+      fluid[IMAG1] =                                          0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Two_MddydeltaK1_LargeY(Jeans_Coeff5, ELBDM_ETA1/ELBDM_ETA1, Jeans_y)*cos( Phase );
+      fluid[DENS1] = SQR(fluid[REAL1]) + SQR(fluid[IMAG1]);
 
+      fluid[REAL2] = sqrt(Jeans_RhoBG_frac_2 * Jeans_RhoBG) + 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Two_deltaK2_LargeY(Jeans_Coeff7, ELBDM_ETA1/ELBDM_ETA2, Jeans_y)*cos( Phase );
+      fluid[IMAG2] =                                          0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Two_MddydeltaK2_LargeY(Jeans_Coeff7, ELBDM_ETA1/ELBDM_ETA2, Jeans_y)*cos( Phase );
+      fluid[DENS2] = SQR(fluid[REAL2]) + SQR(fluid[IMAG2]);
+   }
+   else if ( Jeans_AnalyticalForm == 3 ){
+     // Two Small Y Approximation
+      fluid[REAL1] = sqrt(Jeans_RhoBG_frac_1 * Jeans_RhoBG) + 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Two_deltaK1_SmallY(Jeans_Coeff1, Jeans_Coeff2, Jeans_RhoBG_frac_1, Jeans_RhoBG_frac_2, Jeans_y)*cos( Phase );
+      fluid[IMAG1] =                                          0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Two_MddydeltaK1_SmallY(Jeans_Coeff1, ELBDM_ETA1/ELBDM_ETA1, Jeans_y)*cos( Phase );
+      fluid[DENS1] = SQR(fluid[REAL1]) + SQR(fluid[IMAG1]);
 
-   fluid[REAL2] = sqrt(Jeans_RhoBG2/(Jeans_RhoBG1+Jeans_RhoBG2)) + Jeans_RealAmp( Jeans_RealAmp0_2, Jeans_y )*cos( Phase );//(real)0.0;
-   fluid[IMAG2] =       Jeans_ImagAmp( Jeans_ImagAmp0_2, Jeans_y )*cos( Phase );//(real)0.0;
-   fluid[DENS2] = SQR(fluid[REAL2]) + SQR(fluid[IMAG2]);//(real)0.0;
+      fluid[REAL2] = sqrt(Jeans_RhoBG_frac_2 * Jeans_RhoBG) + 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Two_deltaK2_SmallY(Jeans_Coeff1, Jeans_Coeff2, Jeans_RhoBG_frac_1, Jeans_RhoBG_frac_2, Jeans_y)*cos( Phase ); // Be careful yhere should be y1.
+      fluid[IMAG2] =                                          0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Two_MddydeltaK2_SmallY(Jeans_Coeff1, ELBDM_ETA2/ELBDM_ETA1, Jeans_y)*cos( Phase ); // Be careful yhere should be y1.
+      fluid[DENS2] = SQR(fluid[REAL2]) + SQR(fluid[IMAG2]);
+   }
+   else if ( Jeans_AnalyticalForm == 4 ){
+      // Single y>>1
+      fluid[REAL1] = sqrt(Jeans_RhoBG_frac_1 * Jeans_RhoBG) + 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Single_deltaK_LargeY(Jeans_Coeff0_1, Jeans_y1)*cos( Phase );
+      fluid[IMAG1] =                                          0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Single_MddydeltaK_LargeY(Jeans_Coeff0_1, Jeans_y1)*cos( Phase );
+      fluid[DENS1] = SQR(fluid[REAL1]) + SQR(fluid[IMAG1]);
+
+      fluid[REAL2] = sqrt(Jeans_RhoBG_frac_2 * Jeans_RhoBG) + 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Single_deltaK_LargeY(Jeans_Coeff0_2, Jeans_y2)*cos( Phase );
+      fluid[IMAG2] =                                          0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Single_MddydeltaK_LargeY(Jeans_Coeff0_2, Jeans_y2)*cos( Phase );
+      fluid[DENS2] = SQR(fluid[REAL2]) + SQR(fluid[IMAG2]);
+   }
+   else if ( Jeans_AnalyticalForm == 5 ){
+      // Single y<<1
+      fluid[REAL1] = sqrt(Jeans_RhoBG_frac_1 * Jeans_RhoBG) + 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Single_deltaK_SmallY(Jeans_Coeff0_1, Jeans_y1)*cos( Phase );
+      fluid[IMAG1] =                                          0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_1)*Jeans_Single_MddydeltaK_SmallY(Jeans_Coeff0_1, Jeans_y1)*cos( Phase );
+      fluid[DENS1] = SQR(fluid[REAL1]) + SQR(fluid[IMAG1]);
+
+      fluid[REAL2] = sqrt(Jeans_RhoBG_frac_2 * Jeans_RhoBG) + 0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Single_deltaK_SmallY(Jeans_Coeff0_2, Jeans_y2)*cos( Phase );
+      fluid[IMAG2] =                                          0.5*sqrt(Jeans_RhoBG*Jeans_RhoBG_frac_2)*Jeans_Single_MddydeltaK_SmallY(Jeans_Coeff0_2, Jeans_y2)*cos( Phase );
+      fluid[DENS2] = SQR(fluid[REAL2]) + SQR(fluid[IMAG2]);
+   }
+   else{
+      fluid[REAL1] = 0.0;
+      fluid[IMAG1] = 0.0;
+      fluid[DENS1] = SQR(fluid[REAL1]) + SQR(fluid[IMAG1]);
+
+      fluid[REAL2] = 0.0;
+      fluid[IMAG2] = 0.0;
+      fluid[DENS2] = SQR(fluid[REAL2]) + SQR(fluid[IMAG2]);
+
+   }
 
 } // FUNCTION : SetGridIC
 
