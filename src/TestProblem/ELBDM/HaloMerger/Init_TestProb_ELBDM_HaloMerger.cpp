@@ -82,6 +82,7 @@ static double HaloMerger_Trilinear_Interpolation( const double Target_X, const d
 
 static double HaloMerger_Get_Value_From_Halo_UM_IC_Data( const double x, const double y, const double z, const int v, const int index_halo );
 static double LinearDensityShellMass      ( const double r0, const double r1, const double rho0, const double rho1 );
+static double LogLinearDensityShellMass   ( const double r0, const double r1, const double rho0, const double rho1 );
 // =======================================================================================
 #endif // #if ( MODEL == ELBDM  &&  defined GRAVITY )
 
@@ -1594,7 +1595,7 @@ double HaloMerger_Get_Value_From_Halo_UM_IC_Data( const double x, const double y
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  Flag_User_UMICAMR
+// Function    :  Flag_User_UMICAMR_HaloMerger
 // Description :  Template of user-defined flag criteria
 //
 // Note        :  1. Invoked by Flag_Check() using the function pointer "Flag_User_Ptr",
@@ -1610,7 +1611,7 @@ double HaloMerger_Get_Value_From_Halo_UM_IC_Data( const double x, const double y
 // Return      :  "true"  if the flag criteria are satisfied
 //                "false" if the flag criteria are not satisfied
 //-------------------------------------------------------------------------------------------------------
-bool Flag_User_UMICAMR( const int i, const int j, const int k, const int lv, const int PID, const double *Threshold )
+bool Flag_User_UMICAMR_HaloMerger( const int i, const int j, const int k, const int lv, const int PID, const double *Threshold )
 {
 
 // Define the AMR refinement similiar to the reconstructed halo UM_IC
@@ -1637,7 +1638,7 @@ bool Flag_User_UMICAMR( const int i, const int j, const int k, const int lv, con
 
    return Flag;
 
-} // FUNCTION : Flag_User_UMICAMR
+} // FUNCTION : Flag_User_UMICAMR_HaloMerger
 
 
 
@@ -1654,6 +1655,23 @@ bool Flag_User_UMICAMR( const int i, const int j, const int k, const int lv, con
 //-------------------------------------------------------------------------------------------------------
 void OutputDensityProfile_HaloMerger()
 {
+
+} // FUNCTION : OutputDensityProfile_HaloMerger
+
+
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  Aux_Record_HaloMerger
+// Description :
+//
+// Note        :  1. Invoked by main() using the function pointer "Aux_Record_User_Ptr",
+//                   which must be set by a test problem initializer
+//                2. Enabled by the runtime option "OPT__RECORD_USER"
+//
+// Parameter   :  None
+//-------------------------------------------------------------------------------------------------------
+void Aux_Record_HaloMerger()
+{
    Extrema_t Max_Dens;
    Max_Dens.Field     = _DENS;
    Max_Dens.Radius    = __FLT_MAX__; // entire domain
@@ -1667,7 +1685,7 @@ void OutputDensityProfile_HaloMerger()
    const double      MaxRadius      = 0.5*amr->BoxSize[0];
    const double      MinBinSize     = amr->dh[MAX_LEVEL];
    const bool        LogBin         = true;
-   const double      LogBinRatio    = 1.25;
+   const double      LogBinRatio    = 1.025;
    const bool        RemoveEmptyBin = true;
    const long        TVar[]         = { _DENS };
    const int         NProf          = 1;
@@ -1687,7 +1705,7 @@ void OutputDensityProfile_HaloMerger()
       for (int p=0; p<NProf; p++)
       {
          char Filename[MAX_STRING];
-         sprintf( Filename, "DensityProfile_%06d", DumpID );
+         sprintf( Filename, "DensityProfile_Step_%09ld", Step );
          FILE *File = fopen( Filename, "w" );
 
          fprintf( File, "#%19s  %21s  %21s  %10s\n", "Radius", "Data", "Weight", "Cells" );
@@ -1699,44 +1717,43 @@ void OutputDensityProfile_HaloMerger()
       }
    }
 
-// Array of Enclosed Mass, M_Enc(R) = \int_{0}^{R} Rho(r) 4\pi R^2 dR
-   Profile_EnclosedMass     = new double [Prof[0]->NBin];
-   Profile_EnclosedMass[0]  = 0;   // where r=0
-   for (int b=1; b<RNBin; b++)   Profile_EnclosedMass[b] = Profile_EnclosedMass[b-1] + LinearDensityShellMass( Prof[0]->Radius[b-1], Prof[0]->Radius[b], Prof[0]->Data[b-1], Prof[0]->Data[b] );
+// Enclosed Mass
+   const int NBin = Prof[0]->NBin;
 
-   Profile_LogR     = new double [Prof[0]->NBin];
-   Profile_LogDens  = new double [Prof[0]->NBin];
-   Profile_LogMass  = new double [Prof[0]->NBin];
+   double* Profile_EnclosedMass = new double [NBin];
+   double* Profile_NegDens      = new double [NBin];
 
-   for (int b=0; b<RNBin; b++)  Profile_LogR[b]    = log10( Prof[0]->Radius[b]      );
-   for (int b=0; b<RNBin; b++)  Profile_LogDens[b] = log10( Prof[0]->Data[b]        );
-   for (int b=0; b<RNBin; b++)  Profile_LogMass[b] = log10( Profile_EnclosedMass[b] );
+   Profile_EnclosedMass[0]      = 4.0*M_PI/3.0*CUBE(Prof[0]->Radius[0])*Prof[0]->Data[0];
+   for (int b=1; b<NBin; b++)   Profile_EnclosedMass[b] = Profile_EnclosedMass[b-1] + LogLinearDensityShellMass( Prof[0]->Radius[b-1], Prof[0]->Radius[b], Prof[0]->Data[b-1], Prof[0]->Data[b] );
+   
+   for (int b=0; b<NBin; b++)   Profile_NegDens[b] = -Prof[0]->Data[b];
 
+// Soliton
    const double CoreDensity = Max_Dens.Value;
-   const double CoreRadius  = pow( 10.0, Mis_InterpolateFromTable( Prof[0]->NBin, Profile_LogDens, Profile_LogR,    log10( 0.5*CoreDensity ) );
-   const double CoreMass    = pow( 10.0, Mis_InterpolateFromTable( Prof[0]->NBin, Profile_LogR,    Profile_LogMass, log10( CoreRadius      ) );
+   const double CoreRadius  = Mis_InterpolateFromTable( NBin, Profile_NegDens,  Prof[0]->Radius,      -0.5*CoreDensity );
+   const double CoreMass    = Mis_InterpolateFromTable( NBin, Prof[0]->Radius,  Profile_EnclosedMass,  CoreRadius      );
 
    delete [] Profile_EnclosedMass;
-   delete [] Profile_LogR;
-   delete [] Profile_LogDens;
-   delete [] Profile_LogMass;
+   delete [] Profile_NegDens;
 
-} // FUNCTION : OutputDensityProfile_HaloMerger
+   if ( MPI_Rank == 0 )
+   {
+      FILE *File = fopen( "Record__CoreProperties", "a" );
 
+      static bool FirstTime = true;
 
+      if ( FirstTime )
+      {
+         fprintf( File, "#%11s  %21s  %21s  %21s  %21s  %21s\n", "Step", "Time", "CoreDensity", "CoreRadius", "CoreMass", "CoreRadiusCoreMass" );
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  Aux_Record_HaloMerger
-// Description :
-//
-// Note        :  1. Invoked by main() using the function pointer "Aux_Record_User_Ptr",
-//                   which must be set by a test problem initializer
-//                2. Enabled by the runtime option "OPT__RECORD_USER"
-//
-// Parameter   :  None
-//-------------------------------------------------------------------------------------------------------
-void Aux_Record_HaloMerger()
-{
+         FirstTime = false;
+      } // if ( FirstTime )
+
+      fprintf( File, "  %10ld  %21.14e  %21.14e  %21.14e  %21.14e  %21.14e\n",
+                       Step, Time[0], CoreDensity, CoreRadius, CoreMass, CoreRadius*CoreMass );
+
+      fclose( File );
+   }
 
 } // FUNCTION : Aux_Record_HaloMerger
 
@@ -1766,6 +1783,39 @@ double LinearDensityShellMass( const double r0, const double r1, const double rh
    const double dr  = r1 - r0;
 
    return M_PI*dr*( r0*r0*( 6.0*rho0 + 6.0*rho1 ) + r0*dr*( 4.0*rho0 + 8.0*rho1 ) + dr*dr*( rho0 + 3.0*rho1 ) )/3.0;
+
+} // FUNCTION : LinearDensityShellMass
+
+
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  LogLinearDensityShellMass
+// Description :  Get the shell mass between to radii according to a linear density profile in log-log space
+//
+// Note        :  1. Assume the density profile \rho(r) in log-log space is linear between two end points, r0 and r1:
+//                   log(\rho(r)) = log(\rho_0) + (\frac{(log(\rho_1)-log(\rho_0))}{log(r_1)-log(r_0)})(log(r)-log(r_0))
+//                   or equivalently,
+//                   \rho(r) = \rho_0 (\frac{r}{r_0})^p,
+//                   where p = log( \rho_1/\rho_0 ) / log( r_1/r_0 )
+//                   Then, the integrated shell mass between the two end points is
+//                   M_{shell} = \int_{r_0}^{r_1} \rho(r) 4\pi r^2 dr
+//                             = 4\pi \rho_0 \frac{ r_1^{p+3} - r_0^{p+3} }{ (p+3)r_0^p }, if p != -3
+//                           ( = 4\pi \rho_0 r_0^{3} log(r_1/r_0), if p = -3 )
+//
+// Parameter   :  r0   : Radius of the start point
+//                r1   : Radius of the end point
+//                rho0 : Density of the start point
+//                rho1 : Density of the end point
+//
+// Return      :  Shell mass integrated from the linear density profile in log-log space
+//-------------------------------------------------------------------------------------------------------
+double LogLinearDensityShellMass( const double r0, const double r1, const double rho0, const double rho1 )
+{
+   const double p = log( rho1/rho0 )/log( r1/r0 );
+
+   if ( p == -3.0 )   return 4.0*M_PI*rho0*CUBE(r0)*log( r1/r0 );
+
+   return 4.0*M_PI*rho0*( pow( r1, p+3.0 ) - pow( r0, p+3.0 ) )/( (p+3.0)*pow( r0, p ) );
 
 } // FUNCTION : LinearDensityShellMass
 #endif // #if ( MODEL == ELBDM  &&  defined GRAVITY )
@@ -1801,7 +1851,7 @@ void Init_TestProb_ELBDM_HaloMerger()
    Init_Function_User_Ptr  = SetGridIC;
    End_User_Ptr            = End_HaloMerger;
    Init_ExtPot_Ptr         = Init_ExtPot_ELBDM_HaloMerger;
-   Flag_User_Ptr           = Flag_User_UMICAMR;
+   Flag_User_Ptr           = Flag_User_UMICAMR_HaloMerger;
    Output_User_Ptr         = OutputDensityProfile_HaloMerger;
    Aux_Record_User_Ptr     = Aux_Record_HaloMerger;
 #  ifdef MASSIVE_PARTICLES
