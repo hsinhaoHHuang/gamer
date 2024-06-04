@@ -1730,7 +1730,7 @@ void Aux_Record_HaloMerger()
 
    Profile_EnclosedMass[0]      = 4.0*M_PI/3.0*CUBE(Prof[0]->Radius[0])*Prof[0]->Data[0];
    for (int b=1; b<NBin; b++)   Profile_EnclosedMass[b] = Profile_EnclosedMass[b-1] + LogLinearDensityShellMass( Prof[0]->Radius[b-1], Prof[0]->Radius[b], Prof[0]->Data[b-1], Prof[0]->Data[b] );
-   
+
    for (int b=0; b<NBin; b++)   Profile_NegDens[b] = -Prof[0]->Data[b];
 
 // Soliton
