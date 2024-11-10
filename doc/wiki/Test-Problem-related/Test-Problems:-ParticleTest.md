@@ -38,4 +38,7 @@
 > The active particle orbit is _not_ stable in this case due to self-force at refinement boundaries.
 5. Density of the gas must be kept very small to avoid gravitational effects from the gas.
 6. Use python script `make_tracer_pngs.py` with yt to make PNG images, use
-   bash script `make_tracer_movie.sh` to combine PNGs into movies with ffmpeg.
+   bash script `make_tracer_movie.sh` to combine PNGs into movies with `ffmpeg`.
+7. Set [[OPT__OUTPUT_PAR_MESH | Outputs#OPT__OUTPUT_PAR_MESH]] = 1 to output the mesh attributes, as listed in
+   `Input__Par_Mesh`, to tracer particles. Use the python script `check_mesh2tracer.py`
+   to verify the mesh attributes recorded in the HDF5 snapshots.
