@@ -8,7 +8,39 @@
 Before going to the test problem, please check out the demos in [[Quick Start]].
 
 # ELBDM tests
+[[ DiskHeating \| Test-Problems:-DiskHeating ]]
+
 [[ ExtPot \| Test-Problems:-ExtPot ]]
+
+[[ GaussianWavePacket \| Test-Problems:-GaussianWavePacket ]]
+
+[[ HaloMerger \| Test-Problems:-HaloMerger ]]
+
+[[ IsolatedHalo \| Test-Problems:-IsolatedHalo ]]
+
+[[ JeansInstabilityComoving \| Test-Problems:-JeansInstabilityComoving ]]
+
+[[ LSS \| Test-Problems:-LSS ]]
+
+[[ LSS_Hybrid \| Test-Problems:-LSS_Hybrid ]]
+
+[[ Perturbation \| Test-Problems:-Perturbation ]]
+
+[[ PlaneWave \| Test-Problems:-PlaneWave ]]
+
+[[ RestrictionMismatch \| Test-Problems:-RestrictionMismatch ]]
+
+[[ SelfSimilarHalo \| Test-Problems:-SelfSimilarHalo ]]
+
+[[ Soliton \| Test-Problems:-Soliton ]]
+
+[[ VortexPairLinear \| Test-Problems:-VortexPairLinear ]]
+
+[[ VortexPairLinear_Hybrid \| Test-Problems:-VortexPairLinear_Hybrid ]]
+
+[[ VortexPairRotating \| Test-Problems:-VortexPairRotating ]]
+
+[[ VortexPairRotating_Hybrid \| Test-Problems:-VortexPairRotating_Hybrid ]]
 
 
 # Hydro tests
