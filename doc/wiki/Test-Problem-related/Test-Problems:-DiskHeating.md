@@ -38,12 +38,12 @@
    sh download_ic.sh
    ```
 
-2. Ensure [[PAR_INIT | #PAR_INIT]] = 1 and [[OPT__INIT]] = 3 in `Input__Parameter`
+2. Ensure [[PAR_INIT | Particles#PAR_INIT]] = 1 and [[OPT__INIT | Initial-Conditions#OPT__INIT]] = 3 in `Input__Parameter`
 
-3. Default [[END_T | ]] is 2.5e-1 (about 3.5 Gyr) as in [Yang et al. 2023](https://doi.org/10.1093/mnras/stae793) and [[OUTPUT_DT | ]] is 1.0e-2 (about 0.14 Gyr)
+3. Default [[END_T | Runtime-Parameters:-General#END_T]] is 2.5e-1 (about 3.5 Gyr) as in [Yang et al. 2023](https://doi.org/10.1093/mnras/stae793) and [[OUTPUT_DT | Outputs#OUTPUT_DT]] is 1.0e-2 (about 0.14 Gyr)
 
 4. To switch to a high-resolution run, command `ln -sf ic_files/PAR_IC_0.4_M7 PAR_IC`
-   Set [[PAR_NPAR | ]]=80000000, [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]]=3, and change all values in `Input__Flag_NParPatch` to `800`
+   Set [[PAR_NPAR | Particles#PAR_NPAR]]=80000000, [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]]=3, and change all values in `Input__Flag_NParPatch` to `800`
 
 
 # General initial condition setup
@@ -52,9 +52,9 @@
    a. Generate the disk via modified [GALIC](https://github.com/HsunYeong/GALIC.git)
       The snapshots have the filenames `snap_XXX.hdf5`
 
-   b. Set the filename, units in `get_par_ic.py` to match the GALIC set-up
+   b. Set the filename, and units in `get_par_ic.py` to match the GALIC set-up
 
-   c. Set center to be location of the soliton in `get_par_ic.py`
+   c. Set center to be the location of the soliton in `get_par_ic.py`
 
    d. Execute `get_par_ic.py`, it will generate `PAR_IC`
 
@@ -62,17 +62,20 @@
 
    a. If the data is binary file `UM_IC`
 
-      * Set [[OPT__INIT | ]] = 3 and [[PAR_INIT | ]] = 1
+      * Set [[OPT__INIT | Initial-Conditions#OPT__INIT]] = 3 and [[PAR_INIT | Particles#PAR_INIT]] = 1
       * `Input__UM_IC_RefineRegion` is required
 
    b. If the data is GAMER snapshot
 
-      * Command `ln -s Data_XXXXXX RESTART` to create a soft link
-      * Set [[OPT__INIT | ]] = 2 and [[PAR_INIT | ]] = 2 in `Input__Parameter`
+      * Create a soft link for restart
+         ```bash
+         ln -s Data_XXXXXX RESTART
+         ```
+      * Set [[OPT__INIT | Initial-Conditions#OPT__INIT]] = 2 and [[PAR_INIT | Particles#PAR_INIT]] = 2 in `Input__Parameter`
       * Turn on `AddParWhenRestart` and `AddParWhenRestartByFile` in `Input__TestProb`
       * Set `AddParWhenRestartNPar` in `Input__TestProb`
-      * Turn on [[OPT__RESTART_RESET | ]] in `Input__Parameter`
-      # Recommand to turn off `AddParWhenRestart`, `AddParWhenRestartByFile`, [[OPT__RESTART_RESET | ]] right after the simulation starts
+      * Turn on [[OPT__RESTART_RESET | Initial-Conditions#OPT__RESTART_RESET]] in `Input__Parameter`
+        * Recommend to turn off `AddParWhenRestart`, `AddParWhenRestartByFile`, [[OPT__RESTART_RESET | Initial-Conditions#OPT__RESTART_RESET]] right after the simulation starts
 
    c. The code for [FDM halo reconstruction](https://github.com/calab-ntu/psidm-halo-reconstruction)
 
@@ -83,7 +86,7 @@
       ln -s Data_XXXXXX RESTART
       ```
 
-   b. Set [[OPT__INIT | ]] = 2 and [[PAR_INIT | ]] = 2 and turn on [[OPT__RESTART_RESET | ]] in Input__Parameter
+   b. Set [[OPT__INIT | Initial-Conditions#OPT__INIT]] = 2 and [[PAR_INIT | Particles#PAR_INIT]] = 2 and turn on [[OPT__RESTART_RESET | Initial-Conditions#OPT__RESTART_RESET]] in `Input__Parameter`
 
    c. Turn on `AddParWhenRestart` in `Input__TestProb`
 
@@ -99,8 +102,7 @@
 2. `plot_halo_density.py`, `plot_halo_potential.py`
 
    * Compute and plot shell-averaged halo density or gravitational potential profiles
-   * Output files: `Data_*_1d-Profile_radius_Dens.png`, `Halo_Dens_Data_*.npy`,
-                   `Data_*_1d-Profile_radius_Pote.png`, `Halo_Pote_Data_*.npy`
+   * Output files: `Data_*_1d-Profile_radius_Dens.png`, `Halo_Dens_Data_*.npy`, `Data_*_1d-Profile_radius_Pote.png`, and `Halo_Pote_Data_*.npy`
 
 3. `data_disk.py`
 
