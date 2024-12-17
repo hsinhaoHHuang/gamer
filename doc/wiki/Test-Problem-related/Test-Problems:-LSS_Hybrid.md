@@ -30,7 +30,7 @@
 2. Simulation
    | Parameter name         | value |
    |---                     |---    |
-   | BOX_SIZE`              | 2.8   |
+   | BOX_SIZE               | 2.8   |
    | MAX_LEVEL              | 6     |
    | OPT__FLAG_SPECTRAL     | 1     |
    | OPT__FLAG_INTERFERENCE | 1     |
