@@ -13,7 +13,7 @@
 # Default setup
 1. Evolve the plane wave for six periods
 2. Apply the periodic BC
-   --> Set [[OPT__BC_FLU_* | ]] = 1
+   --> Set [[OPT__BC_FLU_* | Hydro#OPT__BC_FLU_XM]] = 1
 
 
 # Note
