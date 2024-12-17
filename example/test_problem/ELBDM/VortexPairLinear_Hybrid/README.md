@@ -25,4 +25,4 @@
     -->   `psi(x, y, z) = psi_vorpair(x,y) + background_z * exp( i*(kz*z-ZWaveOmega*t) )`
        where `background_z` is a constant on the order of background, `kz` is a wavenumber and
        `Omega=0.5/ELBDM_ETA*(kz^2)`
-3. If [[CONSERVE_MASS | ]] is enabled, mass ought to be conserved in this test because of periodic boundary conditions
+3. If [[CONSERVE_MASS | Installation: Simulation-Options#CONSERVE_MASS]] is enabled, mass ought to be conserved in this test because of periodic boundary conditions
