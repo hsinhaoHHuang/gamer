@@ -22,7 +22,7 @@
 1. 32^3 uniform resolution
    --> No grid refinement is adopted in this test
 
-2. [[DT__MAX_DELTA_A | ]] is set an extremely large number so that the time-step will
+2. [[DT__MAX_DELTA_A | Runtime-Parameters:-Timestep#DT__MAX_DELTA_A]] is set to an extremely large number so that the time-step will
    be controlled by the fluid solver
 
 3. The default setup in `Input__Parameter` and `Input__TestProb` gives an UNSTABLE
@@ -42,12 +42,12 @@
 
 
 # Note
-1. Analytical solution reference: Woo, T. & Chiueh, T. 2009, ApJ, 697, 850
+1. Analytical solution reference: [Woo, T. & Chiueh, T. 2009, ApJ, 697, 850](https://doi.org/10.1088/0004-637X/697/1/850)
 
 > [!NOTE]
 > The imaginary part `I` grows much faster than the real part `R`.
   Consequently, the accuracy of linear prediction will be deteriorated
-  when the assumption (2R >> I^2) starts to break down, especially in the
+  when the assumption (`2R >> I^2`) starts to break down, especially in the
   higher-resolution tests, and hence the 2nd-order accuracy may no longer
   hold.
 
