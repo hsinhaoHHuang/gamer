@@ -11,7 +11,7 @@
 
 
 # Default setup
-1. [[NX0_TOT_X/Y/Z | ]] = 96
+1. [[NX0_TOT_X/Y/Z | Runtime-Parameters:-General#NX0_TOT_X]] = 96
 2. [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]] = 2
 
 
