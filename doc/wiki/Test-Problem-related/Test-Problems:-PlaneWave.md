@@ -8,14 +8,14 @@
 
 # Compilation flags
 - Must enable
-   - [[MODEL=ELBDM | Installation: Simulation-Options#MODEL]]
-   - [[FLOAT8 | Installation: Simulation-Options#FLOAT8]]
-   - [[NCOMP_PASSIVE_USER=1 | Installation: Simulation-Options#NCOMP_PASSIVE_USER]]
+   - [[--model=ELBDM | Installation:-Option-List#--modle]]
+   - [[--double | Installation:-Option-List#--double]]
+   - [[--passive=1 | Installation:-Option-List#--passive]]
 - Must disable
-   - [[GRAVITY | Installation: Simulation-Options#GRAVITY]]
-   - [[PARTICLE | Installation: Simulation-Options#PARTICLE]]
+   - [[--gravity | Installation:-Option-List#--gravity]]
+   - [[--particle | Installation:-Option-List#--particle]]
 - Available options
-   - [[Miscellaneous Options | Installation: Simulation-Options#miscellaneous-options]]
+   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup

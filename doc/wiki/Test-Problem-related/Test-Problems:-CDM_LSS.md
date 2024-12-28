@@ -8,13 +8,13 @@
 
 # Compilation flags
 - Must enable
-   - [[MODEL=HYDRO/ELBDM | Installation: Simulation-Options#MODEL]]
-   - [[COMOVING | Installation: Simulation-Options#COMOVING]]
-   - [[PARTICLE | Installation: Simulation-Options#PARTICLE]]
-   - [[GRAVITY | Installation: Simulation-Options#GRAVITY]]
+   - [[--model=HYDRO/ELBDM | Installation:-Option-List#--model]]
+   - [[--comoving | Installation:-Option-List#--comoving]]
+   - [[--particle | Installation:-Option-List#--particle]]
+   - [[--gravity | Installation:-Option-List#--gravity]]
 - Must disable
 - Available options
-   - [[Miscellaneous Options | Installation: Simulation-Options#miscellaneous-options]]
+   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup
@@ -50,7 +50,7 @@
    sh download_ic.sh
    ```
 3. GAMER currently doesn't support particle-only simulations. So the following temporary solutions are adopted
-   1. Set gas density/energy to arbitrarily small (for [[MODEL=HYDRO | Installation: Simulation-Options#MODEL]])
-      or wave function to zero (for [[MODEL=ELBDM | Installation: Simulation-Options#MODEL]]) in `SetGridIC()`.
+   1. Set gas density/energy to arbitrarily small (for [[--model | Installation:-Option-List#--modle]])
+      or wave function to zero (for [[--model=ELBDM | Installation:-Option-List#--modle]]) in `SetGridIC()`.
    2. Enable [[OPT__FREEZE_FLUID | Hydro#OPT__FREEZE_FLUID]]
 4. Default maximum spatial resolution is 30.0/(128*2^5)~7.3 kpc/h (comoving).

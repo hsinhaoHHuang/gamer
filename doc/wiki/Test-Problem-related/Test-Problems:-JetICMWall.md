@@ -10,16 +10,16 @@
 Enable  : MODEL=HYDRO, SRHD, NCOMP_PASSIVE_USER = 4
 Disable : GRAVITY, MHD, COMOVING, PARTICLE
 - Must enable
-   - [[MODEL=HYDRO | Installation: Simulation-Options#MODEL]]
-   - [[SRHD | Installation: Simulation-Options#SRHD]]
-   - [[NCOMP_PASSIVE_USER=4 | Installation: Simulation-Options#NCOMP_PASSIVE_USER]]
+   - [[--model | Installation:-Option-List#--modle]]
+   - [[--srhd | Installation:-Option-List#--srhd]]
+   - [[--passive=4 | Installation:-Option-List#--passive]]
 - Must disable
-   - [[GRAVITY | Installation: Simulation-Options#GRAVITY]]
-   - [[COMOVING | Installation: Simulation-Options#COMOVING]]
-   - [[PARTICLE | Installation: Simulation-Options#PARTICLE]]
-   - [[MHD | Installation: Simulation-Options#MHD]]
+   - [[--gravity | Installation:-Option-List#--gravity]]
+   - [[--comoving | Installation:-Option-List#--comoving]]
+   - [[--particle | Installation:-Option-List#--particle]]
+   - [[--mhd | Installation:-Option-List#--mhd]]
 - Available options
-   - [[Miscellaneous Options | Installation: Simulation-Options#miscellaneous-options]]
+   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup

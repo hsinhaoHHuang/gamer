@@ -8,15 +8,15 @@
 
 # Compilation flags
 - Must enable
-   - [[MODEL=HYDRO | Installation: Simulation-Options#MODEL]]
-   - [[EOS=EOS_GAMMA | Installation: Simulation-Options#EOS]]
-   - [[SUPPORT_FFTW | Installation: Simulation-Options#SUPPORT_FFTW]]
+   - [[--model | Installation:-Option-List#--modle]]
+   - [[--eos=GAMMA | Installation:-Option-List#--eos]]
+   - [[--fftw | Installation:-Option-List#--fftw]]
 - Must disable
-   - [[COMOVING | Installation: Simulation-Options#COMOVING]]
-   - [[PARTICLE | Installation: Simulation-Options#PARTICLE]]
-   - [[MHD | Installation: Simulation-Options#MHD]]
+   - [[--comoving | Installation:-Option-List#--comoving]]
+   - [[--particle | Installation:-Option-List#--particle]]
+   - [[--mhd | Installation:-Option-List#--mhd]]
 - Available options
-   - [[Miscellaneous Options | Installation: Simulation-Options#miscellaneous-options]]
+   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup

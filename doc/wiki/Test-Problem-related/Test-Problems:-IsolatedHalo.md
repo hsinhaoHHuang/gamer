@@ -8,12 +8,12 @@
 
 # Compilation flags
 - Must enable
-   - [[MODEL=ELBDM | Installation: Simulation-Options#MODEL]]
-   - [[GRAVITY | Installation: Simulation-Options#GRAVITY]]
+   - [[--model=ELBDM | Installation:-Option-List#--modle]]
+   - [[--gravity | Installation:-Option-List#--gravity]]
 - Must disable
-   - [[COMOVING | Installation: Simulation-Options#COMOVING]]
+   - [[--comoving | Installation:-Option-List#--comoving]]
 - Available options
-   - [[Miscellaneous Options | Installation: Simulation-Options#miscellaneous-options]]
+   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup

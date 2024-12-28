@@ -8,14 +8,14 @@
 
 # Compilation flags
 - Must enable
-   - [[MODEL=ELBDM | Installation: Simulation-Options#MODEL]]
-   - [[ELBDM_SCHEME=ELBDM_HYBRID | Installation: Simulation-Options#ELBDM_SCHEME]]
-   - [[GRAVITY | Installation: Simulation-Options#GRAVITY]]
-   - [[COMOVING | Installation: Simulation-Options#COMOVING]]
+   - [[--model=ELBDM | Installation:-Option-List#--modle]]
+   - [[--elbdm_scheme=elbdm_hybrid | Installation:-Option-List#--elbdm_scheme]]
+   - [[--gravity | Installation:-Option-List#--gravity]]
+   - [[--comoving | Installation:-Option-List#--comoving]]
 - Must disable
-   - [[PARTICLE | Installation: Simulation-Options#PARTICLE]]
+   - [[--particle | Installation:-Option-List#--particle]]
 - Available options
-   - [[Miscellaneous Options | Installation: Simulation-Options#miscellaneous-options]]
+   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup

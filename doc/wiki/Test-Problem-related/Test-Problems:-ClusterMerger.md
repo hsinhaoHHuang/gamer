@@ -8,18 +8,18 @@
 
 # Compilation flags
 - Must enable
-   - [[MODEL=HYDRO | Installation: Simulation-Options#MODEL]]
-   - [[GRAVITY | Installation: Simulation-Options#GRAVITY]]
-   - [[PARTICLE | Installation: Simulation-Options#PARTICLE]]
-   - [[SUPPORT_HDF5 | Installation: Simulation-Options#SUPPORT_HDF5]]
-   - [[NPAR_ATT_USER=0 | Installation: Simulation-Options#NPAR_ATT_USER]]
-   - [[NCOMPT_PASSIVE_USER | Installation: Simulation-Options#NCOMP_PASSIVE_USER]]>= `Merger_cool_NumHalos` + `Merger_coll_UseMetals`
+   - [[--model | Installation:-Option-List#--modle]]
+   - [[--gravity | Installation:-Option-List#--gravity]]
+   - [[--particle | Installation:-Option-List#--particle]]
+   - [[--hdf5 | Installation:-Option-List#--hdf5]]
+   - [[--par_attribute=0 | Installation:-Option-List#--par_attribute]]
+   - [[--passive | Installation:-Option-List#--passive]]>= `Merger_cool_NumHalos` + `Merger_coll_UseMetals`
      (these are parameters in Input__TestProb)
 - Must disable
-   - [[COMOVING | Installation: Simulation-Options#COMOVING]]
+   - [[--comoving | Installation:-Option-List#--comoving]]
 - Available options
-   - [[MHD | Installation: Simulation-Options#MHD]]
-   - [[Miscellaneous Options | Installation: Simulation-Options#miscellaneous-options]]
+   - [[--mhd | Installation:-Option-List#--mhd]]
+   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup
@@ -88,18 +88,18 @@
       ```
 # Compilation flags
 - Must enable
-   - [[MODEL=HYDRO | Installation: Simulation-Options#MODEL]]
-   - [[GRAVITY | Installation: Simulation-Options#GRAVITY]]
-   - [[PARTICLE | Installation: Simulation-Options#PARTICLE]]
-   - [[SUPPORT_HDF5 | Installation: Simulation-Options#SUPPORT_HDF5]]
-   - [[NPAR_ATT_USER=0 | Installation: Simulation-Options#NPAR_ATT_USER]]
-   - [[NCOMPT_PASSIVE_USER | Installation: Simulation-Options#NCOMP_PASSIVE_USER]]>= `Merger_cool_NumHalos` + `Merger_coll_UseMetals`
+   - [[--model | Installation:-Option-List#--modle]]
+   - [[--gravity | Installation:-Option-List#--gravity]]
+   - [[--particle | Installation:-Option-List#--particle]]
+   - [[--hdf5 | Installation:-Option-List#--hdf5]]
+   - [[--par_attribute=0 | Installation:-Option-List#--par_attribute]]
+   - [[--passive | Installation:-Option-List#--passive]]>= `Merger_cool_NumHalos` + `Merger_coll_UseMetals`
      (these are parameters in Input__TestProb)
 - Must disable
-   - [[COMOVING | Installation: Simulation-Options#COMOVING]]
+   - [[--comoving | Installation:-Option-List#--comoving]]
 - Available options
-   - [[MHD | Installation: Simulation-Options#MHD]]
-   - [[Miscellaneous Options | Installation: Simulation-Options#miscellaneous-options]]
+   - [[--mhd | Installation:-Option-List#--mhd]]
+   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup

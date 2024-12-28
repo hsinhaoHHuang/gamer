@@ -8,13 +8,13 @@
 
 # Compilation flags
 - Must enable
-   - [[MODEL=ELBDM | Installation: Simulation-Options#MODEL]]
-   - [[ELBDM_SCHEME=ELBDM_HYBRID | Installation: Simulation-Options#ELBDM_SCHEME]]
+   - [[--model=ELBDM | Installation:-Option-List#--modle]]
+   - [[--elbdm_scheme=ELBDM_HYBRID | Installation:-Option-List#--elbdm_scheme]]
 - Must disable
-   - [[GRAVITY | Installation: Simulation-Options#GRAVITY]]
-   - [[PARTICLE | Installation: Simulation-Options#PARTICLE]]
+   - [[--gravity | Installation:-Option-List#--gravity]]
+   - [[--particle | Installation:-Option-List#--particle]]
 - Available options
-   - [[Miscellaneous Options | Installation: Simulation-Options#miscellaneous-options]]
+   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup
@@ -33,4 +33,4 @@
     -->   `psi(x, y, z) = psi_vorpair(x,y) + background_z * exp( i*(kz*z-ZWaveOmega*t) )`
        where `background_z` is a constant on the order of background, `kz` is a wavenumber and
        `Omega=0.5/ELBDM_ETA*(kz^2)`
-3. If [[CONSERVE_MASS | Installation: Simulation-Options#CONSERVE_MASS]] is enabled, mass ought to be conserved in this test because of periodic boundary conditions
+3. If [[--conserve_mass | Installation:-Option-List#--conserve_mass]] is enabled, mass ought to be conserved in this test because of periodic boundary conditions

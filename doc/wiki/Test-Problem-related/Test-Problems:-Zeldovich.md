@@ -8,16 +8,16 @@
 
 # Compilation flags
 - Must enable
-   - [[MODEL=HYDRO | Installation: Simulation-Options#MODEL]]
-   - [[GRAVITY | Installation: Simulation-Options#GRAVITY]]
-   - [[COMOVING | Installation: Simulation-Options#COMOVING]]
-   - [[PARTICLE | Installation: Simulation-Options#PARTICLE]]
-   - [[SUPPORT_GSL | Installation: Simulation-Options#SUPPORT_GSL]]
-   - [[SUPPORT_FFTW | Installation: Simulation-Options#SUPPORT_FFTW]]
-   - [[DUAL_ENERGY | Installation: Simulation-Options#DUAL_ENERGY]]
+   - [[--model | Installation:-Option-List#--modle]]
+   - [[--gravity | Installation:-Option-List#--gravity]]
+   - [[--comoving | Installation:-Option-List#--comoving]]
+   - [[--particle | Installation:-Option-List#--particle]]
+   - [[--gsl | Installation:-Option-List#--gsl]]
+   - [[--fftw | Installation:-Option-List#--fftw]]
+   - [[--dual | Installation:-Option-List#--dual]]
 - Must disable
 - Available options
-   - [[Miscellaneous Options | Installation: Simulation-Options#miscellaneous-options]]
+   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 - Configure.py
    ```
    python configure.py --model=HYDRO --gravity=true --comoving=true --particle=true --gsl=true --fftw=FFTW2 --dual=DE_ENPY
@@ -33,17 +33,17 @@
    | HUBBLE0        | 0.6732117              |  |
 
 2. Simulation
-   | Parameter name     | value      | Note |
-   |---                 |---         |--- |
-   | BOX_SIZE           | 80 (Mpc/h) |  |
-   | NX0_TOT_X/Y/Z      | 128/32/32  |  |
-   | OPT__BC_*          | 1          |  |
-   | MAX_LEVEL          | 0          |  |
-   | GPU_NSTREAM        | 8 or 4     | necessary while DUAL_ENERGY is enabled |
-   | OPT__FLAG_RHO      | 1          |  |
-   | OPT__OUTPUT_PART   | 4          |  |
-   | OPT__OUTPUT_BASEPS | 0          |  |
-   | OUTPUT_PART_X/Y/Z  | 0.0        |  |
+   | Parameter name     | value       |
+   |---                 |---          |
+   | BOX_SIZE           |  80 (Mpc/h) |
+   | NX0_TOT_X/Y/Z      |  128/32/32  |
+   | OPT__BC_*          |  1          |
+   | MAX_LEVEL          |  0          |
+   | GPU_NSTREAM        | -1          |
+   | OPT__FLAG_RHO      |  1          |
+   | OPT__OUTPUT_PART   |  4          |
+   | OPT__OUTPUT_BASEPS |  0          |
+   | OUTPUT_PART_X/Y/Z  |  0.0        |
 
 3. Particle
    | Parameter name  | value |
@@ -88,7 +88,7 @@ For "particle-only" setup:
 
 # Note
 1. Zeldovich pancake collapse cosmological simulations
-2. It is recommended to enable [[FLOAT8 | Installation: Simulation-Options#FLOAT8]] for gas-only setup
+2. It is recommended to enable [[--double | Installation:-Option-List#--double]] for gas-only setup
    (`Gas_Par_Setup = 1`) to properly resolve thepressure and temperature of the cold flow
 3. Since GAMER does not support genuine 1D/2D simulations, one should set the root-level grid size to 32
    (i.e., patch size*2*2) in the transverse directions. The density distribution is perturbed along only

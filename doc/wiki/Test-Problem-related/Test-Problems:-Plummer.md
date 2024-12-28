@@ -8,12 +8,12 @@
 
 # Compilation flags
 - Must enable
-   - [[MODEL=HYDRO | Installation: Simulation-Options#MODEL]]
-   - [[GRAVITY | Installation: Simulation-Options#GRAVITY]]
+   - [[--model | Installation:-Option-List#--modle]]
+   - [[--gravity | Installation:-Option-List#--gravity]]
 - Must disable
-   - [[COMOVING | Installation: Simulation-Options#COMOVING]]
+   - [[--comoving | Installation:-Option-List#--comoving]]
 - Available options
-   - [[Miscellaneous Options | Installation: Simulation-Options#miscellaneous-options]]
+   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup
@@ -24,7 +24,7 @@ None
 1. Test the evolution of the Plummer model
    --> `Plummer_Collision` = 0: test the stability of a single Plummer cloud
                              1: test the collision of two Plummer clouds
-2. One can set [[NCOMP_PASSIVE_USER=2 | Installation: Simulation-Options#NCOMP_PASSIVE_USER]]
+2. One can set [[--passive=2 | Installation:-Option-List#--passive]]
    and `Plummer_AddColor=1` for `Plummer_Collision==1`
    --> Different clouds will be assigned with different passive scalars
 3. Plummer cloud(s) can have both gas and particles
