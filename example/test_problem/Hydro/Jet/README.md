@@ -1,11 +1,11 @@
 # Compilation flags
 - Must enable
-   - [[MODEL=HYDRO | Installation: Simulation-Options#MODEL]]
-   - [[GRAVITY | Installation: Simulation-Options#GRAVITY]] (when enabling `JET_HSE`)
+   - [[--model | Installation:-Option-List#--modle]]
+   - [[--gravity | Installation:-Option-List#--gravity]] (when enabling `JET_HSE`)
 - Must disable
-   - [[GRAVITY | Installation: Simulation-Options#GRAVITY]] (when disabling `JET_HSE`)
+   - [[--gravity | Installation:-Option-List#--gravity]] (when disabling `JET_HSE`)
 - Available options
-   - [[Miscellaneous Options | Installation: Simulation-Options#miscellaneous-options]]
+   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup

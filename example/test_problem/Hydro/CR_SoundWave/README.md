@@ -1,16 +1,16 @@
 # Compilation flags
 - Must enable
-   - [[MODEL=HYDRO | Installation: Simulation-Options#MODEL]]
-   - [[EOS=EOS_GAMMA_CR | Installation: Simulation-Options#EOS]]
-   - [[FLOAT8 | Installation: Simulation-Options#FLOAT8]]
-   - [[COSMIC_RAY | Installation: Simulation-Options#COSMIC_RAY]]
+   - [[--model | Installation:-Option-List#--modle]]
+   - [[--eos=COSMIC_RAY | Installation:-Option-List#--eos]]
+   - [[--double | Installation:-Option-List#--double]]
+   - [[--cosmic_ray | Installation:-Option-List#--cosmic_ray]]
 - Must disable
-   - [[COMOVING | Installation: Simulation-Options#COMOVING]]
-   - [[PARTICLE | Installation: Simulation-Options#PARTICLE]]
-   - [[GRAVITY | Installation: Simulation-Options#GRAVITY]]
-   - [[CR_DIFFUSION | Installation: Simulation-Options#CR_DIFFUSION]]
+   - [[--comoving | Installation:-Option-List#--comoving]]
+   - [[--particle | Installation:-Option-List#--particle]]
+   - [[--gravity | Installation:-Option-List#--gravity]]
+   - [[--cr_diffusion | Installation:-Option-List#--cr_diffusion]]
 - Available options
-   - [[Miscellaneous Options | Installation: Simulation-Options#miscellaneous-options]]
+   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup

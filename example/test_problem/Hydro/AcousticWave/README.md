@@ -1,13 +1,13 @@
 # Compilation flags
 - Must enable
-   - [[MODEL=HYDRO | Installation: Simulation-Options#MODEL]]
-   - [[FLOAT8 | Installation: Simulation-Options#FLOAT8]]
+   - [[--model | Installation:-Option-List#--modle]]
+   - [[--double | Installation:-Option-List#--double]]
 - Must disable
-   - [[COMOVING | Installation: Simulation-Options#COMOVING]]
-   - [[PARTICLE | Installation: Simulation-Options#PARTICLE]]
-   - [[GRAVITY | Installation: Simulation-Options#GRAVITY]]
+   - [[--comoving | Installation:-Option-List#--comoving]]
+   - [[--particle | Installation:-Option-List#--particle]]
+   - [[--gravity | Installation:-Option-List#--gravity]]
 - Available options
-   - [[Miscellaneous Options | Installation: Simulation-Options#miscellaneous-options]]
+   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup
@@ -22,11 +22,11 @@
 4. `AcousticWave_*_*` record the numerical and analytical solutions along the diagonal
 5. For SRHD:
    - Also enable these compilation flags:
-      - [[SRHD | Installation: Simulation-Options#SRHD]]
-      - [[EOS=EOS_TAUBMATHEWS | Installation: Simulation-Options#EOS]]
-      - [[FLU_SCHEME=MHM | Installation: Simulation-Options#FLU_SCHEME]]
-      - [[RSOLVER=HLLC | Installation: Simulation-Options#RSOLVER]]
-      - [[LR_SCHEME=PLM | Installation: Simulation-Options#LR_SCHEME]]
+      - [[--srhd | Installation:-Option-List#--srhd]]
+      - [[--eos=TAUBMATHEWS | Installation:-Option-List#--eos]]
+      - [[--flu_scheme=MHM | Installation:-Option-List#--flu_scheme]]
+      - [[--flux=HLLC | Installation:-Option-List#--flux]]
+      - [[--slope=PLM | Installation:-Option-List#--slope]]
    - In `Input__TestProb`,
       - `Acoustic_v0` and `Acoustic_Cs` will be useless
       - set `Acoustic_Temp_Bg = 1.0e+10` for high-temperature case

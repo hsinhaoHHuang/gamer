@@ -1,15 +1,15 @@
 # Compilation flags
 - Must enable
-   - [[MODEL=ELBDM | Installation: Simulation-Options#MODEL]]
-   - [[GRAVITY | Installation: Simulation-Options#GRAVITY]]
-   - [[PARTICLE | Installation: Simulation-Options#PARTICLE]]
-   - [[STORE_PAR_ACC | Installation: Simulation-Options#STORE_PAR_ACC]]
-   - [[SUPPORT_HDF5 | Installation: Simulation-Options#SUPPORT_HDF5]]
-   - [[SUPPORT_GSL | Installation: Simulation-Options#SUPPORT_GSL]] (optional, only useful for thin disk)
+   - [[--model=ELBDM | Installation:-Option-List#--modle]]
+   - [[--gravity | Installation:-Option-List#--gravity]]
+   - [[--particle | Installation:-Option-List#--particle]]
+   - [[--store_par_acc | Installation:-Option-List#--store_par_acc]]
+   - [[--hdf5 | Installation:-Option-List#--hdf5]]
+   - [[--gsl | Installation:-Option-List#--gsl]] (optional, only useful for thin disk)
 - Must disable
-   - [[COMOVING | Installation: Simulation-Options#COMOVING]]
+   - [[--comoving | Installation:-Option-List#--comoving]]
 - Available options
-   - [[Miscellaneous Options | Installation: Simulation-Options#miscellaneous-options]]
+   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Quick start

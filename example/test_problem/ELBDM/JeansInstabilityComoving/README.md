@@ -1,13 +1,13 @@
 # Compilation flags
 - Must enable
-   - [[MODEL=ELBDM | Installation: Simulation-Options#MODEL]]
-   - [[GRAVITY | Installation: Simulation-Options#GRAVITY]]
-   - [[COMOVING | Installation: Simulation-Options#COMOVING]]
+   - [[--model=ELBDM | Installation:-Option-List#--modle]]
+   - [[--gravity | Installation:-Option-List#--gravity]]
+   - [[--comoving | Installation:-Option-List#--comoving]]
 - Must disable
-   - [[PARTICLE | Installation: Simulation-Options#PARTICLE]]
-   - [[UNSPLIT_GRAVITY | Installation: Simulation-Options#UNSPLIT_GRAVITY]]
+   - [[--particle | Installation:-Option-List#--particle]]
+   - [[--unsplit_gravity | Installation:-Option-List#--unsplit_gravity]]
 - Available options
-   - [[Miscellaneous Options | Installation: Simulation-Options#miscellaneous-options]]
+   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup

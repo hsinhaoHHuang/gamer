@@ -1,12 +1,12 @@
 # Compilation flags
 - Must enable
-   - [[MODEL=HYDRO | Installation: Simulation-Options#MODEL]]
+   - [[--model | Installation:-Option-List#--modle]]
 - Must disable
-   - [[PARTICLE | Installation: Simulation-Options#PARTICLE]]
-   - [[GRAVITY | Installation: Simulation-Options#GRAVITY]]
+   - [[--particle | Installation:-Option-List#--particle]]
+   - [[--gravity | Installation:-Option-List#--gravity]]
 - Available options
-   - [[MHD | Installation: Simulation-Options#MHD]]
-   - [[Miscellaneous Options | Installation: Simulation-Options#miscellaneous-options]]
+   - [[--mhd | Installation:-Option-List#--mhd]]
+   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup
@@ -19,7 +19,7 @@
 # Note
 1. Since GAMER does not support real 1D/2D simulations, one should set the
    root-level grid size to 16 (i.e., patch size*2) in the transverse directions
-2. Enable [[MHD | Installation: Simulation-Options#MHD]] in the `Makefile` for the Riemann problems involving magnetic field
+2. Enable [[--mhd | Installation:-Option-List#--mhd]] in the `Makefile` for the Riemann problems involving magnetic field
 3. Plotting scripts: `plot__hydro_dens.gpt`, `plot__mhd.gpt`
 4. The analytical solution of `ReferenceSolution/Gamma_1.67/BrioWu` adopts a
    regular solution (a rotational wave) at x~0.495 while numerical simulations

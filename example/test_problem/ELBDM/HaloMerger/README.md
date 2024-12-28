@@ -1,13 +1,13 @@
 # Compilation flags
 - Must enable
-   - [[MODEL=ELBDM | Installation: Simulation-Options#MODEL]]
-   - [[GRAVITY | Installation: Simulation-Options#GRAVITY]]
-   - [[PARTICLE | Installation: Simulation-Options#PARTICLE]] (optional for `HaloMerger_ParCloud_InitMode` = 1)
-   - [[SUPPORT_GSL | Installation: Simulation-Options#SUPPORT_GSL]] (optional for `HaloMerger_ParCloud_InitMode` = 1)
+   - [[--model=ELBDM | Installation:-Option-List#--modle]]
+   - [[--gravity | Installation:-Option-List#--gravity]]
+   - [[--particle | Installation:-Option-List#--particle]] (optional for `HaloMerger_ParCloud_InitMode` = 1)
+   - [[--gsl | Installation:-Option-List#--gsl]] (optional for `HaloMerger_ParCloud_InitMode` = 1)
 - Must disable
-   - [[COMOVING | Installation: Simulation-Options#COMOVING]]
+   - [[--comoving | Installation:-Option-List#--comoving]]
 - Available options
-   - [[Miscellaneous Options | Installation: Simulation-Options#miscellaneous-options]]
+   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup
@@ -84,7 +84,7 @@
    b. For `HaloMerger_ParCloud_InitMode` == 1
       - The initial condition of particle clouds is constructed by reading the table of density profile and using `Par_EquilibriumIC()`
       - The default particle clouds use the HaloDensityProfile (see Note 7. below) to represent the CDM halos
-      - Enable compilation options: [[PARTICLE | Installation: Simulation-Options#PARTICLE]], [[SUPPORT_GSL | Installation: Simulation-Options#SUPPORT_GSL]]
+      - Enable compilation options: [[--particle | Installation:-Option-List#--particle]], [[--gsl | Installation:-Option-List#--gsl]]
       - Set the parameter [[OPT__FREEZE_FLUID | Hydro#OPT__FREEZE_FLUID]] to 1 in `Input__Parameter` for particle-only simulations
 
 5. Turn on [[OPT__EXT_POT | Gravity#OPT__EXT_POT]] == 1 to add external potential

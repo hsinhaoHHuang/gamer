@@ -1,14 +1,14 @@
 # Compilation flags:
 - Must enable
-   - [[MODEL=HYDRO | Installation: Simulation-Options#MODEL]]
-   - [[PARTICLE | Installation: Simulation-Options#PARTICLE]]
-   - [[GRAVITY | Installation: Simulation-Options#GRAVITY]]
-   - [[FLOAT8 | Installation: Simulation-Options#FLOAT8]]
-   - [[DUAL_ENERGY | Installation: Simulation-Options#DUAL_ENERGY]]
+   - [[--model | Installation:-Option-List#--modle]]
+   - [[--particle | Installation:-Option-List#--particle]]
+   - [[--gravity | Installation:-Option-List#--gravity]]
+   - [[--double | Installation:-Option-List#--double]]
+   - [[--dual | Installation:-Option-List#--dual]]
 - Must disable
-   - [[COMOVING | Installation: Simulation-Options#COMOVING]]
+   - [[--comoving | Installation:-Option-List#--comoving]]
 - Available options
-   - [[Miscellaneous Options | Installation: Simulation-Options#miscellaneous-options]]
+   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup
