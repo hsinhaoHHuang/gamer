@@ -12,14 +12,14 @@
 
 # Default setup
 1. Code units
-   1. UNIT_L = Mpc/h, where h=0.6955 is the present dimensionless Hubble parameter
-             = 1437.814521231748 kpc
-   2. UNIT_V = 100 km/s
-   3. UNIT_D = rho_bg (background matter density at z=0)
-             = 38.06 Msun/kpc^3
+   1. `UNIT_L` = Mpc/h, where h=0.6955 is the present dimensionless Hubble parameter
+               = 1437.814521231748 kpc
+   2. `UNIT_V` = 100 km/s
+   3. `UNIT_D` = rho_bg (background matter density at z=0)
+               = 38.06 Msun/kpc^3
       --> Mass density and wavefunction are normalized to rho_bg
-   4. UNIT_T = 14068.4678922741 Myr
-   5. UNIT_M = 1.131e+11 Msun
+   4. `UNIT_T` = 14068.4678922741 Myr
+   5. `UNIT_M` = 1.131e+11 Msun
 
 2. ELBDM
    | Parameter name         | value   |
