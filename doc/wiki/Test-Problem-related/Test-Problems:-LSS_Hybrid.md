@@ -47,13 +47,13 @@ Note:
 
 2. Quickstart:
    1. Download the IC file
-   ```bash
-   sh download_light_halo_ic.sh
-   ```
-   or
-   ```bash
-   sh download_heavy_halo_ic.sh
-   ```
+      ```bash
+      sh download_light_halo_ic.sh
+      ```
+      or
+      ```bash
+      sh download_heavy_halo_ic.sh
+      ```
    2. For spectral interpolation:
       -  Download spectral interpolation tables
          ```bash
