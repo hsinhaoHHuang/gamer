@@ -30,12 +30,12 @@
    one can try the following parameters:
 
    * `Input__Parameter`:
-      - BOX_SIZE  = 0.5
-      - A_INIT    = 1.0e-5
-      - OUTPUT_DT = 2.0e-6
+      - `BOX_SIZE`  = 0.5
+      - `A_INIT`    = 1.0e-5
+      - `OUTPUT_DT` = 2.0e-6
 
    * `Input__TestProb`:
-      - Jeans_RealAmp0 = 4.0e-8
+      - `Jeans_RealAmp0` = 4.0e-8
 
 > [!CAUTION]
 > This setup requires further verification
