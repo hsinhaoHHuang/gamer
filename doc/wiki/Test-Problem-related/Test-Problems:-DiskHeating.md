@@ -42,8 +42,13 @@
 
 3. Default [[END_T | Runtime-Parameters:-General#END_T]] is 2.5e-1 (about 3.5 Gyr) as in [Yang et al. 2023](https://doi.org/10.1093/mnras/stae793) and [[OUTPUT_DT | Outputs#OUTPUT_DT]] is 1.0e-2 (about 0.14 Gyr)
 
-4. To switch to a high-resolution run, command `ln -sf ic_files/PAR_IC_0.4_M7 PAR_IC`
-   Set [[PAR_NPAR | Particles#PAR_NPAR]]=80000000, [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]]=3, and change all values in `Input__Flag_NParPatch` to `800`
+4. Switch to the high-resolution run
+
+   1. Link high-resolution `PAR_IC`
+      ```bash
+      ln -sf ic_files/PAR_IC_0.4_M7 PAR_IC
+      ```
+   2. Set [[PAR_NPAR | Particles#PAR_NPAR]]=80000000, [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]]=3, and change all values in `Input__Flag_NParPatch` to `800`
 
 
 # General initial condition setup
