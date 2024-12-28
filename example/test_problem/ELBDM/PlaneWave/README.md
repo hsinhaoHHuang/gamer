@@ -1,4 +1,4 @@
-# Compilation flags
+# `configure.py` options
 - Must enable
    - [[--model=ELBDM | Installation:-Option-List#--modle]]
    - [[--double | Installation:-Option-List#--double]]

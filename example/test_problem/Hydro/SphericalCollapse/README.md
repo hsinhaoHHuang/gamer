@@ -1,4 +1,4 @@
-# Compilation flags
+# `configure.py` options
 - Must enable
    - [[--model | Installation:-Option-List#--modle]]
    - [[--comoving | Installation:-Option-List#--comoving]]

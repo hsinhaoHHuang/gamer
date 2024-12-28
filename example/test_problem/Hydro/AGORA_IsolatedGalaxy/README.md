@@ -1,4 +1,4 @@
-# Compilation flags:
+# `configure.py` options:
 - Must enable
    - [[--model | Installation:-Option-List#--modle]]
    - [[--particle | Installation:-Option-List#--particle]]

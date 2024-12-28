@@ -1,4 +1,4 @@
-# Compilation flags
+# `configure.py` options
 Enable  : MODEL=HYDRO, SRHD, NCOMP_PASSIVE_USER = 4
 Disable : GRAVITY, MHD, COMOVING, PARTICLE
 - Must enable

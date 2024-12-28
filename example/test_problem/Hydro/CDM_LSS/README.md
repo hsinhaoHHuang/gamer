@@ -1,4 +1,4 @@
-# Compilation flags
+# `configure.py` options
 - Must enable
    - [[--model=HYDRO/ELBDM | Installation:-Option-List#--model]]
    - [[--comoving | Installation:-Option-List#--comoving]]

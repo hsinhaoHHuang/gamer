@@ -1,4 +1,4 @@
-# Compilation flags
+# `configure.py` options
 - Must enable
    - [[--model | Installation:-Option-List#--modle]]
    - [[--gravity | Installation:-Option-List#--gravity]]
@@ -78,7 +78,7 @@
       ```bash
       mpirun -np NUMBER_OF_CPU_CORES_YOU_HAVE python plot_slice-z.py
       ```
-# Compilation flags
+# `configure.py` options
 - Must enable
    - [[--model | Installation:-Option-List#--modle]]
    - [[--gravity | Installation:-Option-List#--gravity]]

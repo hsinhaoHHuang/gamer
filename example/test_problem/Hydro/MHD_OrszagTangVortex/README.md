@@ -1,4 +1,4 @@
-# Compilation flags
+# `configure.py` options
 - Must enable
    - [[--model | Installation:-Option-List#--modle]]
    - [[--mhd | Installation:-Option-List#--mhd]]

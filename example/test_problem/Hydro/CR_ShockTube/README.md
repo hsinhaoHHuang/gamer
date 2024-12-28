@@ -1,4 +1,4 @@
-# Compilation flags
+# `configure.py` options
 - Must enable
    - [[--model | Installation:-Option-List#--modle]]
    - [[--eos=COSMIC_RAY | Installation:-Option-List#--eos]]
