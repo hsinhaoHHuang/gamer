@@ -72,7 +72,7 @@ Note:
       ```bash
       python elbdm_rescale_periodic_ic.py -n_in 256 -n_out 64 -input UM_IC_high_resolution -output UM_IC_low_resolution
       ```
-      and supports up- and downscaling periodic wave and hybrid IC. Optionally, it accepts the keyword -float8 for double precision input data.
+      and supports up- and downscaling periodic wave and hybrid IC. Optionally, it accepts the keyword `-float8` for double precision input data.
    2. Interpolation tables
 
       The tables can be recreated by calling
