@@ -6,7 +6,7 @@
 > The workflow is triggered by push changes to any of `example/test_problem/*/*/README.md` and `tool/wiki/sync_test_problem_pages.py`.
 
 
-# Compilation flags
+# `configure.py` options
 Enable  : MODEL=HYDRO, SRHD, NCOMP_PASSIVE_USER = 4
 Disable : GRAVITY, MHD, COMOVING, PARTICLE
 - Must enable
