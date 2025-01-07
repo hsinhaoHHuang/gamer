@@ -6,7 +6,7 @@
 > The workflow is triggered by push changes to any of `example/test_problem/*/*/README.md` and `tool/wiki/sync_test_problem_pages.py`.
 
 
-# Compilation flags:
+# `configure.py` options:
 - Must enable
    - [[--model | Installation:-Option-List#--modle]]
    - [[--particle | Installation:-Option-List#--particle]]

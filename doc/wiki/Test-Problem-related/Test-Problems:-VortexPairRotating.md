@@ -6,7 +6,7 @@
 > The workflow is triggered by push changes to any of `example/test_problem/*/*/README.md` and `tool/wiki/sync_test_problem_pages.py`.
 
 
-# Compilation flags
+# `configure.py` options
 - Must enable
    - [[--model=ELBDM | Installation:-Option-List#--modle]]
    - [[--elbdm_scheme=ELBDM_HYBRID | Installation:-Option-List#--elbdm_scheme]]
