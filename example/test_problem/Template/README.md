@@ -1,7 +1,7 @@
-# Compilation flags
-- Must enable :
-- Must disable:
-- Available options:
+# `configure.py` options:
+- Must enable
+- Must disable
+- Available options
 
 
 # Default setup
