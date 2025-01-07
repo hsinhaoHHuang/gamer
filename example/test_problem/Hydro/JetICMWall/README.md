@@ -2,7 +2,7 @@
 Enable  : MODEL=HYDRO, SRHD, NCOMP_PASSIVE_USER = 4
 Disable : GRAVITY, MHD, COMOVING, PARTICLE
 - Must enable
-   - [[--model | Installation:-Option-List#--modle]]
+   - [[--model | Installation:-Option-List#--model]]
    - [[--srhd | Installation:-Option-List#--srhd]]
    - [[--passive=4 | Installation:-Option-List#--passive]]
 - Must disable

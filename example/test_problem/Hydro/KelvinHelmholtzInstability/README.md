@@ -1,6 +1,6 @@
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--modle]]
+   - [[--model | Installation:-Option-List#--model]]
 - Must disable
    - [[--comoving | Installation:-Option-List#--comoving]]
    - [[--particle | Installation:-Option-List#--particle]]

@@ -1,6 +1,6 @@
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--modle]]
+   - [[--model | Installation:-Option-List#--model]]
    - [[--eos=COSMIC_RAY | Installation:-Option-List#--eos]]
    - [[--double | Installation:-Option-List#--double]]
    - [[--cosmic_ray | Installation:-Option-List#--cosmic_ray]]

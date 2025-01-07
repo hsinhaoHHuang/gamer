@@ -42,7 +42,7 @@
    sh download_ic.sh
    ```
 3. GAMER currently doesn't support particle-only simulations. So the following temporary solutions are adopted
-   1. Set gas density/energy to arbitrarily small (for [[--model | Installation:-Option-List#--modle]])
-      or wave function to zero (for [[--model=ELBDM | Installation:-Option-List#--modle]]) in `SetGridIC()`.
+   1. Set gas density/energy to arbitrarily small (for [[--model | Installation:-Option-List#--model]])
+      or wave function to zero (for [[--model=ELBDM | Installation:-Option-List#--model]]) in `SetGridIC()`.
    2. Enable [[OPT__FREEZE_FLUID | Hydro#OPT__FREEZE_FLUID]]
 4. Default maximum spatial resolution is 30.0/(128*2^5)~7.3 kpc/h (comoving).

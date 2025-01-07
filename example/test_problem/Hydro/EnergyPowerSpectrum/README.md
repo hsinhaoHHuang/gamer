@@ -1,6 +1,6 @@
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--modle]]
+   - [[--model | Installation:-Option-List#--model]]
    - [[--eos=GAMMA | Installation:-Option-List#--eos]]
    - [[--fftw | Installation:-Option-List#--fftw]]
 - Must disable
