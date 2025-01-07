@@ -8,7 +8,7 @@
 
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--modle]]
+   - [[--model | Installation:-Option-List#--model]]
    - [[--comoving | Installation:-Option-List#--comoving]]
    - [[--gravity | Installation:-Option-List#--gravity]]
 - Must disable

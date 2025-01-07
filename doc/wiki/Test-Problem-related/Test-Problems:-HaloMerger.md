@@ -8,7 +8,7 @@
 
 # `configure.py` options
 - Must enable
-   - [[--model=ELBDM | Installation:-Option-List#--modle]]
+   - [[--model=ELBDM | Installation:-Option-List#--model]]
    - [[--gravity | Installation:-Option-List#--gravity]]
    - [[--particle | Installation:-Option-List#--particle]] (optional for `HaloMerger_ParCloud_InitMode` = 1)
    - [[--gsl | Installation:-Option-List#--gsl]] (optional for `HaloMerger_ParCloud_InitMode` = 1)

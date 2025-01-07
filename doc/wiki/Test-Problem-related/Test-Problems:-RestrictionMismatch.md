@@ -14,7 +14,7 @@ Further, it shows that the new option [[OPT__RES_PHASE | ]] remedies the mismatc
 It uses the `GaussianWavePacket` test with suitable initial parameters and refines a region at the center of the Gaussian wave packet.
 
 ## Execution
-To run it, compile a version of GAMER with [[--model=ELBDM | Installation:-Option-List#--modle]] in [[--mpi=false | Installation:-Option-List#--mpi]] mode and put the executable in the test problem directory.
+To run it, compile a version of GAMER with [[--model=ELBDM | Installation:-Option-List#--model]] in [[--mpi=false | Installation:-Option-List#--mpi]] mode and put the executable in the test problem directory.
 ```bash
 sh ./compare_restriction.sh
 ```

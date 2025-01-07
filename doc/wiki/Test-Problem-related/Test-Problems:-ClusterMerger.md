@@ -8,7 +8,7 @@
 
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--modle]]
+   - [[--model | Installation:-Option-List#--model]]
    - [[--gravity | Installation:-Option-List#--gravity]]
    - [[--particle | Installation:-Option-List#--particle]]
    - [[--hdf5 | Installation:-Option-List#--hdf5]]
@@ -88,7 +88,7 @@
       ```
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--modle]]
+   - [[--model | Installation:-Option-List#--model]]
    - [[--gravity | Installation:-Option-List#--gravity]]
    - [[--particle | Installation:-Option-List#--particle]]
    - [[--hdf5 | Installation:-Option-List#--hdf5]]

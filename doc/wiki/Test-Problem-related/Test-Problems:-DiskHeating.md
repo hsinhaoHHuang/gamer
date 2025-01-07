@@ -8,7 +8,7 @@
 
 # `configure.py` options
 - Must enable
-   - [[--model=ELBDM | Installation:-Option-List#--modle]]
+   - [[--model=ELBDM | Installation:-Option-List#--model]]
    - [[--gravity | Installation:-Option-List#--gravity]]
    - [[--particle | Installation:-Option-List#--particle]]
    - [[--store_par_acc | Installation:-Option-List#--store_par_acc]]

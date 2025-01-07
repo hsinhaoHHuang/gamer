@@ -8,7 +8,7 @@
 
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--modle]]
+   - [[--model | Installation:-Option-List#--model]]
    - [[--gravity | Installation:-Option-List#--gravity]]
 - Must disable
    - [[--particle | Installation:-Option-List#--particle]]

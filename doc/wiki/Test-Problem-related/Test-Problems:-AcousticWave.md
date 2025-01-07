@@ -8,7 +8,7 @@
 
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--modle]]
+   - [[--model | Installation:-Option-List#--model]]
    - [[--double | Installation:-Option-List#--double]]
 - Must disable
    - [[--comoving | Installation:-Option-List#--comoving]]

@@ -8,7 +8,7 @@
 
 # `configure.py` options
 - Must enable
-   - [[--model=ELBDM | Installation:-Option-List#--modle]]
+   - [[--model=ELBDM | Installation:-Option-List#--model]]
    - [[--double | Installation:-Option-List#--double]]
    - [[--passive=1 | Installation:-Option-List#--passive]]
 - Must disable

@@ -8,7 +8,7 @@
 
 # `configure.py` options
 - Must enable
-   - [[--model=ELBDM | Installation:-Option-List#--modle]]
+   - [[--model=ELBDM | Installation:-Option-List#--model]]
    - [[--gravity | Installation:-Option-List#--gravity]]
 - Must disable
    - [[--comoving | Installation:-Option-List#--comoving]]

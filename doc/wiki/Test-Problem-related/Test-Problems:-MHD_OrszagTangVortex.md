@@ -8,7 +8,7 @@
 
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--modle]]
+   - [[--model | Installation:-Option-List#--model]]
    - [[--mhd | Installation:-Option-List#--mhd]]
 - Must disable
    - [[--particle | Installation:-Option-List#--particle]]

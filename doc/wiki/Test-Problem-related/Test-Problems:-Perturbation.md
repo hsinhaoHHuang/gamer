@@ -8,7 +8,7 @@
 
 # `configure.py` options
 - Must enable
-   - [[--model=ELBDM | Installation:-Option-List#--modle]]
+   - [[--model=ELBDM | Installation:-Option-List#--model]]
    - [[--elbdm_scheme=ELBDM_HYBRID | Installation:-Option-List#--elbdm_scheme]]
    - [[--gravity | Installation:-Option-List#--gravity]]
 - Must disable
