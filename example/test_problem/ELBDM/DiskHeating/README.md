@@ -11,6 +11,8 @@
 - Available options
    - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
+> [!NOTE]
+> DiskHeatingParticleIC uses the floating-point type for particle type and assumes single precision
 
 # Quick start
 0. Generate `gamer`
@@ -36,9 +38,9 @@
 
 4. Switch to the high-resolution run
 
-   1. Link high-resolution `PAR_IC`
+   1. Link high-resolution `DiskHeatingParticleIC`
       ```bash
-      ln -sf ic_files/PAR_IC_0.4_M7 PAR_IC
+      ln -sf ic_files/PAR_IC_0.4_M7 DiskHeatingParticleIC
       ```
    2. Set [[PAR_NPAR | Particles#PAR_NPAR]]=80000000, [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]]=3, and change all values in `Input__Flag_NParPatch` to `800`
 
@@ -53,7 +55,7 @@
 
    c. Set center to be the location of the soliton in `get_par_ic.py`
 
-   d. Execute `get_par_ic.py`, it will generate `PAR_IC`
+   d. Execute `get_par_ic.py`, it will generate `DiskHeatingParticleIC`
 
 2. Halo
 
