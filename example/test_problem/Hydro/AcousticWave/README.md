@@ -1,6 +1,6 @@
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--model]]
+   - [[--model | Installation:-Option-List#--model]]=HYDRO
    - [[--double | Installation:-Option-List#--double]]
 - Must disable
    - [[--comoving | Installation:-Option-List#--comoving]]
