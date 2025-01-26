@@ -1,7 +1,7 @@
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--model]]
-   - [[--eos=GAMMA | Installation:-Option-List#--eos]]
+   - [[--model | Installation:-Option-List#--model]]=`HYDRO`
+   - [[--eos | Installation:-Option-List#--eos]]=`GAMMA`
    - [[--fftw | Installation:-Option-List#--fftw]]
 - Must disable
    - [[--comoving | Installation:-Option-List#--comoving]]

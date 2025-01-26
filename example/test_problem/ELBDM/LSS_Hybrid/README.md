@@ -1,7 +1,7 @@
 # `configure.py` options
 - Must enable
-   - [[--model=ELBDM | Installation:-Option-List#--model]]
-   - [[--elbdm_scheme=elbdm_hybrid | Installation:-Option-List#--elbdm_scheme]]
+   - [[--model | Installation:-Option-List#--model]]=`ELBDM`
+   - [[--elbdm_scheme | Installation:-Option-List#--elbdm_scheme]]=`ELBDM_HYBRID`
    - [[--gravity | Installation:-Option-List#--gravity]]
    - [[--comoving | Installation:-Option-List#--comoving]]
 - Must disable
@@ -64,7 +64,9 @@ Note:
       ```bash
       python elbdm_wave_to_hybrid_IC.py -resolution 256 -input UM_IC_wave -output UM_IC_hybrid
       ```
-      to convert the input file `UM_IC_wave` with a resolution of 256 points in each dimension to the output hybrid IC `UM_IC_hybrid`. Optionally, it accepts the keyword -float8 for double precision input data.
+      to convert the input file `UM_IC_wave` with a resolution of 256 points in each dimension to the output hybrid IC `UM_IC_hybrid`.
+      Optionally, it accepts the keyword -float8 for double precision input data.
+
       The conversion is only well-defined if the IC do not contain vortices, i.e. at high redshift for cosmological IC.
 
       In a second step, the initial conditions can be rescaled using the Python script `elbdm_rescale_periodic_ic.py`.
@@ -79,21 +81,30 @@ Note:
       ```bash
       mpirun -n 16 python3 tool/table_maker/GramFE/compute_interpolation_tables.py
       ```
-      `INT_SPEC_TABLE_PATH` (default = "./") must be set to a folder containing the folders `interpolation_tables` and `boundary2extension_tables`
+      [[INT_SPEC_TABLE_PATH | ]] (default = "./") must be set to a folder containing the folders `interpolation_tables` and `boundary2extension_tables`
 
 3. The simulation uses a low base-level resolution of 2.8 Mpc/h / 64 ~ 44 kpc/h (comoving).
-   This corresponds to a maximum wave vector k ~ 72 h/Mpc well above the cutoff power in the initial conditions for m = 2.0e-23 eV. This initial resolution has shown very good agreement with higher resolution wave initial conditions.
+
+   This corresponds to a maximum wave vector k ~ 72 h/Mpc well above the cutoff power in the initial conditions for m = 2.0e-23 eV.
+   This initial resolution has shown very good agreement with higher resolution wave initial conditions.
 
 4. The simulation uses the fluid solver on levels 0 - 3 and switches to the wave solver in regions of interference on level 4.
-   The corresponding runtime parameter [[ELBDM_FIRST_WAVE_LEVEL | ELBDM#ELBDM_FIRST_WAVE_LEVEL]] is set to 4.
+
+   The corresponding runtime parameter [[ELBDM_FIRST_WAVE_LEVEL | Runtime-Parameters:-ELBDM#ELBDM_FIRST_WAVE_LEVEL]] is set to 4.
 
    The resolution for the first level using the wave solver is 2.8 Mpc/h /(64*2^4) ~ 2.75 kpc/h (comoving) with these settings.
+
    This resolution has shown to be a good compromise for the starting resolution of the wave solver.
-   Note that increasing [[ELBDM_FIRST_WAVE_LEVEL | ELBDM#ELBDM_FIRST_WAVE_LEVEL]] will affect performance since it will likely lead to overrefinement. However, it should increase the accuracy of the hybrid scheme.
-   On the contrary, decreasing [[ELBDM_FIRST_WAVE_LEVEL | ELBDM#ELBDM_FIRST_WAVE_LEVEL]] will lead to a lower-resolution at the wave-fluid boundary (regardless of [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]] and [[REFINE_NLEVEL | Runtime-Parameters:-Refinement#REFINE_NLEVEL]]) and will negatively affect the accuracy of the solver.
+
+   Note that increasing [[ELBDM_FIRST_WAVE_LEVEL | Runtime-Parameters:-ELBDM#ELBDM_FIRST_WAVE_LEVEL]] will affect performance since it will likely lead to overrefinement.
+   However, it should increase the accuracy of the hybrid scheme.
+
+   On the contrary, decreasing [[ELBDM_FIRST_WAVE_LEVEL | Runtime-Parameters:-ELBDM#ELBDM_FIRST_WAVE_LEVEL]] will lead to a lower-resolution at the wave-fluid boundary
+   (regardless of [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]] and [[REFINE_NLEVEL | Runtime-Parameters:-Refinement#REFINE_NLEVEL]]) and 
+   will negatively affect the accuracy of the solver.
 
 3. Default maximum resolution is low
-   --> Only 2.8/(64*2^6) ~ 0.7 kpc/h (comoving)
-   --> Can only marginally resolve a central soliton
+   - Only 2.8/(64*2^6) ~ 0.7 kpc/h (comoving)
+   - Can only marginally resolve a central soliton
 
 4. Some yt visualization scripts are put in `plot_script`

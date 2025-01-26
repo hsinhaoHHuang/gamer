@@ -1,6 +1,6 @@
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--model]]
+   - [[--model | Installation:-Option-List#--model]]=`HYDRO`
    - [[--mhd | Installation:-Option-List#--mhd]]
 - Must disable
    - [[--particle | Installation:-Option-List#--particle]]
@@ -12,7 +12,7 @@
 # Default setup
 1. Periodic BC
 2. Refinement criterion: current density ([[OPT__FLAG_CURRENT | Runtime-Parameters:-Refinement#OPT__FLAG_CURRENT]])
-3. [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]] = 2
+3. [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]]=`2`
 
 
 # Note

@@ -1,6 +1,6 @@
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--model]]
+   - [[--model | Installation:-Option-List#--model]]=`HYDRO`
    - [[--gravity | Installation:-Option-List#--gravity]]
 - Must disable
    - [[--comoving | Installation:-Option-List#--comoving]]

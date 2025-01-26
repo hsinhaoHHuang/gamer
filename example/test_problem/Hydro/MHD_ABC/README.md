@@ -1,6 +1,6 @@
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--model]]
+   - [[--model | Installation:-Option-List#--model]]=`HYDRO`
    - [[--mhd | Installation:-Option-List#--mhd]]
 - Must disable
    - [[--particle | Installation:-Option-List#--particle]]

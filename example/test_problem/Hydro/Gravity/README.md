@@ -1,6 +1,6 @@
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--model]]
+   - [[--model | Installation:-Option-List#--model]]=`HYDRO`
    - [[--gravity | Installation:-Option-List#--gravity]]
 - Must disable
    - [[--particle | Installation:-Option-List#--particle]]
@@ -13,14 +13,14 @@
 
 # Default setup
 1. Adopt mass density as the refinement criteria in `Input__Flag_Rho`
-2. Maximum refinement level ([[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]]) = 6
-3. Isolated Poisson solver ([[OPT__BC_POT | Hydro#OPT__BC_POT]] = 2)
+2. Maximum refinement level ([[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]])=`6`
+3. Isolated Poisson solver ([[OPT__BC_POT | Runtime-Parameters:-Hydro#OPT__BC_POT]]=`2`)
 
 
 # Note
 1. This test problem will overwrite gas field to store the gravitational potential errors:
-   - [gas momentum x] --> [absolute errors of potential]
-   - [gas momentum y] --> [relative errors of potential]
+   - gas momentum x --> absolute errors of potential
+   - gas momentum y --> relative errors of potential
 
    Two output files will be generated:
    1. `PotError.bin`: binary file similar to `Data_??????` but with the gas field overwritten
@@ -38,5 +38,5 @@
 
 4. Set `Gra_NIterProf>0` to measure the average performance of the Poisson solver
    - The measured performance excludes the time for exchanging MPI buffer data.
-   - When adopting the isolated Poisson solver (i.e., [[OPT__BC_POT | Hydro#OPT__BC_POT]] = 2), both "NCell" and "Cells/s"
+   - When adopting the isolated Poisson solver (i.e., [[OPT__BC_POT | Runtime-Parameters:-Hydro#OPT__BC_POT]]=`2`), both "NCell" and "Cells/s"
      in `Record__PoissonPerformance` do not count the number of cells in the padded region.

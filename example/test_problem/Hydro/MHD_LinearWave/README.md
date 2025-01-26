@@ -1,6 +1,6 @@
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--model]]
+   - [[--model | Installation:-Option-List#--model]]=`HYDRO`
    - [[--mhd | Installation:-Option-List#--mhd]]
    - [[--double | Installation:-Option-List#--double]]
 - Must disable
@@ -16,7 +16,8 @@
 
 
 # Note
-1. Support both 1D and 3D cases --> set by `MHDLinear_Dir`
+1. Support both 1D and 3D cases
+   - set by `MHDLinear_Dir`
 2. A simple gnuplot script `plot.gpt` is attached
 3. `Record__L1Err` records the L1 errors
 4. `MHDLinearWave_*_*` record the numerical and analytical solutions along the diagonal

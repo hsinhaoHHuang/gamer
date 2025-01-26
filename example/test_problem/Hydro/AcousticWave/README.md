@@ -1,6 +1,6 @@
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--model]]=HYDRO
+   - [[--model | Installation:-Option-List#--model]]=`HYDRO`
    - [[--double | Installation:-Option-List#--double]]
 - Must disable
    - [[--comoving | Installation:-Option-List#--comoving]]
@@ -16,7 +16,8 @@
 
 
 # Note
-1. Support both 1D and 3D cases --> set by `Acoustic_Dir`
+1. Support both 1D and 3D cases
+   - set by `Acoustic_Dir`
 2. A simple gnuplot script `plot.gpt` is attached
 3. `Record__L1Err` records the L1 errors
 4. `AcousticWave_*_*` record the numerical and analytical solutions along the diagonal

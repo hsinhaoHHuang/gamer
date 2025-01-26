@@ -1,6 +1,6 @@
 # `configure.py` options:
 - Must enable
-   - [[--model | Installation:-Option-List#--model]]
+   - [[--model | Installation:-Option-List#--model]]=`HYDRO`
    - [[--particle | Installation:-Option-List#--particle]]
    - [[--gravity | Installation:-Option-List#--gravity]]
    - [[--double | Installation:-Option-List#--double]]
@@ -30,7 +30,7 @@
       sh download_ic_low_res.sh
       ```
 
-   2. Default resolution ~ 80 pc (root grid 128^3; [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]] = 7)
+   2. Default resolution ~ 80 pc (root grid 128^3; [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]]=`7`)
 
 3.  High-resolution setup
 
@@ -39,7 +39,7 @@
       sh download_ic_high_res.sh
       ```
 
-   2. Highest resolution ~ 20 pc (root grid 128^3; [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]] = 9)
+   2. Highest resolution ~ 20 pc (root grid 128^3; [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]]=`9`)
 
    3. This setup reproduces the AGORA high-resolution run presented in the GAMER-2 paper (Schive et al. 2018)
 

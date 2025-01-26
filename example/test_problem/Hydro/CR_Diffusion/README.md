@@ -1,7 +1,7 @@
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--model]]
-   - [[--eos=COSMIC_RAY | Installation:-Option-List#--eos]]
+   - [[--model | Installation:-Option-List#--model]]=`HYDRO`
+   - [[--eos | Installation:-Option-List#--eos]]=`COSMIC_RAY`
    - [[--double | Installation:-Option-List#--double]]
    - [[--cosmic_ray | Installation:-Option-List#--cosmic_ray]]
    - [[--cr_diffusion | Installation:-Option-List#--cr_diffusion]]

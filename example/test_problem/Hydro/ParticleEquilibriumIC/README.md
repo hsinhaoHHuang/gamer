@@ -1,6 +1,6 @@
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--model]]
+   - [[--model | Installation:-Option-List#--model]]=`HYDRO`
    - [[--particle | Installation:-Option-List#--particle]]
    - [[--gravity | Installation:-Option-List#--gravity]]
    - [[--gsl | Installation:-Option-List#--gsl]]
@@ -11,7 +11,7 @@
 
 
 # Default setup
-[[OPT__FREEZE_FLUID | Hydro#OPT__FREEZE_FLUID]] = 1
+[[OPT__FREEZE_FLUID | Hydro#OPT__FREEZE_FLUID]]=`1`
 
 
 # Note

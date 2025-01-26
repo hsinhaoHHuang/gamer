@@ -1,10 +1,8 @@
 # `configure.py` options
-Enable  : MODEL=HYDRO, SRHD, NCOMP_PASSIVE_USER = 4
-Disable : GRAVITY, MHD, COMOVING, PARTICLE
 - Must enable
-   - [[--model | Installation:-Option-List#--model]]
+   - [[--model | Installation:-Option-List#--model]]=`HYDRO`
    - [[--srhd | Installation:-Option-List#--srhd]]
-   - [[--passive=4 | Installation:-Option-List#--passive]]
+   - [[--passive | Installation:-Option-List#--passive]]=`4`
 - Must disable
    - [[--gravity | Installation:-Option-List#--gravity]]
    - [[--comoving | Installation:-Option-List#--comoving]]
@@ -20,7 +18,7 @@ Disable : GRAVITY, MHD, COMOVING, PARTICLE
    |---    |---         |---  |---            |---                 |
    | 5 kpc | 1.0e5 Msun | 1 c | ~ 16.308 kyr  | ~ 5.41e-29 g/cm**3 |
 
-2. Default resolution ~ 39 pc ([[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]]= 3)
+2. Default resolution ~ 39 pc ([[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]]=`3`)
 
 
 # Note

@@ -1,6 +1,6 @@
 # `configure.py` options
 - Must enable
-   - [[--model=ELBDM | Installation:-Option-List#--model]]
+   - [[--model | Installation:-Option-List#--model]]=`ELBDM`
    - [[--elbdm_scheme=ELBDM_HYBRID | Installation:-Option-List#--elbdm_scheme]]
    - [[--gravity | Installation:-Option-List#--gravity]]
 - Must disable
@@ -18,6 +18,11 @@
 
 # Note
 1. Evolve small-amplitude plane waves on homogeneous background density
-2. `Perturbation_Amplitude` is maximum amplitude of individual perturbations, `Perturbation_BgAmplitude` is amplitude of background density, `Perturbation_N` is number of Fourier modes in perturbation (maximum is 4)
+
+2. `Perturbation_Amplitude` is maximum amplitude of individual perturbations,
+   `Perturbation_BgAmplitude` is amplitude of background density,
+   `Perturbation_N` is number of Fourier modes in perturbation (maximum is 4)
+
 3. Dimensionality of the problem can be set via `Perturbation_NDim` (set amplitude of plane waves in other dimensions to zero)
+
 3. For reference simulation using base-level spectral method, use `MODEL = WAVE` and `Input__Parameter_BaseSpectral` and `generate_make_BaseSpectral.sh`

@@ -1,6 +1,6 @@
 # `configure.py` options
 - Must enable
-   - [[--model=ELBDM | Installation:-Option-List#--model]]
+   - [[--model | Installation:-Option-List#--model]]=`ELBDM`
    - [[--gravity | Installation:-Option-List#--gravity]]
    - [[--comoving | Installation:-Option-List#--comoving]]
 - Must disable

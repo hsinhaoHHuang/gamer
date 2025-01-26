@@ -1,6 +1,6 @@
 # `configure.py` options
 - Must enable
-   - [[--model=ELBDM | Installation:-Option-List#--model]]
+   - [[--model | Installation:-Option-List#--model]]=`ELBDM`
    - [[--gravity | Installation:-Option-List#--gravity]]
 - Must disable
    - [[--comoving | Installation:-Option-List#--comoving]]
@@ -11,7 +11,7 @@
 
 
 # Default setup
-1. [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]] = 2
+1. [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]]=`2`
 2. Refinement on mass density
 
 

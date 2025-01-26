@@ -1,6 +1,6 @@
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--model]]
+   - [[--model | Installation:-Option-List#--model]]=`HYDRO`
    - [[--gravity | Installation:-Option-List#--gravity]] (when enabling `JET_HSE`)
 - Must disable
    - [[--gravity | Installation:-Option-List#--gravity]] (when disabling `JET_HSE`)

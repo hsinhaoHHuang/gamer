@@ -1,6 +1,6 @@
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--model]]
+   - [[--model | Installation:-Option-List#--model]]=`HYDRO`
    - [[--comoving | Installation:-Option-List#--comoving]]
    - [[--gravity | Installation:-Option-List#--gravity]]
 - Must disable
@@ -11,11 +11,10 @@
 
 # Default setup
 1. Refinement criteria: density magnitude and Lohner's error estimator for density
-   --> Refinement threshold of the Lohner error estimator = 0.80
-2. [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]] = 2
+   - Refinement threshold of the Lohner error estimator = 0.80
+2. [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]]=`2`
 
 
 # Note
 1. Dual-energy formalism is important for evolving pressure accurately in the
    preshock region
-
