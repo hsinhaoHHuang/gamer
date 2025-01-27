@@ -9,10 +9,11 @@
 
 
 # Default setup
-1. Evolve the Gaussian wave packet for half of box
-2. Apply the analytical solution as user-defined BC
-   * Set [[OPT__BC_FLU_* | Runtime-Parameters:-Hydro#OPT__BC_FLU_XM]]=`4`
+- Evolve the Gaussian wave packet for half of box
+- Apply the analytical solution as user-defined BC
+   - Set [[OPT__BC_FLU_* | Runtime-Parameters:-Hydro#OPT__BC_FLU_XM]]=`4`
 
 
 # Note
-1. Only support 1D --> Use `Gau_XYZ` to control the propagation direction
+- Only support 1D
+   - Use `Gau_XYZ` to control the propagation direction

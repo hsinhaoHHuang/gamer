@@ -11,23 +11,23 @@
 
 
 # Default setup
-1. Resolution = 64^3
-2. Run for one period
+- Resolution = 64^3
+- Run for one period
 
 
 # Note
-1. Support both 1D and 3D cases
+- Support both 1D and 3D cases
    - set by `Acoustic_Dir`
-2. A simple gnuplot script `plot.gpt` is attached
-3. `Record__L1Err` records the L1 errors
-4. `AcousticWave_*_*` record the numerical and analytical solutions along the diagonal
-5. For SRHD:
+- A simple gnuplot script `plot.gpt` is attached
+- `Record__L1Err` records the L1 errors
+- `AcousticWave_*_*` record the numerical and analytical solutions along the diagonal
+- For SRHD:
    - Also enable these compilation flags:
       - [[--srhd | Installation:-Option-List#--srhd]]
-      - [[--eos=TAUBMATHEWS | Installation:-Option-List#--eos]]
-      - [[--flu_scheme=MHM | Installation:-Option-List#--flu_scheme]]
-      - [[--flux=HLLC | Installation:-Option-List#--flux]]
-      - [[--slope=PLM | Installation:-Option-List#--slope]]
+      - [[--eos | Installation:-Option-List#--eos]]=`TAUBMATHEWS`
+      - [[--flu_scheme | Installation:-Option-List#--flu_scheme]]=`MHM`
+      - [[--flux | Installation:-Option-List#--flux]]=`HLLC`
+      - [[--slope | Installation:-Option-List#--slope]]=`PLM`
    - In `Input__TestProb`,
       - `Acoustic_v0` and `Acoustic_Cs` will be useless
       - set `Acoustic_Temp_Bg = 1.0e+10` for high-temperature case

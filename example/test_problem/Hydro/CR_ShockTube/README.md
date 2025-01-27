@@ -17,5 +17,5 @@ None
 
 
 # Note
-1. A simple Python script `shock_plot.py` is attached. Please modify the `SHOCK_DIR` in the script if needed
-2. Only support for 1D
+- A simple Python script `shock_plot.py` is attached. Please modify the `SHOCK_DIR` in the script if needed
+- Only support for 1D

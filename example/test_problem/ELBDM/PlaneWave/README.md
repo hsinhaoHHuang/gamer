@@ -2,7 +2,7 @@
 - Must enable
    - [[--model | Installation:-Option-List#--model]]=`ELBDM`
    - [[--double | Installation:-Option-List#--double]]
-   - [[--passive=1 | Installation:-Option-List#--passive]]
+   - [[--passive | Installation:-Option-List#--passive]]=`1`
 - Must disable
    - [[--gravity | Installation:-Option-List#--gravity]]
    - [[--particle | Installation:-Option-List#--particle]]
@@ -11,11 +11,11 @@
 
 
 # Default setup
-1. Evolve the plane wave for six periods
-2. Apply the periodic BC
-   --> Set [[OPT__BC_FLU_* | Runtime-Parameters:-Hydro#OPT__BC_FLU_XM]]=`1`
+- Evolve the plane wave for six periods
+- Apply the periodic BC
+   - Set [[OPT__BC_FLU_* | Runtime-Parameters:-Hydro#OPT__BC_FLU_XM]]=`1`
 
 
 # Note
-1. Only support 1D
-   * Use `PWave_XYZ` to control the propagation direction
+- Only support 1D
+   - Use `PWave_XYZ` to control the propagation direction

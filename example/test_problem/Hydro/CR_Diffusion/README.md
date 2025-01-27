@@ -14,55 +14,56 @@
 
 
 # Default setup
-1. `CR_Diffusion_Type = 4`     (Blastwave)
-2. `CR_Diffusion_Mag_Type = 4` (Suwa+ 2007)
-3. 3D simulation
+- `CR_Diffusion_Type`=`4`     (Blastwave)
+- `CR_Diffusion_Mag_Type`=`4` (Suwa+ 2007)
+- 3D simulation
 
 
 # Note
-1. The analytical solution of `CR_Diffusion_Type={0,1,2,3}` must set all fluid to be fixed but cosmic rays.
+1. The analytical solution of `CR_Diffusion_Type`=`{0,1,2,3}` must set all fluid to be fixed but cosmic rays.
 
 
 ## `CR_Diffusion_Type`
-1. Gaussian distribution ball (`CR_Diffusion_Type = 0`)
-   All of the fluid must be fixed, except for cosmic rays.
+- Gaussian distribution ball (`CR_Diffusion_Type`=`0`)
 
-2. Step function ring         (`CR_Diffusion_Type = 1`)
-   1. All fluids must be fixed, except for cosmic rays.
-   2. This test problem is a 2D simulation.
-   3. The analytical solution assumes the CRs diffuse along the azimuthal direction only.
+   - All of the fluid must be fixed, except for cosmic rays.
 
-3. Gaussian distribution ring (`CR_Diffusion_Type = 2`)
-   1. All fluids must be fixed, except for cosmic rays.
-   2. This test problem is a 2D simulation.
-   3. The analytical solution assumes the CRs diffuse along the azimuthal direction only.
+- Step function ring         (`CR_Diffusion_Type`=`1`)
+   - All fluids must be fixed, except for cosmic rays.
+   - This test problem is a 2D simulation.
+   - The analytical solution assumes the CRs diffuse along the azimuthal direction only.
 
-4. Gaussian distribution plane (`CR_Diffusion_Type = 3`)
-   1. All fluids must be fixed, except for cosmic rays.
-   2. The analytical solution assumes the CRs diffuse along the diagonal direction.
+- Gaussian distribution ring (`CR_Diffusion_Type`=`2`)
+   - All fluids must be fixed, except for cosmic rays.
+   - This test problem is a 2D simulation.
+   - The analytical solution assumes the CRs diffuse along the azimuthal direction only.
 
-5. CR driven blast wave        (`CR_Diffusion_Type = 4`)
-   1. This test problem is a 3D simulation.
+- Gaussian distribution plane (`CR_Diffusion_Type`=`3`)
+   - All fluids must be fixed, except for cosmic rays.
+   - The analytical solution assumes the CRs diffuse along the diagonal direction.
+
+- CR driven blast wave        (`CR_Diffusion_Type`=`4`)
+   - This test problem is a 3D simulation.
 
 
 ## `CR_Diffusion_Mag_Type`
-1. Uniform    (`CR_Diffusion_Mag_Type= 0`)
-   Uniform magnetic field.
-2. Circular   (`CR_Diffusion_Mag_Type= 1`)
-   1. Only works for 2D simulation
-   2. For x-y plane: `B = (-y/r, x/r, 0)` where `r = sqrt(x^2+y^2)`.
-   3. Using `CR_Diffusion_MagX` as amplitude.
-3. Random     (`CR_Diffusion_Mag_Type= 2`)
-   1. NOT divergence free!
-   2. `-1. < B_i < 1.`
-4. Radial     (`CR_Diffusion_Mag_Type= 3`)
-   1. NOT divergence free!
-   2. Only works for 2D simulation
-   3. For x-y plane: `B = (x/r, y/r, 0)` where `r = sqrt(x^2+y^2)`.
-   4. Using `CR_Diffusion_MagX` as amplitude.
-5. Suwa+ 2007 (`CR_Diffusion_Mag_Type= 4`)
-   1. Follows [Suwa+ 2007, PASJ, 59, 771](https://doi.org/10.1093/pasj/59.4.771) setup
-   2. Using `CR_Diffusion_MagX` as amplitude.
+- Uniform    (`CR_Diffusion_Mag_Type`=`0`)
+   - Uniform magnetic field.
+- Circular   (`CR_Diffusion_Mag_Type`=`1`)
+   - Only works for 2D simulation
+   - For x-y plane: `B = (-y/r, x/r, 0)` where `r = sqrt(x^2+y^2)`.
+   - Using `CR_Diffusion_MagX` as amplitude.
+- Random     (`CR_Diffusion_Mag_Type`=`2`)
+   - NOT divergence free!
+   - `-1. < B_i < 1.`
+- Radial     (`CR_Diffusion_Mag_Type`=`3`)
+   - NOT divergence free!
+   - Only works for 2D simulation
+   - For x-y plane: `B = (x/r, y/r, 0)` where `r = sqrt(x^2+y^2)`.
+   - Using `CR_Diffusion_MagX` as amplitude.
+- Suwa+ 2007 (`CR_Diffusion_Mag_Type`=`4`)
+   - Follows [Suwa+ 2007, PASJ, 59, 771](https://doi.org/10.1093/pasj/59.4.771) setup
+   - Using `CR_Diffusion_MagX` as amplitude.
 
 
 ## Set simulation dimensions
@@ -87,8 +88,8 @@ CR_diffusion_GZ 1
 Not available right now.
 
 
-## `yt_L1error`
-1. The file structure should be like:
+## `yt_L1error.py`
+- The file structure should be like:
    <pre>
    ./ --+-- res_0032 --+-- Data_000000
         |              |
@@ -98,4 +99,4 @@ Not available right now.
         |              |
         |-- ...        |-- ...
    <\pre>
-2. Uncomment or comment your simulation type and set the parameters.
+- Uncomment or comment your simulation type and set the parameters.

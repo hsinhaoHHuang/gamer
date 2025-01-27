@@ -13,4 +13,4 @@
 
 
 # Note
-1. Test the evolution of the self-similar solution of halos in the comoving frame
+- Test the evolution of the self-similar solution of halos in the comoving frame

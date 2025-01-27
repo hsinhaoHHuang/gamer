@@ -1,4 +1,4 @@
-# `configure.py` options:
+# `configure.py` options
 - Must enable
    - [[--model | Installation:-Option-List#--model]]=`HYDRO`
    - [[--particle | Installation:-Option-List#--particle]]
@@ -12,18 +12,18 @@
 
 
 # Simulation setup
-1. Units
+- Units
 
    - External (for `Input__TestProb` only)
 
      See the comment of each runtime variable
 
    - Internal (for all other input files and internal usage)
-     | [L] | [M]        | [T] | [V] = [L]/[T] | [D] = [M]/[D]^3  |
-     |---  |---         |---  |---            |---               |
-     | kpc | 1.0e9 Msun | Myr | ~ 9.8e2 km/s  | ~ 6.8e-23 g/cm^3 |
+     | Unit  | [L] | [M]        | [T] | [V] = [L]/[T] | [D] = [M]/[D]^3  |
+     |---    |---  |---         |---  |---            |---               |
+     | Value | kpc | 1.0e9 Msun | Myr | ~ 9.8e2 km/s  | ~ 6.8e-23 g/cm^3 |
 
-2.  Low-resolution default setup
+- Low-resolution default setup
 
    1. Download the low-resolution initial conditions and `Input_*` by executing
       ```bash
@@ -32,7 +32,7 @@
 
    2. Default resolution ~ 80 pc (root grid 128^3; [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]]=`7`)
 
-3.  High-resolution setup
+- High-resolution setup
 
    1. Download the high-resolution initial conditions and `Input_*` by executing
       ```bash
@@ -41,16 +41,16 @@
 
    2. Highest resolution ~ 20 pc (root grid 128^3; [[MAX_LEVEL | Runtime-Parameters:-Refinement#MAX_LEVEL]]=`9`)
 
-   3. This setup reproduces the AGORA high-resolution run presented in the GAMER-2 paper (Schive et al. 2018)
+   3. This setup reproduces the AGORA high-resolution run presented in the GAMER-2 paper [Schive et al. 2018](https://academic.oup.com/mnras/article/481/4/4815/5106358)
 
 
 # Note
-1. Mimic the "AgoraGalaxy" test problem setup of Enzo.
+- Mimic the "AgoraGalaxy" test problem setup of Enzo.
 
    See: [Nathan Goldbaum, et al., 2015, ApJ, 814, 131](https://dx.doi.org/10.1088/0004-637X/814/2/131) [(arXiv: 1510.08458)](https://arxiv.org/abs/1510.08458) and
    [Ji-hoon Kim, et al., 2016, ApJ, 833, 202](https://dx.doi.org/10.3847/1538-4357/833/2/202) [(arXiv: 1610.03066)](https://dx.doi.org/10.3847/1538-4357/833/2/202)
 
-2. Other references
+- Other references
 
    - [AGORA website](https://sites.google.com/site/santacruzcomparisonproject/)
    - [AGORA initial conditions](https://goo.gl/8JzbIJ)
@@ -59,10 +59,10 @@
    - [yt hub](https://girder.hub.yt/#collection/5736481ddd9119000164acf1)
    - [CloudyData_UVB table](https://github.com/grackle-project/grackle_data_files/tree/main/input)
 
-3. The low-resolution initial condition files from `sh download_ic_low_res.sh` are the same initial conditions used
-   in the `AgoraGalaxy` test problem of Enzo
+- The low-resolution initial condition files from `sh download_ic_low_res.sh` are the same initial conditions used
+  in the `AgoraGalaxy` test problem of Enzo
 
-4. Some handy yt analysis scripts are put at `yt_script`
+- Some handy yt analysis scripts are put at `yt_script`
 
 
 # First-time GRACKLE installation guide (on NTU clusters as an example)
