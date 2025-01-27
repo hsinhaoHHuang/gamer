@@ -22,16 +22,17 @@
 
 
 # Default setup
-1. Resolution = 64^3
-2. Run for one period
+- Resolution = 64^3
+- Run for one period
 
 
 # Note
-1. Support both 1D and 3D cases --> set by `CR_Acoustic_Dir`
-2. A simple Python script `plot_wave.py` is attached
-3. `Record__L1Err` records the L1 errors
-4. `CosmicRay_AcousticWave_*_*` record the numerical and analytical solutions along the diagonal
+- Support both 1D and 3D cases
+   - set by `CR_Acoustic_Dir`
+- A simple Python script `plot_wave.py` is attached
+- `Record__L1Err` records the L1 errors
+- `CosmicRay_AcousticWave_*_*` record the numerical and analytical solutions along the diagonal
 
-## Links
+# Links
 [[Main page of Test Problems | Test-Problems]]
 

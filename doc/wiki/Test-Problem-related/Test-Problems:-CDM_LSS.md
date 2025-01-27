@@ -18,25 +18,25 @@
 
 
 # Default setup
-1. Cosmological constants
-   | Parameter name | value                  |
+- Cosmological constants
+   | Parameter name | Value                  |
    |---             |---                     |
    | A_INIT         | 0.00990099009900990099 |
    | OMEGA_M0       | 0.315823               |
    | HUBBLE0        | 0.6732117              |
 
-2. Simulation
-   | Parameter name       | value           |
-   |---                   |---              |
-   | BOX_SIZE             | 30.0 (Mpc/h)    |
-   | NX0_TOT              | 128             |
-   | MAX_LEVEL            | 5               |
-   | NPAR                 | 2097152 (128^3) |
-   | OPT__FLAG_NPAR_PATCH | 2               |
-   | OPT__FREEZE_FLUID    | 1               |
+- Simulation
+   | Parameter name       | Value   | Note  |
+   |---                   |---      |---    |
+   | BOX_SIZE             | 30.0    | Mpc/h |
+   | NX0_TOT              | 128     |       |
+   | MAX_LEVEL            | 5       |       |
+   | NPAR                 | 2097152 | 128^3 |
+   | OPT__FLAG_NPAR_PATCH | 2       |       |
+   | OPT__FREEZE_FLUID    | 1       |       |
 
-3. Particle initial condition
-   | Parameter name | value |
+- Particle initial condition
+   | Parameter name | Value |
    |---             |---    |
    | PAR_IC_FORMAT  | 1     |
    | PAR_IC_MASS    | -1.0  |
@@ -44,20 +44,17 @@
 
 
 # Note
-1. CDM cosmological large-scale structure simulations
-
-2. Fiducial `PAR_IC` file can be downloaded with the command.
+- CDM cosmological large-scale structure simulations
+- Fiducial `PAR_IC` file can be downloaded with the command.
    ```bash
    sh download_ic.sh
    ```
-
-3. GAMER currently doesn't support particle-only simulations. So the following temporary solutions are adopted
-   1. Set gas density/energy to arbitrarily small (for [[--model | Installation:-Option-List#--model]])
+- GAMER currently doesn't support particle-only simulations. So the following temporary solutions are adopted
+   1. Set gas density/energy to arbitrarily small (for [[--model | Installation:-Option-List#--model]]=`HYDRO`)
       or wave function to zero (for [[--model | Installation:-Option-List#--model]]=`ELBDM`) in `SetGridIC()`.
    2. Enable [[OPT__FREEZE_FLUID | Hydro#OPT__FREEZE_FLUID]]
+- Default maximum spatial resolution is 30.0/(128*2^5)~7.3 kpc/h (comoving).
 
-4. Default maximum spatial resolution is 30.0/(128*2^5)~7.3 kpc/h (comoving).
-
-## Links
+# Links
 [[Main page of Test Problems | Test-Problems]]
 

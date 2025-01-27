@@ -18,16 +18,17 @@
 
 
 # Default setup
-1. Periodic BC
+- Periodic BC
 
 
 # Note
-1. Reference: [Zhang et al., 2018, ApJS, 236, 50](https://arxiv.org/abs/1804.03479)
-2. `ABC_NPeriod`:
-   1.  1 --> stable
-   2.  2 --> unstable
-4. Initial perturbations have not been implemented yet
+- Reference
+   - [Zhang et al., 2018, ApJS, 236, 50](https://arxiv.org/abs/1804.03479)
+- `ABC_NPeriod`
+   - `1` --> stable
+   - `2` --> unstable
+- Initial perturbations have not been implemented yet
 
-## Links
+# Links
 [[Main page of Test Problems | Test-Problems]]
 

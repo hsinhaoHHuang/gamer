@@ -49,6 +49,6 @@ The grid is unrefined in timestep `0`, refinement and restriction are performed 
 
 Plot `3` that is created later during the run highlights that the artifacts are not remedied by the new restriction option.
 
-## Links
+# Links
 [[Main page of Test Problems | Test-Problems]]
 
