@@ -29,7 +29,7 @@ def CopyAndAddMsg( filename, target ):
 
     link_msg     = r''
     link_msg    += r'\\n'
-    link_msg    += r'## Links\n'
+    link_msg    += r'# Links\n'
     link_msg    += r'[[Main page of Test Problems | Test-Problems]]\n'
 
     status = subprocess.call( ["cp", filename, target] )
