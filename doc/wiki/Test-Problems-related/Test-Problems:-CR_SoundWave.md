@@ -8,17 +8,17 @@
 
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--model]]=`HYDRO`
-   - [[--eos | Installation:-Option-List#--eos]]=`COSMIC_RAY`
-   - [[--double | Installation:-Option-List#--double]]
-   - [[--cosmic_ray | Installation:-Option-List#--cosmic_ray]]
+  - [[--model | Installation:-Option-List#--model]]=`HYDRO`
+  - [[--eos | Installation:-Option-List#--eos]]=`COSMIC_RAY`
+  - [[--double | Installation:-Option-List#--double]]
+  - [[--cosmic_ray | Installation:-Option-List#--cosmic_ray]]
 - Must disable
-   - [[--comoving | Installation:-Option-List#--comoving]]
-   - [[--particle | Installation:-Option-List#--particle]]
-   - [[--gravity | Installation:-Option-List#--gravity]]
-   - [[--cr_diffusion | Installation:-Option-List#--cr_diffusion]]
+  - [[--comoving | Installation:-Option-List#--comoving]]
+  - [[--particle | Installation:-Option-List#--particle]]
+  - [[--gravity | Installation:-Option-List#--gravity]]
+  - [[--cr_diffusion | Installation:-Option-List#--cr_diffusion]]
 - Available options
-   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
+  - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup
@@ -28,7 +28,7 @@
 
 # Note
 - Support both 1D and 3D cases
-   - set by `CR_Acoustic_Dir`
+  - set by `CR_Acoustic_Dir`
 - A simple Python script `plot_wave.py` is attached
 - `Record__L1Err` records the L1 errors
 - `CosmicRay_AcousticWave_*_*` record the numerical and analytical solutions along the diagonal

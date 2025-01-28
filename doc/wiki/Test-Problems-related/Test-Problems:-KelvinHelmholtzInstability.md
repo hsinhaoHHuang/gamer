@@ -8,13 +8,13 @@
 
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--model]]=`HYDRO`
+  - [[--model | Installation:-Option-List#--model]]=`HYDRO`
 - Must disable
-   - [[--comoving | Installation:-Option-List#--comoving]]
-   - [[--particle | Installation:-Option-List#--particle]]
-   - [[--gravity | Installation:-Option-List#--gravity]]
+  - [[--comoving | Installation:-Option-List#--comoving]]
+  - [[--particle | Installation:-Option-List#--particle]]
+  - [[--gravity | Installation:-Option-List#--gravity]]
 - Available options
-   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
+  - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup
@@ -28,7 +28,7 @@
 - Random values are added to velocity in all three directions
 - yt script `plot_density.py` for visualization
 - Must disable `OPT__INIT_GRID_WITH_OMP`
-   - Otherwise all threads would share the same random seed
+  - Otherwise all threads would share the same random seed
 
 # Links
 [[Main page of Test Problems | Test-Problems]]

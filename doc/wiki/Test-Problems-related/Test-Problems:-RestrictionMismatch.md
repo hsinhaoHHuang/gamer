@@ -9,9 +9,9 @@
 # Demonstration of phase mismatch after refinement and restriction
 
 ## Explanation
-This test problem demonstrates that refining and restricting the wave function in ELBDM leads to a mismatch of the phase on the coarse levels when the option [[OPT__INT_PHASE | ]] is on.
+This test problem demonstrates that refining and restricting the wave function in ELBDM leads to a mismatch of the phase on the coarse levels when the option [[OPT__INT_PHASE | Runtime-Parameters:-ELBDM#OPT__INT_PHASE]] is on.
 
-Further, it shows that the new option [[OPT__RES_PHASE | ]] remedies the mismatch immediately after restriction, but does not prevent the formation of artifacts at the coarse-fine boundary.
+Further, it shows that the new option [[OPT__RES_PHASE | Runtime-Parameters:-ELBDM#OPT__RES_PHASE]] remedies the mismatch immediately after restriction, but does not prevent the formation of artifacts at the coarse-fine boundary.
 
 It uses the `GaussianWavePacket` test with suitable initial parameters and refines a region at the center of the Gaussian wave packet.
 
@@ -43,7 +43,7 @@ However, as the plot named `ComparisonOfRestrictionMethodsAfterEvolution.png` sh
 
 The resulting mismatch is bigger than the one caused by the old restriction method.
 
-This is also shown in a series of four plots titled `Data_%06d_Slice_z_density.png` that are created from a run with the new option [[OPT__RES_PHASE | ]] turned on.
+This is also shown in a series of four plots titled `Data_%06d_Slice_z_density.png` that are created from a run with the new option [[OPT__RES_PHASE | Runtime-Parameters:-ELBDM#OPT__RES_PHASE]] turned on.
 
 The grid is unrefined in timestep `0`, refinement and restriction are performed at the end of timestep `1` and the refined fields are evolved during timestep `2`.
 

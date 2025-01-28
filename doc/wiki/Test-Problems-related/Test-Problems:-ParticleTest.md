@@ -8,15 +8,15 @@
 
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--model]]=`HYDRO`
-   - [[--particle | Installation:-Option-List#--particle]]
-   - [[--gravity | Installation:-Option-List#--gravity]]
-   - [[--tracer | Installation:-Option-List#--tracer]]
-   - [[--hdf5 | Installation:-Option-List#--hdf5]]
+  - [[--model | Installation:-Option-List#--model]]=`HYDRO`
+  - [[--particle | Installation:-Option-List#--particle]]
+  - [[--gravity | Installation:-Option-List#--gravity]]
+  - [[--tracer | Installation:-Option-List#--tracer]]
+  - [[--hdf5 | Installation:-Option-List#--hdf5]]
 - Must disable
-   - [[--comoving | Installation:-Option-List#--comoving]]
+  - [[--comoving | Installation:-Option-List#--comoving]]
 - Available options
-   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
+  - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup
@@ -35,7 +35,7 @@
 - [[OPT__FREEZE_FLUID | Runtime-Parameters:-Hydro#OPT__FREEZE_FLUID]] must be 1 for this test.
 - If [[OPT__FLAG_USER | Runtime-Parameters:-Refinement#OPT__FLAG_USER]] is set,
   a rectangle will be refined in the center of the domain.
-   - The active particle orbit is _not_ stable in this case due to self-force at refinement boundaries.
+  - The active particle orbit is _not_ stable in this case due to self-force at refinement boundaries.
 - Density of the gas must be kept very small to avoid gravitational effects from the gas.
 - Use python script `make_tracer_pngs.py` with yt to make PNG images, use
   bash script `make_tracer_movie.sh` to combine PNGs into movies with `ffmpeg`.
