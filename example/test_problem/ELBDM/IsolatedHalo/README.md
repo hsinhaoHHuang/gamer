@@ -57,7 +57,7 @@
 - AMR
   | Parameter name | Value |
   |---             |---    |
-  | MAX_LEVEL      | 0     |
+  | MAX_LEVEL      | 1     |
   | OPT__FLAG_RHO  | 1     |
 
 - End simulation condition
