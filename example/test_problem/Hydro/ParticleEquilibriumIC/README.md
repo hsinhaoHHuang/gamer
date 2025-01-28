@@ -1,13 +1,13 @@
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--model]]=`HYDRO`
-   - [[--particle | Installation:-Option-List#--particle]]
-   - [[--gravity | Installation:-Option-List#--gravity]]
-   - [[--gsl | Installation:-Option-List#--gsl]]
+  - [[--model | Installation:-Option-List#--model]]=`HYDRO`
+  - [[--particle | Installation:-Option-List#--particle]]
+  - [[--gravity | Installation:-Option-List#--gravity]]
+  - [[--gsl | Installation:-Option-List#--gsl]]
 - Must disable
-   - [[--comoving | Installation:-Option-List#--comoving]]
+  - [[--comoving | Installation:-Option-List#--comoving]]
 - Available options
-   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
+  - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup

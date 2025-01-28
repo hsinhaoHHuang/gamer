@@ -1,13 +1,13 @@
 # `configure.py` options
 - Must enable
-   - [[--model | Installation:-Option-List#--model]]=`ELBDM`
-   - [[--gravity | Installation:-Option-List#--gravity]]
+  - [[--model | Installation:-Option-List#--model]]=`ELBDM`
+  - [[--gravity | Installation:-Option-List#--gravity]]
 - Must disable
-   - [[--comoving | Installation:-Option-List#--comoving]]
-   - [[--particle | Installation:-Option-List#--particle]]
-   - [[--unsplit_gravity | Installation:-Option-List#--unsplit_gravity]]
+  - [[--comoving | Installation:-Option-List#--comoving]]
+  - [[--particle | Installation:-Option-List#--particle]]
+  - [[--unsplit_gravity | Installation:-Option-List#--unsplit_gravity]]
 - Available options
-   - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
+  - [[Miscellaneous Options | Installation:-Option-List#miscellaneous-options]]
 
 
 # Default setup
