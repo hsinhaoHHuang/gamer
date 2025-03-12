@@ -1,0 +1,5 @@
+# problem-specific runtime parameters
+WLMDwarfGalaxy_UseMetal             1              # add and advect a metal density field
+                                                   # --> to enable this option, one must
+                                                   #     increase both NCOMP_PASSIVE_USER and PAR_NATT_FLT_USER by 1 in the Makefile
+                                                   # --> necessary if one wants to enable metal_cooling in Grackle
