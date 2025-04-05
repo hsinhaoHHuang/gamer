@@ -8,7 +8,7 @@ matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
 
-filein  = "../Data_000005"
+filein  = "../Data_000050"
 fileout = "fig__SN_feedback_rate"
 nbin    = 100
 dpi     = 150
@@ -36,17 +36,24 @@ add_particle_filter( "exploded_SNe", function=exploded_SNe, filtered_type="all",
 ds.add_particle_filter( "exploded_SNe" )
 
 
+# define the particle filter for the exploded SNe
+def unexploded_SNe( pfilter, data ):
+   filter = (data[ "all", "ParSNIITime" ] > 0) & (data[ "all", "ParSNIITime" ] < data.ds.current_time) # ParSNIITime is set as negative value of explosion time for exploded particle
+   return filter
+
+add_particle_filter( "unexploded_SNe", function=unexploded_SNe, filtered_type="all", requires=["ParSNIITime"] )
+ds.add_particle_filter( "unexploded_SNe" )
+
+
 # get the creation time of the new stars and explosion time of teh SNe
 ad            = ds.all_data()
 
-star_mass     = ad[ "new_star", "ParMass" ].in_units( "Msun" )
+star_ones     = ad[ "new_star", "particle_ones" ]
 creation_time = ad[ "new_star", "ParCreTime" ].in_units( "Myr" )
 
-SNe_mass      = ad[ "exploded_SNe", "ParMass" ].in_units( "Msun" )
-SNe_expl_time = -1.0*( ad[ "exploded_SNe", "ParSNIITime" ]*ds.units.code_time ).in_units( "Myr" ) # ParSNIITime is set as negative value of explosion time for exploded particle
-
-print( 'Total number of stars = %d'%len(creation_time) )
-print( 'Total number of SNe   = %d'%len(SNe_expl_time) )
+SNe_ones        = ad[ "exploded_SNe", "particle_ones" ]
+SNe_expl_time   = -1.0*( ad[ "exploded_SNe", "ParSNIITime" ]*ds.units.code_time ).in_units( "Myr" ) # ParSNIITime is set as negative value of explosion time for exploded particle
+SNe_unexpl_time =    ( ad[ "unexploded_SNe", "ParSNIITime" ]*ds.units.code_time ).in_units( "Myr" ) # ParSNIITime is set as negative value of explosion time for exploded particle
 
 
 # bin the data
@@ -62,12 +69,11 @@ assert np.all( star_upper_idx > 0 ) and np.all( star_upper_idx < len(t_bin) ), "
 assert np.all( SNe_upper_idx > 0 )  and np.all( SNe_upper_idx < len(t_bin) ),  "incorrect SNe_upper_idx !!"
 
 
-# calculate the star formation and SNe mass rate
-Myr2yr = 1.0e6
-sfr    = np.array(  [ star_mass[star_upper_idx == j+1].sum() / ( (t_bin[j+1] - t_bin[j])*Myr2yr ) for j in range(len(time)) ]  )
+# calculate the star formation and SNe number rate
+sfr    = np.array(  [ star_ones[star_upper_idx == j+1].sum() / ( (t_bin[j+1] - t_bin[j]) ) for j in range(len(time)) ]  )
 sfr[sfr == 0] = np.nan
 
-SNr     = np.array(  [ SNe_mass[SNe_upper_idx == j+1].sum()  / ( (t_bin[j+1] - t_bin[j])*Myr2yr ) for j in range(len(time)) ]  )
+SNr     = np.array(  [ SNe_ones[SNe_upper_idx == j+1].sum()  / ( (t_bin[j+1] - t_bin[j]) ) for j in range(len(time)) ]  )
 SNr[SNr == 0] = np.nan
 
 
@@ -79,12 +85,19 @@ SNDelayTime = ds.quan( ds.parameters['FB_ResolvedSNeII_DelayTime'], 'code_time' 
 # plot
 plt.plot( time,               sfr,                  label='Stars' )
 plt.plot( time,               SNr,                  label='SNe'   )
-plt.plot( time,               SNr*StarsPerSN, '--', label=r'SNe, $\times$ %.2f'%(StarsPerSN) )
-plt.plot( time.d-SNDelayTime, SNr*StarsPerSN, '--', label=r'SNe, $\times$ %.2f, shifted %.1f Myr'%(StarsPerSN, SNDelayTime) )
-#plt.ylim( 0.0, 1.0e1 )
+#plt.plot( time,               SNr*StarsPerSN, '--', label=r'SNe, $\times$ %.2f'%(StarsPerSN) )
+#plt.plot( time.d-SNDelayTime, SNr*StarsPerSN, '--', label=r'SNe, $\times$ %.2f, shifted %.1f Myr'%(StarsPerSN, SNDelayTime) )
+plt.yscale('log')
+plt.xlim( 0.0, 500 )
+plt.ylim( 3.0e-1, 2.0e+3 )
 plt.legend()
-plt.xlabel( "$\mathrm{t\ [Myr]}$",        fontsize="large" )
-plt.ylabel( "$\mathrm{[M_\odot yr^{-1}]}$", fontsize="large" )
+plt.xlabel( "$\mathrm{t\ [Myr]}$",  fontsize="large" )
+plt.ylabel( "$\mathrm{[Myr^{-1}]}$", fontsize="large" )
+
+text_string = 'Total number of formed stars   = % 7d\n'%len(creation_time) + \
+              'Total number of exploded SNe   = % 7d\n'%len(SNe_expl_time) + \
+              'Total number of unexploded SNe = % 7d\n'%len(SNe_unexpl_time)
+plt.text( 10.0, 4.0e+2, text_string, fontfamily='monospace' )
 
 
 # show/save figure

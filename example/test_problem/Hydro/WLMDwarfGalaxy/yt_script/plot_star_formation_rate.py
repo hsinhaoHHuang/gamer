@@ -6,7 +6,7 @@ from yt.data_objects.particle_filters import add_particle_filter
 from matplotlib import pyplot as plt
 
 
-filein  = "../Data_000005"
+filein  = "../Data_000050"
 fileout = "fig__star_formation_rate"
 nbin    = 100
 dpi     = 150
@@ -30,6 +30,10 @@ ad            = ds.all_data()
 mass          = ad[ "new_star", "ParMass"    ].in_units( "Msun" )
 creation_time = ad[ "new_star", "ParCreTime" ].in_units( "Myr" )
 
+# add back the feedback mass
+exploded      = (ad[ "new_star", "ParSNIITime"  ] <=0 )
+mass = np.where( exploded, mass+ds.quan( ds.parameters['FB_ResolvedSNeII_EjectMass'], 'code_mass' ).in_units('Msun'), mass )
+
 
 # bin the data
 t_start   = 0.0
@@ -50,7 +54,9 @@ sfr[sfr == 0] = np.nan
 
 # plot
 plt.plot( time, sfr )
-#plt.ylim( 0.0, 1.0e1 )
+plt.yscale('log')
+plt.xlim( 0.0, 1000 )
+plt.ylim( 3.0e-5, 2.0e-2 )
 plt.xlabel( "$\mathrm{t\ [Myr]}$",               fontsize="large" )
 plt.ylabel( "$\mathrm{SFR\ [M_\odot yr^{-1}]}$", fontsize="large" )
 

@@ -34,12 +34,12 @@ width_kpc   = 6
 nbin        = 300
 dpi         = 150
 
-x_lim_min   = 1.0e-30
+x_lim_min   = 9.0e-32
 x_lim_max   = 1.0e-19
 y_lim_min   = 1.0e0
-y_lim_max   = 1.0e8
+y_lim_max   = 1.0e9
 z_lim_min   = 1.0e1
-z_lim_max   = 1.0e8
+z_lim_max   = 3.0e5
 
 
 yt.enable_parallelism()
@@ -52,9 +52,7 @@ for ds in ts.piter():
    v, cen1 = ds.find_max( ('gas', 'density') )
    sp1  = ds.sphere( cen1, (6.0, 'kpc') )
    cen2 = sp1.quantities.center_of_mass( use_gas=True, use_particles=False ).in_units( 'kpc' )
-   sp2  = ds.sphere( cen2, (0.2, 'kpc') )
-   cen3 = sp2.quantities.max_location( ('gas', 'density') )[1:]         # first value is not position
-   cen  = cen3
+   cen  = cen2
 
 
 #  only include the data within a sphere with a radius of width_kpc

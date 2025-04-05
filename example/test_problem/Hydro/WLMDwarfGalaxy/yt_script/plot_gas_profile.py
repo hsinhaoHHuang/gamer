@@ -54,13 +54,11 @@ for ds in ts.piter():
    v, cen1 = ds.find_max( ("gas", "density") )
    sp1  = ds.sphere( cen1, (6.0, "kpc") )
    cen2 = sp1.quantities.center_of_mass( use_gas=True, use_particles=False ).in_units( "kpc" )
-   sp2  = ds.sphere( cen2, (0.2, "kpc") )
-   cen3 = sp2.quantities.max_location( ("gas", "density") )[1:]         # first value is not position
-   cen  = cen3
+   cen  = cen2
 
 
 #  only include the data within a sphere with a radius of width_kpc
-   sp = ds.sphere( cen, (0.5*width_kpc, "kpc") )
+   sp = ds.sphere( cen, (0.5*width_kpc, "kpc") ).cut_region( ["obj['gas', 'density'].in_units('g/cm**3') > 1.0e-30"] )
    sp.set_field_parameter( "normal", disk_normal )
 
 
@@ -83,8 +81,8 @@ for ds in ts.piter():
       return data["density"]**2
    ds.add_field( ("gas", "density_square"), function=_density_square, sampling_type="cell", units="g**2/cm**6" )
 
-   prof     = yt.ProfilePlot( sp, yt_radius, ("gas", "temperature"), weight_field="density_square",
-                               n_bins=nbin, x_log=False, accumulation=False )
+   prof     = yt.ProfilePlot( sp, yt_radius, ("gas", "temperature"), weight_field="density",
+                              n_bins=nbin, x_log=False, accumulation=False )
    gas_temp = prof.profiles[0]["temperature"].in_units("K").d
 
 
@@ -153,18 +151,18 @@ for ds in ts.piter():
 #  (2) gas temperature
    ax[0][1].plot( radius, gas_temp, 'r-o', lw=2, mec='none', ms=markersize )
    ax[0][1].set_yscale( 'log', nonpositive='clip' )
-   ax[0][1].set_ylim( 1.0e3, 1.0e5 )
+   ax[0][1].set_ylim( 1.0e0, 1.0e8 )
    ax[0][1].yaxis.set_minor_locator( plt.LogLocator(base=10.0, subs=[2.0,5.0,8.0]) )
    ax[0][1].set_ylabel( "$\mathrm{T\ [K]}$", fontsize='large' )
 
 #  (3) gas rotational velocity
    ax[1][0].plot( radius, gas_vrot, 'r-o', lw=2, mec='none', ms=markersize )
-   ax[1][0].set_ylim( 0.0, 80.0 )
+   ax[1][0].set_ylim( 0.0, 60.0 )
    ax[1][0].set_ylabel( "$\mathrm{v_{rot,gas}\ [km/s]}$", fontsize='large' )
 
 #  (4) gas velocity dispersion
    ax[1][1].plot( radius, gas_vdis, 'r-o', lw=2, mec='none', ms=markersize )
-   ax[1][1].set_ylim( 00.0, 10.0 )
+   ax[1][1].set_ylim( 0.0, 30.0 )
    ax[1][1].set_ylabel( "$\mathrm{\sigma_{gas}\ [km/s]}$", fontsize='large' )
 
 #  add title
