@@ -180,7 +180,8 @@ void Par_EquilibriumIC::Load_Physical_Params( const FP filename_para, const int 
    // Checking ExtPot_Table_Name
    Aux_Message( stdout, "Checking ExtPot_Table_Name\n" );
    if(params.AddExtPot){
-      const char * c = convertToString(params.ExtPot_Table_Name).c_str();
+      string s = convertToString(params.ExtPot_Table_Name);
+      const char * c = s.c_str();
       fstream file;
       file.open(c, ios::in);
       if(!file){
@@ -589,7 +590,7 @@ double Par_EquilibriumIC::inverse_psi_to_index( const double psi )
       if(max==min+1){
          return max;
       }
-      mid_psi=- Table_Gravity_Potential[mid] ;
+      mid_psi = -Table_Gravity_Potential[mid] ;
       if(psi>mid_psi){
          max=mid;
          mid =(max+min)/2;
