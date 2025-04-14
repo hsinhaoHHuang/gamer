@@ -167,7 +167,7 @@ for ds in ts.piter():
             p.save( 'fig_%s_%s_Projection_%s_%s.png'%(ds, zoom_mode, direction, field), mpl_kwargs={'dpi':dpi} )
             p.annotate_grids( periodic=False )
             p.save( 'fig_%s_%s_Projection_%s_%s_withgrids.png'%(ds, zoom_mode, direction, field), mpl_kwargs={'dpi':dpi} )
-            if field == 'density':
+            if field == 'density' and zoom_mode != 'a':
                p.clear_annotations( index=-1 )
                p.annotate_particles( (width_kpc, 'kpc'), ptype='new_star', p_size=1, col='k', alpha=1.0, marker='o' )
                p.save( 'fig_%s_%s_Projection_%s_%s_withStars.png'%(ds, zoom_mode, direction, field), mpl_kwargs={'dpi':dpi} )
