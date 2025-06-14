@@ -11,6 +11,10 @@ static bool WLMDwarfGalaxy_UseMetal = false; // add and advect a metal density f
 // =======================================================================================
 
 
+// problem-specific function prototypes
+bool Flag_WLMDwarfGalaxy( const int i, const int j, const int k, const int lv, const int PID, const double *Threshold );
+
+
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -331,6 +335,7 @@ void Init_TestProb_Hydro_WLMDwarfGalaxy()
    Init_Function_User_Ptr      = SetGridIC;
    Init_Field_User_Ptr         = AddNewField_WLMDwarfGalaxy;
    Par_Init_Attribute_User_Ptr = AddNewParticleAttribute_WLMDwarfGalaxy;
+   Flag_User_Ptr               = Flag_WLMDwarfGalaxy;
 #  ifdef SUPPORT_HDF5
    Output_HDF5_InputTest_Ptr   = LoadInputTestProb;
 #  endif
