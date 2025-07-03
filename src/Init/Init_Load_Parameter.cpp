@@ -90,6 +90,7 @@ void Init_Load_Parameter()
    ReadPara->Add( "PAR_REMOVE_CELL",            &amr->Par->RemoveCell,           -1.0,              NoMin_double,  NoMax_double   );
    ReadPara->Add( "OPT__FREEZE_PAR",            &OPT__FREEZE_PAR,                 false,            Useless_bool,  Useless_bool   );
    ReadPara->Add( "PAR_TR_VEL_CORR",            &amr->Par->TracerVelCorr,         false,            Useless_bool,  Useless_bool   );
+   ReadPara->Add( "OPT__PAR_INIT_CHECK",        &OPT__PAR_INIT_CHECK,             true,             Useless_bool,  Useless_bool   );
 #  endif // #ifdef PARTICLE
 
 
@@ -216,6 +217,7 @@ void Init_Load_Parameter()
 // load balance
 #  ifdef LOAD_BALANCE
    ReadPara->Add( "LB_INPUT__WLI_MAX",          &LB_INPUT__WLI_MAX,               0.1,             0.0,           NoMax_double   );
+   ReadPara->Add( "LB_N_REGRID",                &LB_N_REGRID,                     0,               0,             NoMax_int      );
 #  ifdef PARTICLE
    ReadPara->Add( "LB_INPUT__PAR_WEIGHT",       &LB_INPUT__PAR_WEIGHT,            0.0,             0.0,           NoMax_double   );
 #  endif

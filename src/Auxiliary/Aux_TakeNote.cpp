@@ -933,9 +933,10 @@ void Aux_TakeNote()
       fprintf( Note, "Par->GhostSizeTracer           % d\n",      amr->Par->GhostSizeTracer     );
       fprintf( Note, "Par->TracerVelCorr             % d\n",      amr->Par->TracerVelCorr       );
       fprintf( Note, "OPT__FREEZE_PAR                % d\n",      OPT__FREEZE_PAR               );
+      fprintf( Note, "OPT__PAR_INIT_CHECK            % d\n",      OPT__PAR_INIT_CHECK           );
       fprintf( Note, "***********************************************************************************\n" );
       fprintf( Note, "\n\n" );
-#     endif
+#     endif // #ifdef PARTICLE
 
 
 //    record the parameters of cosmological simulations (comoving frame)
@@ -1095,6 +1096,7 @@ void Aux_TakeNote()
 #     endif
 #     ifdef LOAD_BALANCE
       fprintf( Note, "LB_WLI_MAX                     % 14.7e\n",  amr->LB->WLI_Max          );
+      fprintf( Note, "LB_N_REGRID                    % d\n",      LB_N_REGRID               );
 #     ifdef PARTICLE
       fprintf( Note, "LB_PAR_WEIGHT                  % 14.7e\n",  amr->LB->Par_Weight       );
 #     endif

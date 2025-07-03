@@ -443,6 +443,7 @@ struct InputPara_t
    int    Par_GhostSize;
    int    Par_GhostSizeTracer;
    int    Par_TracerVelCorr;
+   int    Opt__ParInitCheck;
    char  *ParAttFltLabel[PAR_NATT_FLT_TOTAL];
    char  *ParAttIntLabel[PAR_NATT_INT_TOTAL];
 #  endif
@@ -568,6 +569,7 @@ struct InputPara_t
 // load balance
 #  ifdef LOAD_BALANCE
    double LB_WLI_Max;
+   int    LB_N_Regrid;
 #  ifdef PARTICLE
    double LB_Par_Weight;
 #  endif

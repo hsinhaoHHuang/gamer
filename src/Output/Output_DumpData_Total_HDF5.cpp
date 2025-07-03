@@ -277,11 +277,13 @@ Procedure for outputting new variables:
 //                2502 : 2025/01/16 --> output ConRef[]
 //                2503 : 2025/01/17 --> output user-defined parameters in "User/UserPara" and
 //                                             Input__TestProb parameters in "Info/InputTest"
+//                2504 : 2025/04/29 --> output OPT__PAR_INIT_CHECK
 //                2504 : 2025/01/25 --> output SF_CREATE_STAR_MAX_GAS_JEANSL
 //                2505 : 2025/03/20 --> output FB_RESOLVED_SNEII, FB_RESOLVED_SNEII_N_PER_MASS, FB_RESOLVED_SNEII_DELAY_TIME,
 //                                             FB_RESOLVED_SNEII_EJECT_ENGY, FB_RESOLVED_SNEII_EJECT_MASS, FB_RESOLVED_SNEII_EJECT_METAL,
 //                                             FB_RESOLVED_SNEII_MIN_M_GAS, FB_RESOLVED_SNEII_RECORD
 //                                      replace FB_LEVEL by FB_MIN_LEVEL
+//                2505 : 2025/06/27 --> output LB_N_REGRID
 //-------------------------------------------------------------------------------------------------------
 void Output_DumpData_Total_HDF5( const char *FileName )
 {
@@ -2415,11 +2417,12 @@ void FillIn_InputPara( InputPara_t &InputPara, const int NFieldStored, char Fiel
    InputPara.Par_IntegTracer         = amr->Par->IntegTracer;
    InputPara.Par_ImproveAcc          = amr->Par->ImproveAcc;
    InputPara.Par_PredictPos          = amr->Par->PredictPos;
-   InputPara.Par_TracerVelCorr       = amr->Par->TracerVelCorr;
    InputPara.Par_RemoveCell          = amr->Par->RemoveCell;
    InputPara.Opt__FreezePar          = OPT__FREEZE_PAR;
    InputPara.Par_GhostSize           = amr->Par->GhostSize;
    InputPara.Par_GhostSizeTracer     = amr->Par->GhostSizeTracer;
+   InputPara.Par_TracerVelCorr       = amr->Par->TracerVelCorr;
+   InputPara.Opt__ParInitCheck       = OPT__PAR_INIT_CHECK;
    for (int v=0; v<PAR_NATT_FLT_TOTAL; v++)
    InputPara.ParAttFltLabel[v]       = ParAttFltLabel[v];
    for (int v=0; v<PAR_NATT_INT_TOTAL; v++)
@@ -2545,6 +2548,7 @@ void FillIn_InputPara( InputPara_t &InputPara, const int NFieldStored, char Fiel
 // load balance
 #  ifdef LOAD_BALANCE
    InputPara.LB_WLI_Max              = amr->LB->WLI_Max;
+   InputPara.LB_N_Regrid             = LB_N_REGRID;
 #  ifdef PARTICLE
    InputPara.LB_Par_Weight           = amr->LB->Par_Weight;
 #  endif
@@ -3463,11 +3467,12 @@ void GetCompound_InputPara( hid_t &H5_TypeID, const int NFieldStored )
    H5Tinsert( H5_TypeID, "Par_IntegTracer",         HOFFSET(InputPara_t,Par_IntegTracer        ), H5T_NATIVE_INT     );
    H5Tinsert( H5_TypeID, "Par_ImproveAcc",          HOFFSET(InputPara_t,Par_ImproveAcc         ), H5T_NATIVE_INT     );
    H5Tinsert( H5_TypeID, "Par_PredictPos",          HOFFSET(InputPara_t,Par_PredictPos         ), H5T_NATIVE_INT     );
-   H5Tinsert( H5_TypeID, "Par_TracerVelCorr",       HOFFSET(InputPara_t,Par_TracerVelCorr      ), H5T_NATIVE_INT     );
    H5Tinsert( H5_TypeID, "Par_RemoveCell",          HOFFSET(InputPara_t,Par_RemoveCell         ), H5T_NATIVE_DOUBLE  );
    H5Tinsert( H5_TypeID, "Opt__FreezePar",          HOFFSET(InputPara_t,Opt__FreezePar         ), H5T_NATIVE_INT     );
    H5Tinsert( H5_TypeID, "Par_GhostSize",           HOFFSET(InputPara_t,Par_GhostSize          ), H5T_NATIVE_INT     );
    H5Tinsert( H5_TypeID, "Par_GhostSizeTracer",     HOFFSET(InputPara_t,Par_GhostSizeTracer    ), H5T_NATIVE_INT     );
+   H5Tinsert( H5_TypeID, "Par_TracerVelCorr",       HOFFSET(InputPara_t,Par_TracerVelCorr      ), H5T_NATIVE_INT     );
+   H5Tinsert( H5_TypeID, "Opt__ParInitCheck",       HOFFSET(InputPara_t,Opt__ParInitCheck      ), H5T_NATIVE_INT     );
 
 // store the name of all particle attributes
    for (int v=0; v<PAR_NATT_FLT_TOTAL; v++)
@@ -3611,6 +3616,7 @@ void GetCompound_InputPara( hid_t &H5_TypeID, const int NFieldStored )
 // load balance
 #  ifdef LOAD_BALANCE
    H5Tinsert( H5_TypeID, "LB_WLI_Max",              HOFFSET(InputPara_t,LB_WLI_Max             ), H5T_NATIVE_DOUBLE  );
+   H5Tinsert( H5_TypeID, "LB_N_Regrid",             HOFFSET(InputPara_t,LB_N_Regrid            ), H5T_NATIVE_INT     );
 #  ifdef PARTICLE
    H5Tinsert( H5_TypeID, "LB_Par_Weight",           HOFFSET(InputPara_t,LB_Par_Weight          ), H5T_NATIVE_DOUBLE  );
 #  endif
