@@ -1,7 +1,7 @@
 import argparse
 import sys
 import yt
-import numpy as np
+import plot_TempDens_Phase_and_PDF
 
 # load the command-line parameters
 parser = argparse.ArgumentParser( description='Plot the gas density-temperature phase diagram' )
@@ -14,6 +14,8 @@ parser.add_argument( '-e', action='store', required=True,  type=int, dest='idx_e
                      help='last data index' )
 parser.add_argument( '-d', action='store', required=False, type=int, dest='didx',
                      help='delta data index [%(default)d]', default=1 )
+parser.add_argument( '-c', action='store', required=False, type=str, dest='code',
+                     help='simulation code [%(default)s]', default='GAMER' )
 
 args=parser.parse_args()
 
@@ -28,50 +30,53 @@ idx_start   = args.idx_start
 idx_end     = args.idx_end
 didx        = args.didx
 prefix      = args.prefix
+code        = args.code
 
-colormap    = 'viridis'
+
 width_kpc   = 6
 nbin        = 300
-dpi         = 150
 
 x_lim_min   = 9.0e-32
-x_lim_max   = 1.0e-19
+x_lim_max   = 2.0e-18
 y_lim_min   = 1.0e0
 y_lim_max   = 1.0e9
-z_lim_min   = 1.0e1
-z_lim_max   = 3.0e5
 
 
 yt.enable_parallelism()
 
-ts = yt.DatasetSeries( [ prefix+'/Data_%06d'%idx for idx in range(idx_start, idx_end+1, didx) ] )
+if code == 'GAMER':
+    ts = yt.DatasetSeries( [ prefix+'/Data_%06d'%idx for idx in range(idx_start, idx_end+1, didx) ] )
+elif code == 'GIZMO':
+
+    bbox = [ [-0.5*450.0, 0.5*450.0],
+             [-0.5*450.0, 0.5*450.0],
+             [-0.5*450.0, 0.5*450.0] ]
+
+    unit_base = {
+                  'UnitLength_in_cm'        : 3.085678e+21,
+                  'UnitMass_in_g'           : 1.989e+43,
+                  'UnitVelocity_in_cm_per_s': 100000,
+                }
+    ts = yt.DatasetSeries( [ prefix+'/snap_%03d.hdf5'%idx for idx in range(idx_start, idx_end+1, didx) ], unit_base=unit_base, bounding_box=bbox )
+else:
+    raise RuntimeError('Code %s is NOT supported  !!'%code)
 
 for ds in ts.piter():
 
-#  define center as the location of peak gas density within 1 kpc from the center of gas mass
-   v, cen1 = ds.find_max( ('gas', 'density') )
-   sp1  = ds.sphere( cen1, (6.0, 'kpc') )
-   cen2 = sp1.quantities.center_of_mass( use_gas=True, use_particles=False ).in_units( 'kpc' )
-   cen  = cen2
+    if code == 'GIZMO':
+        def _volume( field, data ):
+           return data[('gas', 'mass')] / data[('gas', 'density')]
+        ds.add_field( ('gas', 'volume'), function=_volume, sampling_type='particle', units='pc**3' )
 
 
-#  only include the data within a sphere with a radius of width_kpc
-   sp = ds.sphere( cen, (0.5*width_kpc, 'kpc') )
+#   define center as the location of peak gas density within 1 kpc from the center of gas mass
+    v, cen1 = ds.find_max( ('gas', 'density') )
+    sp1  = ds.sphere( cen1, (6.0, 'kpc') )
+    cen2 = sp1.quantities.center_of_mass( use_gas=True, use_particles=False ).in_units( 'kpc' )
+    cen  = cen2
 
+#   only include the data within a sphere with a radius of width_kpc
+    sp = ds.sphere( cen, (0.5*width_kpc, 'kpc') )
 
-#  plot
-   temp_dens = yt.PhasePlot( sp, ('gas', 'density'), ('gas', 'temperature'), ('gas', 'cell_mass'),
-                             weight_field=None, x_bins=nbin, y_bins=nbin )
-   temp_dens.set_unit( 'cell_mass', 'Msun' )
-   temp_dens.set_xlim( x_lim_min, x_lim_max )
-   temp_dens.set_ylim( y_lim_min, y_lim_max )
-   temp_dens.set_zlim( ('gas', 'cell_mass'), z_lim_min, z_lim_max )
-   temp_dens.set_cmap( ('gas', 'cell_mass'), colormap )
-   temp_dens.set_colorbar_label( ('gas', 'cell_mass'), "Mass ($\mathrm{M}_{\odot}$)" )
-   temp_dens.annotate_text( xpos=x_lim_min*10**(0.80*(np.log10(x_lim_max)-np.log10(x_lim_min))),
-                            ypos=y_lim_min*10**(0.95*(np.log10(y_lim_max)-np.log10(y_lim_min))),
-                            text='$t$ = {:.1f} {:s}'.format( ds.current_time.in_units('Myr').d, 'Myr' ),
-                            color='black' )
-   temp_dens.save( mpl_kwargs={'dpi':dpi} )
-
-
+    plot_TempDens_Phase_and_PDF.plot_PhaseDiagram( ds, sp, '', 'gas', 'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max )
+    plot_TempDens_Phase_and_PDF.plot_PhaseDiagram( ds, sp, '', 'gas', 'volume', nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max )
