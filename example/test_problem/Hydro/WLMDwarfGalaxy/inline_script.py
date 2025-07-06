@@ -34,8 +34,6 @@ def yt_inline():
 
     yt.add_particle_filter( 'new_star', function=new_star, filtered_type='all', requires=['ParCreTime'] )
     ds.add_particle_filter( 'new_star' )
-    pz_dens.annotate_particles( (2*half_width, 'code_length'), ptype='new_star', p_size=0.7, col='w', marker='o' )
-    pz_dens.save( '%s_wStars'%ds )
 
     def exp_SNII( pfilter, data ):
         filter = data[ 'all', 'ParSNIITime' ] <= 0
@@ -43,28 +41,35 @@ def yt_inline():
 
     yt.add_particle_filter( 'exp_SNII', function=exp_SNII, filtered_type='all', requires=['ParSNIITime'] )
     ds.add_particle_filter( 'exp_SNII' )
-    pz_dens.annotate_particles( (2*half_width, 'code_length'), ptype='exp_SNII', p_size=0.7, col='r', marker='o' )
-    pz_dens.save( '%s_wSNeII'%ds )
-
-    pz_dens.clear_annotations( index=-2 )
 
     def young_star( pfilter, data ):
-        filter = (data[ 'all', 'ParCreTime' ] > data.ds.current_time + data.ds.quan(10.0, 'Myr'))
+        filter = (data[ 'new_star', 'ParCreTime' ] > data.ds.current_time - data.ds.quan(2.5, 'Myr'))
         return filter
 
     yt.add_particle_filter( 'young_star', function=young_star, filtered_type='new_star', requires=['ParCreTime'] )
     ds.add_particle_filter( 'young_star' )
-    pz_dens.annotate_particles( (2*half_width, 'code_length'), ptype='young_star', p_size=0.7, col='w', marker='o' )
-    pz_dens.save( '%s_wYStars'%ds )
 
     def young_SNII( pfilter, data ):
-        filter = (-1.0*data[ 'all', 'ParSNIITime' ]*data.ds.units.code_time > data.ds.current_time + data.ds.quan(10.0, 'Myr'))
+        filter = (-1.0*data[ 'exp_SNII', 'ParSNIITime' ]*data.ds.units.code_time > data.ds.current_time - data.ds.quan(2.5, 'Myr'))
         return filter
 
-    yt.add_particle_filter( 'young_SNII', function=exp_SNII, filtered_type='exp_SNII', requires=['ParSNIITime'] )
+    yt.add_particle_filter( 'young_SNII', function=young_SNII, filtered_type='exp_SNII', requires=['ParSNIITime'] )
     ds.add_particle_filter( 'young_SNII' )
-    pz_dens.annotate_particles( (2*half_width, 'code_length'), ptype='young_SNII', p_size=0.7, col='r', marker='o' )
+
+    pz_dens.annotate_particles( (2*half_width, 'code_length'), ptype='young_star', p_size=7.0, col='w', marker='o' )
+    pz_dens.save( '%s_wYStars'%ds )
+
+    pz_dens.annotate_particles( (2*half_width, 'code_length'), ptype='young_SNII', p_size=7.0, col='r', marker='o' )
     pz_dens.save( '%s_wYSNeII'%ds )
+
+    pz_dens.clear_annotations( index=-1 )
+    pz_dens.clear_annotations( index=-1 )
+
+    pz_dens.annotate_particles( (2*half_width, 'code_length'), ptype='new_star', p_size=0.7, col='w', marker='o' )
+    pz_dens.save( '%s_wStars'%ds )
+
+    pz_dens.annotate_particles( (2*half_width, 'code_length'), ptype='exp_SNII', p_size=0.7, col='r', marker='o' )
+    pz_dens.save( '%s_wSNeII'%ds )
 
 
     # Gas Phase
