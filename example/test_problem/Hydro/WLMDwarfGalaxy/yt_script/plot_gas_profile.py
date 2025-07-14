@@ -35,7 +35,7 @@ code        = args.code
 fileout     = 'fig__gas_profile'
 
 disk_normal = [0.0, 0.0, 1.0]
-width_kpc   = 8
+width_kpc   = 9
 nbin        = 50
 markersize  = 4.0
 dpi         = 150
@@ -119,9 +119,20 @@ for ds in ts.piter():
     ds.add_particle_filter( 'Disk'     )
     ds.add_particle_filter( 'new_star' )
 
+    # add the derived field
+    sampling_type = 'cell' if ds.dataset_type == 'gamer' else 'particle'
+
+    field_u = ('gas', 'specific_thermal_energy') if ds.dataset_type == 'gamer' else ('PartType0', 'InternalEnergy')
+    ds.mu   = 0.588235294117647  # Fully-ionized, 1/( 2.0*0.76/1 + 3.0*(1-0.76)/4 )
+
+    def _T( field, data ):
+       gamma = 5.0/3.0
+       return data[field_u] * (gamma - 1.0) * data.ds.mu * data.ds.units.proton_mass / data.ds.units.boltzmann_constant
+    ds.add_field( ('gas', 'T'), function=_T, sampling_type=sampling_type, units='K' )
+
     cen     = ds.domain_center
 
-#   only include the data within a sphere with a radius of width_kpc
+#   only include the data within a sphere with a radius of 0.5*width_kpc
     sp_gas  = ds.sphere( cen, (0.5*width_kpc, 'kpc') ).cut_region( ["obj['gas', 'density'].in_units('g/cm**3') > 1.0e-30"] )
     sp_gas.set_field_parameter( 'normal', disk_normal )
     sp_disk = ds.sphere( cen, (0.5*width_kpc, 'kpc') )
@@ -143,9 +154,9 @@ for ds in ts.piter():
 
 
 #   (2) gas temperature
-    prof     = yt.ProfilePlot( sp_gas, yt_radius, ('gas', 'temperature'), weight_field='density',
+    prof     = yt.ProfilePlot( sp_gas, yt_radius, ('gas', 'T'), weight_field='density',
                                n_bins=nbin, x_log=False, accumulation=False )
-    gas_temp = prof.profiles[0]['temperature'].in_units('K').d
+    gas_temp = prof.profiles[0]['T'].in_units('K').d
 
 
 #   (3) gas rotational velocity

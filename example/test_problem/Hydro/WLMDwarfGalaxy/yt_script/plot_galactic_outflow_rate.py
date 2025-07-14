@@ -243,9 +243,9 @@ def get_outflow_region( ds, z_kpc, dx_kpc, dy_kpc, dz_kpc ):
 def plot_min_temp_location(ds, Min_temp_location, field_type):
 
     if Min_temp_location[0].in_units('K').d < 1.0e3:
-       for direction in ['y', 'z']:
-          zoom_out_max = 12 if direction == 'y' else 0
-          for field in [(field_type,'density'), (field_type,'temperature')]:
+       for direction in ['x', 'z']:
+          zoom_out_max = 12 if direction == 'x' else 0
+          for field in [(field_type,'density'), (field_type,'T')]:
               for zoom_out in range(0, zoom_out_max+1, 1):
                  s = yt.SlicePlot( ds, direction, field, center=Min_temp_location[1:], width=(3.0*(1.25**zoom_out), 'kpc'), buff_size=(1024, 1024) )
                  s.set_axes_unit( 'kpc' )
@@ -257,8 +257,8 @@ def plot_min_temp_location(ds, Min_temp_location, field_type):
                  s.annotate_timestamp( time_unit='Myr', corner='upper_right' )
                  if direction == 'z':
                     s.annotate_quiver(('gas','velocity_x'), ('gas','velocity_y'), field_c=('gas','velocity_z'), factor=32, normalize=True, cmap='bwr_r', clim=(-5e6,5e6), alpha=0.7 )
-                 if direction == 'y':
-                    s.annotate_quiver(('gas','velocity_z'), ('gas','velocity_x'), field_c=('gas','velocity_z'), factor=32, normalize=True, cmap='bwr_r', clim=(-5e6,5e6), alpha=0.7 )
+                 if direction == 'x':
+                    s.annotate_quiver(('gas','velocity_y'), ('gas','velocity_z'), field_c=('gas','velocity_x'), factor=32, normalize=True, cmap='bwr_r', clim=(-5e6,5e6), alpha=0.7 )
                  s.annotate_text( (0.02, 0.08), r'$T_\mathrm{min}$ = %.1f K, $\rho$ = %.1e g cm$^{-3}$'%(Min_temp_location[0].in_units('K').d, ds.point(Min_temp_location[1:])[(field_type,'density')].in_units('g/cm**3').d[0])+
                                                  '\n at [ %.2f, %.2f, %.2f ] kpc'%((Min_temp_location[1]-ds.domain_center[0]).in_units('kpc').d,
                                                                                    (Min_temp_location[2]-ds.domain_center[1]).in_units('kpc').d,
@@ -360,6 +360,16 @@ for ds in ts.piter():
            return data[('gas', 'mass')] / data[('gas', 'density')]
         ds.add_field( ('gas', 'volume'), function=_volume, sampling_type='particle', units='pc**3' )
 
+    sampling_type = 'cell' if ds.dataset_type == 'gamer' else 'particle'
+
+    field_u = ('gas', 'specific_thermal_energy') if ds.dataset_type == 'gamer' else ('PartType0', 'InternalEnergy')
+    ds.mu   = 0.588235294117647  # Fully-ionized, 1/( 2.0*0.76/1 + 3.0*(1-0.76)/4 )
+
+    def _T( field, data ):
+       gamma = 5.0/3.0
+       return data[field_u] * (gamma - 1.0) * data.ds.mu * data.ds.units.proton_mass / data.ds.units.boltzmann_constant
+    ds.add_field( ('gas', 'T'), function=_T, sampling_type=sampling_type, units='K' )
+
     # main part
     calculate_galactic_outflow_rate( ds, plane_z_kpc, delta_x_kpc, delta_y_kpc, delta_z_kpc )
 
@@ -372,14 +382,14 @@ for ds in ts.piter():
 
     # find the minimum temperature
     if ds.dataset_type == 'gamer':
-        Min_temp_location = outflow_region.quantities.min_location( (outflow_p_type, 'temperature') )
+        Min_temp_location = outflow_region.quantities.min_location( (outflow_p_type, 'T') )
         plot_min_temp_location(ds, Min_temp_location, outflow_p_type)
     elif ds.dataset_type == 'gadget_hdf5':
-        idx = outflow_region[(outflow_p_type, 'temperature')].argmin()
-        Min_temp_location = [ outflow_region[(outflow_p_type, 'temperature')][idx],
-                              outflow_region[(outflow_p_type,           'x')][idx],
-                              outflow_region[(outflow_p_type,           'y')][idx],
-                              outflow_region[(outflow_p_type,           'z')][idx] ]
+        idx = outflow_region[(outflow_p_type, 'T')].argmin()
+        Min_temp_location = [ outflow_region[(outflow_p_type, 'T')][idx],
+                              outflow_region[(outflow_p_type, 'x')][idx],
+                              outflow_region[(outflow_p_type, 'y')][idx],
+                              outflow_region[(outflow_p_type, 'z')][idx] ]
 
     # plot the phase diagram
     plot_TempDens_Phase_and_PDF.plot_PhaseDiagram( ds, outflow_region, '_outflow', outflow_p_type, 'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max )
@@ -388,16 +398,18 @@ for ds in ts.piter():
     # plot different phases separately
     if ds.dataset_type == 'gamer':
         # hot phase
-        outflow_region_hot  = outflow_region.cut_region( ["obj['gas', 'temperature'].in_units('K') > 5.0e5"] )
-        plot_TempDens_Phase_and_PDF.plot_PhaseDiagram( ds, outflow_region_hot,  '_outflow_hot', outflow_p_type,  'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max )
-        plot_TempDens_Phase_and_PDF.plot_PhaseDiagram( ds, outflow_region_hot,  '_outflow_hot', outflow_p_type,  'volume', nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max )
+        outflow_region_hot  = outflow_region.cut_region( ["obj['gas', 'T'].in_units('K') > 5.0e5"] )
+        if outflow_region_hot.quantities.total_quantity( (outflow_p_type, 'volume' ) ) > 0.0:
+            plot_TempDens_Phase_and_PDF.plot_PhaseDiagram( ds, outflow_region_hot,  '_outflow_hot', outflow_p_type,  'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max )
+            plot_TempDens_Phase_and_PDF.plot_PhaseDiagram( ds, outflow_region_hot,  '_outflow_hot', outflow_p_type,  'volume', nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max )
         outflow_region_hot.clear_data()
         gc.collect()
 
         # cool phase
-        outflow_region_cool = outflow_region.cut_region( ["obj['gas', 'temperature'].in_units('K') < 2.0e4"] )
-        plot_TempDens_Phase_and_PDF.plot_PhaseDiagram( ds, outflow_region_cool, '_outflow_cool', outflow_p_type, 'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max )
-        plot_TempDens_Phase_and_PDF.plot_PhaseDiagram( ds, outflow_region_cool, '_outflow_cool', outflow_p_type, 'volume', nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max )
+        outflow_region_cool = outflow_region.cut_region( ["obj['gas', 'T'].in_units('K') < 2.0e4"] )
+        if outflow_region_cool.quantities.total_quantity( (outflow_p_type, 'volume' ) ) > 0.0:
+            plot_TempDens_Phase_and_PDF.plot_PhaseDiagram( ds, outflow_region_cool, '_outflow_cool', outflow_p_type, 'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max )
+            plot_TempDens_Phase_and_PDF.plot_PhaseDiagram( ds, outflow_region_cool, '_outflow_cool', outflow_p_type, 'volume', nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max )
         outflow_region_cool.clear_data()
         gc.collect()
 

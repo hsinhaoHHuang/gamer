@@ -77,8 +77,8 @@ def plot_PDF( fig, pos_in_fig, ds, obj, prefix, field_type, field_x, weighting_t
         ax.set_xlabel( r'$\frac{1}{%s}\,\frac{\mathrm{d}\,%s}{\mathrm{d}\,\log_{10}{(\mathrm{\frac{%s}{%s}})}}$'%(W, W, field_x.capitalize(), units_x.replace("**", "^")), rotation=0, fontsize='x-large')
         ax.invert_xaxis()
 
-        plt.setp(ax.get_xticklabels(), rotation=0,   va="top", ha="center")
-        plt.setp(ax.get_yticklabels(), rotation=0, va="center", ha="left")
+        plt.setp(ax.get_xticklabels(), rotation=0, va="top",    ha="center")
+        plt.setp(ax.get_yticklabels(), rotation=0, va="center", ha="left"  )
 
         ax.set_ylim( lim_x_min, lim_x_max )
         ax.set_xlim( 1e-8, 2e1 )
@@ -111,7 +111,7 @@ def plot_PhaseDiagram( ds, obj, prefix, field_type, weighting_type, nbin, x_lim_
                      aspect=False,
                    )
 
-    temp_dens = yt.PhasePlot( obj, (field_type, 'density'), (field_type, 'temperature'), (field_type, weighting_type),
+    temp_dens = yt.PhasePlot( obj, (field_type, 'density'), (field_type, 'T'), (field_type, weighting_type),
                               weight_field=None, x_bins=nbin, y_bins=nbin, fractional=True )
     temp_dens.set_xlim( x_lim_min, x_lim_max )
     temp_dens.set_ylim( y_lim_min, y_lim_max )
@@ -136,7 +136,7 @@ def plot_PhaseDiagram( ds, obj, prefix, field_type, weighting_type, nbin, x_lim_
                             y_lim_min*10**(0.85*(np.log10(y_lim_max)-np.log10(y_lim_min)))),
                            color='black', fontsize='small' )
 
-    plot_PDF( fig, 'x', ds, obj, prefix, field_type, 'density',     weighting_type, x_lim_min, x_lim_max, nbin, 'g/cm**3' )
-    plot_PDF( fig, 'y', ds, obj, prefix, field_type, 'temperature', weighting_type, y_lim_min, y_lim_max, nbin, 'K'       )
+    plot_PDF( fig, 'x', ds, obj, prefix, field_type, 'density', weighting_type, x_lim_min, x_lim_max, nbin, 'g/cm**3' )
+    plot_PDF( fig, 'y', ds, obj, prefix, field_type, 'T',       weighting_type, y_lim_min, y_lim_max, nbin, 'K'       )
     fig.savefig( 'fig_%s%s_Temp-Dens_%s_weighted_PhaseDiagram.png'%(ds, prefix, weighting_type) )
     plt.close()
