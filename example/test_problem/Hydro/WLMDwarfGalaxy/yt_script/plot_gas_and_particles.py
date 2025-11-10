@@ -3,6 +3,8 @@ from matplotlib import patheffects
 import sys
 import yt
 import matplotlib.pyplot as plt
+import WLMDwarfGalaxy_load_datasets
+import WLMDwarfGalaxy_derived_fields
 
 # load the command-line parameters
 parser = argparse.ArgumentParser( description='Plot the gas slices and projections' )
@@ -79,126 +81,15 @@ dpi          = 150
 
 yt.enable_parallelism()
 
-
 # load the dataset
-if code == 'GAMER':
-    ts = yt.DatasetSeries( [ prefix+'/Data_%06d'%idx for idx in range(idx_start, idx_end+1, didx) ] )
-elif code == 'GIZMO':
+ts = WLMDwarfGalaxy_load_datasets.load_WLMDwarfGalaxy_datasets(code, prefix, idx_start, idx_end, didx)
 
-    bbox = [ [-0.5*450.0, 0.5*450.0],
-             [-0.5*450.0, 0.5*450.0],
-             [-0.5*450.0, 0.5*450.0] ]
-
-    unit_base = {
-                  'UnitLength_in_cm'        : 3.085678e+21,
-                  'UnitMass_in_g'           : 1.989e+43,
-                  'UnitVelocity_in_cm_per_s': 100000,
-                }
-    ts = yt.DatasetSeries( [ prefix+'/snap_%03d.hdf5'%idx for idx in range(idx_start, idx_end+1, didx) ], unit_base=unit_base, bounding_box=bbox )
-else:
-    raise RuntimeError('Code %s is NOT supported  !!'%code)
-
-
-# define the particle types
-if code == 'GAMER':
-    # the halo particles
-    def Halo( pfilter, data ):
-        filter = data[ 'all', 'ParType' ] == 2
-        return filter
-    yt.add_particle_filter( 'Halo', function=Halo, filtered_type='all', requires=['ParType'] )
-
-    # the disk particles
-    def Disk( pfilter, data ):
-        filter = data[ 'all', 'ParType' ] == 3
-        return filter
-    yt.add_particle_filter( 'Disk', function=Disk, filtered_type='all', requires=['ParType'] )
-
-    # the newly formed stars
-    def new_star( pfilter, data ):
-        filter = data[ 'all', 'ParCreTime' ] > 0
-        return filter
-    yt.add_particle_filter( 'new_star', function=new_star, filtered_type='all', requires=['ParCreTime'] )
-
-    # the exploded SNe
-    def exp_SNII( pfilter, data ):
-        filter = data[ 'all', 'ParSNIITime' ] <= 0
-        return filter
-    yt.add_particle_filter( 'exp_SNII', function=exp_SNII, filtered_type='all', requires=['ParSNIITime'] )
-
-    def young_star( pfilter, data ):
-        filter = (data[ 'new_star', 'ParCreTime' ] > data.ds.current_time - data.ds.quan(2.5, 'Myr'))
-        return filter
-    yt.add_particle_filter( 'young_star', function=young_star, filtered_type='new_star', requires=['ParCreTime'] )
-
-    def young_SNII( pfilter, data ):
-        filter = (-1.0*data[ 'exp_SNII', 'ParSNIITime' ]*data.ds.units.code_time > data.ds.current_time - data.ds.quan(2.5, 'Myr'))
-        return filter
-    yt.add_particle_filter( 'young_SNII', function=young_SNII, filtered_type='exp_SNII', requires=['ParSNIITime'] )
-
-elif code == 'GIZMO':
-    def Halo( pfilter, data ):
-        filter = data[ 'PartType1', 'ParticleIDs' ] > 0
-        return filter
-    yt.add_particle_filter( 'Halo', function=Halo, filtered_type='PartType1' )
-
-    def Disk( pfilter, data ):
-        filter = data[ 'PartType2', 'ParticleIDs' ] > 0
-        return filter
-    yt.add_particle_filter( 'Disk', function=Disk, filtered_type='PartType2' )
-
-    def new_star( pfilter, data ):
-        filter = data[ 'PartType4', 'ParticleIDs' ] > 0
-        return filter
-    yt.add_particle_filter( 'new_star', function=new_star, filtered_type='PartType4' )
-
-    def young_star( pfilter, data ):
-        filter = (data[ 'new_star', 'StellarFormationTime' ] > data.ds.current_time - data.ds.quan(2.5, 'Myr'))
-        return filter
-    yt.add_particle_filter( 'young_star', function=young_star, filtered_type='new_star', requires=['StellarFormationTime'] )
-
-
-# add derived fields
-def add_derived_fields(ds):
-
-    if code == 'GIZMO':
-
-        def _volume( field, data ):
-           return data[('gas', 'mass')] / data[('gas', 'density')]
-        ds.add_field( ('gas', 'volume'), function=_volume, sampling_type='particle', units='pc**3' )
-
-    sampling_type = 'cell' if ds.dataset_type == 'gamer' else 'particle'
-
-    field_u = ('gas', 'specific_thermal_energy') if ds.dataset_type == 'gamer' else ('PartType0', 'InternalEnergy')
-    ds.mu   = 0.588235294117647  # Fully-ionized, 1/( 2.0*0.76/1 + 3.0*(1-0.76)/4 )
-
-    def _T( field, data ):
-       gamma = 5.0/3.0
-       return data[field_u] * (gamma - 1.0) * data.ds.mu * data.ds.units.proton_mass / data.ds.units.boltzmann_constant
-    ds.add_field( ('gas', 'T'), function=_T, sampling_type=sampling_type, units='K' )
-
-    # define density^2 for calculating the weighted temperature
-    def _density_square( field, data ):
-        return data[('gas','density')]**2
-    ds.add_field( ('gas', 'density_square'), function=_density_square, sampling_type=sampling_type, units='g**2/cm**6' )
-
-    def _resolution_size( field, data ):
-        return data[('gas','volume')]**(1./3.)
-    ds.add_field( ('gas', 'resolution_size'), function=_resolution_size, sampling_type=sampling_type, units='pc' )
-
-    # add the particle filter
-    ds.add_particle_filter( 'Halo'     )
-    ds.add_particle_filter( 'Disk'     )
-    ds.add_particle_filter( 'new_star' )
-    ds.add_particle_filter( 'young_star' )
-    if code == 'GAMER':
-        ds.add_particle_filter( 'exp_SNII' )
-        ds.add_particle_filter( 'young_SNII' )
-
+WLMDwarfGalaxy_derived_fields.set_particle_types(code)
 
 # main loop
 for ds in ts.piter():
 
-    add_derived_fields(ds)
+    WLMDwarfGalaxy_derived_fields.set_derived_fields(ds)
 
     fields_list  = [ 'density', 'T', 'kinetic_energy_density', 'velocity_magnitude', 'resolution_size' ]
     pfields_list = [ ('all', 'particle_mass'), ('Halo', 'particle_mass'), ('Disk', 'particle_mass') ]

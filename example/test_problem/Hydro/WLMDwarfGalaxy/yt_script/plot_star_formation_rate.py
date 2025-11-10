@@ -4,6 +4,8 @@ import yt
 import numpy as np
 from yt.data_objects.particle_filters import add_particle_filter
 from matplotlib import pyplot as plt
+import WLMDwarfGalaxy_load_datasets
+import WLMDwarfGalaxy_derived_fields
 
 # load the command-line parameters
 parser = argparse.ArgumentParser( description='Plot the gas density-temperature phase diagram' )
@@ -35,19 +37,14 @@ dpi     = 150
 
 
 # load data
+ds = WLMDwarfGalaxy_load_datasets.load_WLMDwarfGalaxy_datasets(code, prefix, idx, idx, 1)[0]
+WLMDwarfGalaxy_derived_fields.set_particle_types(code)
+WLMDwarfGalaxy_derived_fields.set_derived_fields(ds)
+ad = ds.all_data()
+
+# get the mass and creation time of the new stars
 if code == 'GAMER':
 
-    ds = yt.load( prefix+'/Data_%06d'%idx )
-
-    # define the particle filter for the newly formed stars
-    def new_star( pfilter, data ):
-       filter = data[ 'all', 'ParCreTime' ] > 0
-       return filter
-    add_particle_filter( 'new_star', function=new_star, filtered_type='all', requires=['ParCreTime'] )
-    ds.add_particle_filter( 'new_star' )
-
-    # get the mass and creation time of the new stars
-    ad            = ds.all_data()
     mass          = ad[ 'new_star', 'ParMass'    ].in_units( 'Msun' )
     creation_time = ad[ 'new_star', 'ParCreTime' ].in_units( 'Myr' )
 
@@ -57,19 +54,6 @@ if code == 'GAMER':
 
 elif code == 'GIZMO':
 
-    bbox = [ [-0.5*450.0, 0.5*450.0],
-             [-0.5*450.0, 0.5*450.0],
-             [-0.5*450.0, 0.5*450.0] ]
-
-    unit_base = {
-                  'UnitLength_in_cm':         3.085678e+21,
-                  'UnitMass_in_g':            1.989e+43,
-                  'UnitVelocity_in_cm_per_s': 100000,
-                }
-
-    ds = yt.load( prefix+'/snap_%03d.hdf5'%idx, unit_base=unit_base, bounding_box=bbox )
-
-    ad            = ds.all_data()
     mass          = ad[ 'PartType4', 'Masses' ].in_units( 'Msun' )
     creation_time = ds.arr( ad[ 'PartType4', 'StellarFormationTime' ].d, 'code_time' ).in_units( 'Myr' )
 
@@ -93,15 +77,17 @@ sfr    = np.array(  [ mass[upper_idx == j+1].sum() / ( (t_bin[j+1] - t_bin[j])*M
                     for j in range(len(time)) ]  )
 sfr[sfr == 0] = np.nan
 
+# save to file
+np.savetxt( 'StarFormationRate', np.column_stack( (time, sfr) ),
+            fmt='%19.8e', header='%17s%20s'%('time','sfr') )
 
 # plot
 plt.plot( time, sfr )
 plt.yscale('log')
-plt.xlim( 0.0, 1000 )
+plt.xlim( 0.0, 825 )
 plt.ylim( 3.0e-5, 2.0e-2 )
 plt.xlabel( '$\mathrm{t\ [Myr]}$',               fontsize='large' )
 plt.ylabel( '$\mathrm{SFR\ [M_\odot yr^{-1}]}$', fontsize='large' )
-
 
 # save figure
 plt.savefig( fileout+'.png', bbox_inches='tight', pad_inches=0.05, dpi=dpi )

@@ -42,16 +42,16 @@ filename_outflow_rate_table = 'Galactic_Outflow_Rate'
 dpi         = 150
 
 nbin        = 300
-x_lim_min   = 5.0e-33
-x_lim_max   = 1.0e-25
+x_lim_min   = 1.0e-33
+x_lim_max   = 2.0e-26
 y_lim_min   = 5.0e1
 y_lim_max   = 5.0e6
 
 plane_z_kpc =  10
 delta_z_kpc =   0.1
-Delta_z_kpc =  15.0
 delta_x_kpc = 450.0
 delta_y_kpc = 450.0
+Bound_z_kpc =   2.5
 
 
 def calculate_average_star_formation_rate(ds, dt):
@@ -201,14 +201,14 @@ def calculate_galactic_outflow_rate( ds, z_kpc, dx_kpc, dy_kpc, dz_kpc ):
     File.close()
 
 
-def get_outflow_region( ds, z_kpc, dx_kpc, dy_kpc, dz_kpc ):
+def get_outflow_region( ds, bound_z_kpc ):
 
     # define the region
     cen            = ds.domain_center
-    upper_corner_L = cen + ds.arr( [0.0, 0.0, z_kpc], 'kpc' ) - 0.5*ds.arr( [dx_kpc, dy_kpc, dz_kpc], 'kpc' )
-    upper_corner_R = cen + ds.arr( [0.0, 0.0, z_kpc], 'kpc' ) + 0.5*ds.arr( [dx_kpc, dy_kpc, dz_kpc], 'kpc' )
-    lower_corner_L = cen - ds.arr( [0.0, 0.0, z_kpc], 'kpc' ) - 0.5*ds.arr( [dx_kpc, dy_kpc, dz_kpc], 'kpc' )
-    lower_corner_R = cen - ds.arr( [0.0, 0.0, z_kpc], 'kpc' ) + 0.5*ds.arr( [dx_kpc, dy_kpc, dz_kpc], 'kpc' )
+    upper_corner_L = cen - 0.5*ds.domain_width + ds.arr( [0.0, 0.0, 0.5*ds.domain_width[2].in_units('kpc').d + bound_z_kpc], 'kpc' )
+    upper_corner_R = cen + 0.5*ds.domain_width
+    lower_corner_L = cen - 0.5*ds.domain_width
+    lower_corner_R = cen + 0.5*ds.domain_width - ds.arr( [0.0, 0.0, 0.5*ds.domain_width[2].in_units('kpc').d + bound_z_kpc], 'kpc' )
 
     if ds.dataset_type == 'gamer':
 
@@ -240,14 +240,46 @@ def get_outflow_region( ds, z_kpc, dx_kpc, dy_kpc, dz_kpc ):
     return outflow_region
 
 
-def plot_min_temp_location(ds, Min_temp_location, field_type):
+def plot_outflow_region(ds, outflow_region, field_type):
+
+    for direction in ['x', 'z']:
+        zoom_out_max = 16 if direction == 'x' else 0
+        for field in [(field_type,'density'), (field_type,'T')]:
+            for zoom_out in range(0, zoom_out_max+1, 1):
+                if ds.dataset_type == 'gadget_hdf5':
+                    s = yt.SlicePlot( ds, direction, field, center=ds.domain_center, width=(6.0*(1.25**zoom_out), 'kpc'), buff_size=(1024, 1024) )
+                else:
+                    s = yt.SlicePlot( ds, direction, field, center=ds.domain_center, width=(6.0*(1.25**zoom_out), 'kpc'), buff_size=(1024, 1024), data_source=outflow_region )
+                s.set_axes_unit( 'kpc' )
+                cmap = 'viridis' if field[1] == 'density' else 'magma'
+                s.set_cmap( field, cmap )
+                s.annotate_timestamp( time_unit='Myr', corner='upper_right' )
+                if direction == 'z':
+                    s.annotate_quiver(('gas','velocity_x'), ('gas','velocity_y'), field_c=('gas','velocity_z'), factor=32, normalize=True, cmap='bwr_r', clim=(-5e6,5e6), alpha=0.7 )
+                if direction == 'x':
+                    s.annotate_quiver(('gas','velocity_y'), ('gas','velocity_z'), field_c=('gas','velocity_z'), factor=32, normalize=True, cmap='bwr_r', clim=(-5e6,5e6), alpha=0.7 )
+                s.save( 'fig_%s_galactic_outflow_whole_gas_Slice_%s_%s_%02d.png'%(ds, direction, field[1], zoom_out), mpl_kwargs={'dpi':dpi} )
+
+                if ds.dataset_type == 'gadget_hdf5':
+                    p = yt.ParticleProjectionPlot( ds, direction, field, center=ds.domain_center, width=(6.0*(1.25**zoom_out), 'kpc'), depth=(6.0*(1.25**zoom_out), 'kpc') )
+                    p.set_axes_unit( 'kpc' )
+                    cmap = 'viridis' if field[1] == 'density' else 'magma'
+                    p.set_cmap( field, cmap )
+                    p.annotate_timestamp( time_unit='Myr', corner='upper_right' )
+                    p.save( 'fig_%s_galactic_outflow_whole_gas_Projection_%s_%s_%02d.png'%(ds, direction, field[1], zoom_out), mpl_kwargs={'dpi':dpi} )
+
+
+def plot_min_temp_location(ds, Min_temp_location, outflow_region, field_type):
 
     if Min_temp_location[0].in_units('K').d < 1.0e3:
        for direction in ['x', 'z']:
           zoom_out_max = 12 if direction == 'x' else 0
           for field in [(field_type,'density'), (field_type,'T')]:
               for zoom_out in range(0, zoom_out_max+1, 1):
-                 s = yt.SlicePlot( ds, direction, field, center=Min_temp_location[1:], width=(3.0*(1.25**zoom_out), 'kpc'), buff_size=(1024, 1024) )
+                 if ds.dataset_type == 'gadget_hdf5':
+                    s = yt.SlicePlot( ds, direction, field, center=Min_temp_location[1:], width=(3.0*(1.25**zoom_out), 'kpc'), buff_size=(1024, 1024) )
+                 else:
+                    s = yt.SlicePlot( ds, direction, field, center=Min_temp_location[1:], width=(3.0*(1.25**zoom_out), 'kpc'), buff_size=(1024, 1024), data_source=outflow_region )
                  s.set_axes_unit( 'kpc' )
                  cmap = 'viridis' if field[1] == 'density' else 'magma'
                  lim_min = x_lim_min if field[1] == 'density' else 3.0e2
@@ -258,13 +290,26 @@ def plot_min_temp_location(ds, Min_temp_location, field_type):
                  if direction == 'z':
                     s.annotate_quiver(('gas','velocity_x'), ('gas','velocity_y'), field_c=('gas','velocity_z'), factor=32, normalize=True, cmap='bwr_r', clim=(-5e6,5e6), alpha=0.7 )
                  if direction == 'x':
-                    s.annotate_quiver(('gas','velocity_y'), ('gas','velocity_z'), field_c=('gas','velocity_x'), factor=32, normalize=True, cmap='bwr_r', clim=(-5e6,5e6), alpha=0.7 )
+                    s.annotate_quiver(('gas','velocity_y'), ('gas','velocity_z'), field_c=('gas','velocity_z'), factor=32, normalize=True, cmap='bwr_r', clim=(-5e6,5e6), alpha=0.7 )
                  s.annotate_text( (0.02, 0.08), r'$T_\mathrm{min}$ = %.1f K, $\rho$ = %.1e g cm$^{-3}$'%(Min_temp_location[0].in_units('K').d, ds.point(Min_temp_location[1:])[(field_type,'density')].in_units('g/cm**3').d[0])+
                                                  '\n at [ %.2f, %.2f, %.2f ] kpc'%((Min_temp_location[1]-ds.domain_center[0]).in_units('kpc').d,
                                                                                    (Min_temp_location[2]-ds.domain_center[1]).in_units('kpc').d,
                                                                                    (Min_temp_location[3]-ds.domain_center[2]).in_units('kpc').d),
                                   coord_system='axis', text_args={'color':'w', 'path_effects':[patheffects.withStroke(linewidth=2, foreground='k')]} )
                  s.save( 'fig_%s_galactic_outflow_gas_Slice_%s_%s_%02d.png'%(ds, direction, field[1], zoom_out), mpl_kwargs={'dpi':dpi} )
+
+                 if ds.dataset_type == 'gadget_hdf5':
+                    p = yt.ParticleProjectionPlot( ds, direction, field, center=Min_temp_location[1:], width=(3.0*(1.25**zoom_out), 'kpc'), depth=(3.0*(1.25**zoom_out), 'kpc') )
+                    p.set_axes_unit( 'kpc' )
+                    cmap = 'viridis' if field[1] == 'density' else 'magma'
+                    p.set_cmap( field, cmap )
+                    p.annotate_timestamp( time_unit='Myr', corner='upper_right' )
+                    p.annotate_text( (0.02, 0.08), r'$T_\mathrm{min}$ = %.1f K, $\rho$ = %.1e g cm$^{-3}$'%(Min_temp_location[0].in_units('K').d, ds.point(Min_temp_location[1:])[(field_type,'density')].in_units('g/cm**3').d[0])+
+                                                    '\n at [ %.2f, %.2f, %.2f ] kpc'%((Min_temp_location[1]-ds.domain_center[0]).in_units('kpc').d,
+                                                                                      (Min_temp_location[2]-ds.domain_center[1]).in_units('kpc').d,
+                                                                                      (Min_temp_location[3]-ds.domain_center[2]).in_units('kpc').d),
+                                     coord_system='axis', text_args={'color':'w', 'path_effects':[patheffects.withStroke(linewidth=2, foreground='k')]} )
+                    p.save( 'fig_%s_galactic_outflow_gas_Projection_%s_%s_%02d.png'%(ds, direction, field[1], zoom_out), mpl_kwargs={'dpi':dpi} )
 
 
 def plot_evolution():
@@ -374,22 +419,26 @@ for ds in ts.piter():
     calculate_galactic_outflow_rate( ds, plane_z_kpc, delta_x_kpc, delta_y_kpc, delta_z_kpc )
 
     # define a larger outflow region
-    outflow_region = get_outflow_region( ds, plane_z_kpc, delta_x_kpc, delta_y_kpc, Delta_z_kpc )
+    outflow_region = get_outflow_region( ds, Bound_z_kpc )
     outflow_p_type = 'outflow_region_particle' if ds.dataset_type == 'gadget_hdf5' else 'gas'
 
     if not outflow_region.quantities.total_quantity( (outflow_p_type, 'volume' ) ) > 0.0:
        continue
 
+    plot_outflow_region(ds, outflow_region, outflow_p_type)
+
     # find the minimum temperature
     if ds.dataset_type == 'gamer':
-        Min_temp_location = outflow_region.quantities.min_location( (outflow_p_type, 'T') )
-        plot_min_temp_location(ds, Min_temp_location, outflow_p_type)
+        Min_temp_location = outflow_region.cut_region( ["obj['gas', 'density'].in_units('g/cm**3').d > 1.0e-29"] ).quantities.min_location( (outflow_p_type, 'T') )
+        plot_min_temp_location(ds, Min_temp_location, outflow_region, outflow_p_type)
     elif ds.dataset_type == 'gadget_hdf5':
-        idx = outflow_region[(outflow_p_type, 'T')].argmin()
+        mask = (outflow_region[(outflow_p_type, 'density')].in_units('g/cm**3').d > 1.0e-29)
+        idx = np.arange(outflow_region[(outflow_p_type, 'T')].shape[0])[mask][outflow_region[(outflow_p_type, 'T')][mask].argmin()]
         Min_temp_location = [ outflow_region[(outflow_p_type, 'T')][idx],
                               outflow_region[(outflow_p_type, 'x')][idx],
                               outflow_region[(outflow_p_type, 'y')][idx],
                               outflow_region[(outflow_p_type, 'z')][idx] ]
+        plot_min_temp_location(ds, Min_temp_location, outflow_region, outflow_p_type)
 
     # plot the phase diagram
     plot_TempDens_Phase_and_PDF.plot_PhaseDiagram( ds, outflow_region, '_outflow', outflow_p_type, 'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max )

@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import argparse
 import sys
+import WLMDwarfGalaxy_load_datasets
+import WLMDwarfGalaxy_derived_fields
 
 # load the command-line parameters
 parser = argparse.ArgumentParser( description='Plot various gas profiles' )
@@ -32,7 +34,6 @@ idx_end     = args.idx_end
 didx        = args.didx
 prefix      = args.prefix
 code        = args.code
-fileout     = 'fig__gas_profile'
 
 disk_normal = [0.0, 0.0, 1.0]
 width_kpc   = 9
@@ -44,66 +45,9 @@ dpi         = 150
 yt.enable_parallelism()
 
 # load the dataset
-if code == 'GAMER':
-    ts = yt.DatasetSeries( [ prefix+'/Data_%06d'%idx for idx in range(idx_start, idx_end+1, didx) ] )
-elif code == 'GIZMO':
+ts = WLMDwarfGalaxy_load_datasets.load_WLMDwarfGalaxy_datasets(code, prefix, idx_start, idx_end, didx)
 
-    bbox = [ [-0.5*450.0, 0.5*450.0],
-             [-0.5*450.0, 0.5*450.0],
-             [-0.5*450.0, 0.5*450.0] ]
-
-    unit_base = {
-                  'UnitLength_in_cm'        : 3.085678e+21,
-                  'UnitMass_in_g'           : 1.989e+43,
-                  'UnitVelocity_in_cm_per_s': 100000,
-                }
-    ts = yt.DatasetSeries( [ prefix+'/snap_%03d.hdf5'%idx for idx in range(idx_start, idx_end+1, didx) ], unit_base=unit_base, bounding_box=bbox )
-else:
-    raise RuntimeError('Code %s is NOT supported  !!'%code)
-
-
-# define the particle types
-if code == 'GAMER':
-    # the halo particles
-    def Halo( pfilter, data ):
-        filter = data[ 'all', 'ParType' ] == 2
-        return filter
-    yt.add_particle_filter( 'Halo', function=Halo, filtered_type='all', requires=['ParType'] )
-
-    # the disk particles
-    def Disk( pfilter, data ):
-        filter = data[ 'all', 'ParType' ] == 3
-        return filter
-    yt.add_particle_filter( 'Disk', function=Disk, filtered_type='all', requires=['ParType'] )
-
-    # the newly formed stars
-    def new_star( pfilter, data ):
-        filter = data[ 'all', 'ParCreTime' ] > 0
-        return filter
-    yt.add_particle_filter( 'new_star', function=new_star, filtered_type='all', requires=['ParCreTime'] )
-
-    # the exploded SNe
-    def expSNeII( pfilter, data ):
-        filter = data[ 'all', 'ParSNIITime' ] <= 0
-        return filter
-    yt.add_particle_filter( 'expSNeII', function=expSNeII, filtered_type='all', requires=['ParSNIITime'] )
-
-elif code == 'GIZMO':
-    def Halo( pfilter, data ):
-        filter = data[ 'PartType1', 'ParticleIDs' ] > 0
-        return filter
-    yt.add_particle_filter( 'Halo', function=Halo, filtered_type='PartType1' )
-
-    def Disk( pfilter, data ):
-        filter = data[ 'PartType2', 'ParticleIDs' ] > 0
-        return filter
-    yt.add_particle_filter( 'Disk', function=Disk, filtered_type='PartType2' )
-
-    def new_star( pfilter, data ):
-        filter = data[ 'PartType4', 'ParticleIDs' ] > 0
-        return filter
-    yt.add_particle_filter( 'new_star', function=new_star, filtered_type='PartType4' )
-
+WLMDwarfGalaxy_derived_fields.set_particle_types(code)
 
 yt_radius   = ('index', 'cylindrical_radius') if code == 'GAMER' else ('gas', 'cylindrical_radius')
 yt_theta    = ('index', 'cylindrical_theta')  if code == 'GAMER' else ('gas', 'cylindrical_theta')
@@ -114,21 +58,7 @@ yt_mass     = ('gas', 'mass')
 # loop over all datasets
 for ds in ts.piter():
 
-    # add the particle filter
-    ds.add_particle_filter( 'Halo'     )
-    ds.add_particle_filter( 'Disk'     )
-    ds.add_particle_filter( 'new_star' )
-
-    # add the derived field
-    sampling_type = 'cell' if ds.dataset_type == 'gamer' else 'particle'
-
-    field_u = ('gas', 'specific_thermal_energy') if ds.dataset_type == 'gamer' else ('PartType0', 'InternalEnergy')
-    ds.mu   = 0.588235294117647  # Fully-ionized, 1/( 2.0*0.76/1 + 3.0*(1-0.76)/4 )
-
-    def _T( field, data ):
-       gamma = 5.0/3.0
-       return data[field_u] * (gamma - 1.0) * data.ds.mu * data.ds.units.proton_mass / data.ds.units.boltzmann_constant
-    ds.add_field( ('gas', 'T'), function=_T, sampling_type=sampling_type, units='K' )
+    WLMDwarfGalaxy_derived_fields.set_derived_fields(ds)
 
     cen     = ds.domain_center
 
@@ -305,9 +235,8 @@ for ds in ts.piter():
 
 #   add title
     time = ds.current_time.in_units('Myr')
-    plt.suptitle( "t = %6.2f %s"%(time.d, time.units), fontsize='large' )
+    f.suptitle( "t = %6.2f %s"%(time.d, time.units), fontsize='large' )
 
 #   show/save figure
-    plt.savefig( fileout+'_'+ds.basename+".png", bbox_inches='tight', pad_inches=0.05, dpi=dpi )
-#   plt.show()
+    f.savefig( 'fig_%s_gas_profile.png'%ds, bbox_inches='tight', pad_inches=0.05, dpi=dpi )
 

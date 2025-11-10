@@ -3,12 +3,11 @@
 import yt
 import numpy as np
 from yt.data_objects.particle_filters import add_particle_filter
-import matplotlib
-matplotlib.use('Agg')
 from matplotlib import pyplot as plt
+import WLMDwarfGalaxy_derived_fields
 
 
-filein  = "../Data_000050"
+filein  = "../Data_000075"
 fileout = "fig__SN_feedback_rate"
 nbin    = 100
 dpi     = 150
@@ -18,23 +17,9 @@ dpi     = 150
 ds = yt.load( filein )
 
 
-# define the particle filter for the newly formed stars
-def new_star( pfilter, data ):
-   filter = data[ "all", "ParCreTime" ] > 0
-   return filter
+WLMDwarfGalaxy_derived_fields.set_particle_types('GAMER')
 
-add_particle_filter( "new_star", function=new_star, filtered_type="all", requires=["ParCreTime"] )
-ds.add_particle_filter( "new_star" )
-
-
-# define the particle filter for the exploded SNe
-def exploded_SNe( pfilter, data ):
-   filter = data[ "all", "ParSNIITime" ] <= 0 # ParSNIITime is set as negative value of explosion time for exploded particle
-   return filter
-
-add_particle_filter( "exploded_SNe", function=exploded_SNe, filtered_type="all", requires=["ParSNIITime"] )
-ds.add_particle_filter( "exploded_SNe" )
-
+WLMDwarfGalaxy_derived_fields.set_derived_fields(ds)
 
 # define the particle filter for the exploded SNe
 def unexploded_SNe( pfilter, data ):
@@ -51,8 +36,8 @@ ad            = ds.all_data()
 star_ones     = ad[ "new_star", "particle_ones" ]
 creation_time = ad[ "new_star", "ParCreTime" ].in_units( "Myr" )
 
-SNe_ones        = ad[ "exploded_SNe", "particle_ones" ]
-SNe_expl_time   = -1.0*( ad[ "exploded_SNe", "ParSNIITime" ]*ds.units.code_time ).in_units( "Myr" ) # ParSNIITime is set as negative value of explosion time for exploded particle
+SNe_ones        = ad[ "exp_SNII", "particle_ones" ]
+SNe_expl_time   = -1.0*( ad[ "exp_SNII", "ParSNIITime" ]*ds.units.code_time ).in_units( "Myr" ) # ParSNIITime is set as negative value of explosion time for exploded particle
 SNe_unexpl_time =    ( ad[ "unexploded_SNe", "ParSNIITime" ]*ds.units.code_time ).in_units( "Myr" ) # ParSNIITime is set as negative value of explosion time for exploded particle
 
 
@@ -88,8 +73,8 @@ plt.plot( time,               SNr,                  label='SNe'   )
 #plt.plot( time,               SNr*StarsPerSN, '--', label=r'SNe, $\times$ %.2f'%(StarsPerSN) )
 #plt.plot( time.d-SNDelayTime, SNr*StarsPerSN, '--', label=r'SNe, $\times$ %.2f, shifted %.1f Myr'%(StarsPerSN, SNDelayTime) )
 plt.yscale('log')
-plt.xlim( 0.0, 500 )
-plt.ylim( 3.0e-1, 2.0e+3 )
+plt.xlim( 0.0, 800 )
+plt.ylim( 1.0, 2.0e+3 )
 plt.legend()
 plt.xlabel( "$\mathrm{t\ [Myr]}$",  fontsize="large" )
 plt.ylabel( "$\mathrm{[Myr^{-1}]}$", fontsize="large" )

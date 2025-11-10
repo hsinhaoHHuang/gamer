@@ -1,7 +1,10 @@
 import argparse
 import sys
 import yt
-import plot_TempDens_Phase_and_PDF
+import WLMDwarfGalaxy_TempDens_Phase_and_PDF
+import WLMDwarfGalaxy_load_datasets
+import WLMDwarfGalaxy_derived_fields
+from yt.utilities.parallel_tools.parallel_analysis_interface import communication_system
 
 # load the command-line parameters
 parser = argparse.ArgumentParser( description='Plot the gas density-temperature phase diagram' )
@@ -44,46 +47,26 @@ y_lim_max   = 1.0e9
 
 yt.enable_parallelism()
 
-if code == 'GAMER':
-    ts = yt.DatasetSeries( [ prefix+'/Data_%06d'%idx for idx in range(idx_start, idx_end+1, didx) ] )
-elif code == 'GIZMO':
-
-    bbox = [ [-0.5*450.0, 0.5*450.0],
-             [-0.5*450.0, 0.5*450.0],
-             [-0.5*450.0, 0.5*450.0] ]
-
-    unit_base = {
-                  'UnitLength_in_cm'        : 3.085678e+21,
-                  'UnitMass_in_g'           : 1.989e+43,
-                  'UnitVelocity_in_cm_per_s': 100000,
-                }
-    ts = yt.DatasetSeries( [ prefix+'/snap_%03d.hdf5'%idx for idx in range(idx_start, idx_end+1, didx) ], unit_base=unit_base, bounding_box=bbox )
-else:
-    raise RuntimeError('Code %s is NOT supported  !!'%code)
+ts = WLMDwarfGalaxy_load_datasets.load_WLMDwarfGalaxy_datasets(code, prefix, idx_start, idx_end, didx)
 
 for ds in ts.piter():
 
-    if code == 'GIZMO':
-        def _volume( field, data ):
-           return data[('gas', 'mass')] / data[('gas', 'density')]
-        ds.add_field( ('gas', 'volume'), function=_volume, sampling_type='particle', units='pc**3' )
-
-    sampling_type = 'cell' if ds.dataset_type == 'gamer' else 'particle'
-
-    field_u = ('gas', 'specific_thermal_energy') if ds.dataset_type == 'gamer' else ('PartType0', 'InternalEnergy')
-    ds.mu   = 0.588235294117647  # Fully-ionized, 1/( 2.0*0.76/1 + 3.0*(1-0.76)/4 )
-
-    def _T( field, data ):
-       gamma = 5.0/3.0
-       return data[field_u] * (gamma - 1.0) * data.ds.mu * data.ds.units.proton_mass / data.ds.units.boltzmann_constant
-    ds.add_field( ('gas', 'T'), function=_T, sampling_type=sampling_type, units='K' )
-
-
-#   decide center
-    cen  = ds.domain_center
+    idx = int(str(ds)[5:11]) if code == 'GAMER' else int(str(ds)[5:11])
+    WLMDwarfGalaxy_derived_fields.set_derived_fields(ds)
 
 #   only include the data within a sphere with a radius of width_kpc
-    sp = ds.sphere( cen, (0.5*width_kpc, 'kpc') )
+    sp = ds.sphere( ds.domain_center, (0.5*width_kpc, 'kpc') )
 
-    plot_TempDens_Phase_and_PDF.plot_PhaseDiagram( ds, sp, '', 'gas', 'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max )
-    plot_TempDens_Phase_and_PDF.plot_PhaseDiagram( ds, sp, '', 'gas', 'volume', nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max )
+    WLMDwarfGalaxy_TempDens_Phase_and_PDF.create_PhaseDiagram( ds, sp, '', 'gas', 'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max )
+    WLMDwarfGalaxy_TempDens_Phase_and_PDF.create_PhaseDiagram( ds, sp, '', 'gas', 'volume', nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max )
+    WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( idx, idx, code, '', 'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, '$t$ = {:.1f} {:s}'.format( ds.current_time.in_units('Myr').d, 'Myr' ), ds )
+    WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( idx, idx, code, '', 'volume', nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, '$t$ = {:.1f} {:s}'.format( ds.current_time.in_units('Myr').d, 'Myr' ), ds )
+
+comm = communication_system.communicators[-1]
+comm.barrier()
+
+if yt.is_root():
+    idx_min = 30 if code == 'GAMER' else 150
+    idx_sta = max( idx_start, idx_min )
+    WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( idx_sta, idx_end, code, '', 'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
+    WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( idx_sta, idx_end, code, '', 'volume', nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
