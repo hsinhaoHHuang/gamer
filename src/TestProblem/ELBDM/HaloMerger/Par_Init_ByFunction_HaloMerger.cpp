@@ -106,7 +106,7 @@ void Par_Init_ByFunction_HaloMerger( const long NPar_ThisRank, const long NPar_A
 
          Cloud_Constructor.setDensProfTableFilename( HaloMerger_ParCloud_DensProf_Filename[index_parcloud] );
 
-         Cloud_Constructor,setExtPotParameters( 0, HaloMerger_ParCloud_BuiltWithExtPot[index_parcloud], HaloMerger_ParCloud_ExtPot_Filename[index_parcloud] );
+         Cloud_Constructor.setExtPotParameters( 0, HaloMerger_ParCloud_BuiltWithExtPot[index_parcloud], HaloMerger_ParCloud_ExtPot_Filename[index_parcloud] );
 
 //       construct the distribution for the particle cloud
          Cloud_Constructor.constructDistribution();
