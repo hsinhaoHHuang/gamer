@@ -92,6 +92,15 @@ def set_derived_fields(ds):
        return data[('gas', 'mass')] * data[('gas', 'specific_total_energy')]
     ds.add_field( ('gas', 'energy'), function=_energy, sampling_type=sampling_type, units='Msun*km**2/s**2' )
 
+    # define density^2 for calculating the weighted temperature
+    def _density_square( field, data ):
+        return data[('gas','density')]**2
+    ds.add_field( ('gas', 'density_square'), function=_density_square, sampling_type=sampling_type, units='g**2/cm**6' )
+
+    def _resolution_size( field, data ):
+        return data[('gas','volume')]**(1./3.)
+    ds.add_field( ('gas', 'resolution_size'), function=_resolution_size, sampling_type=sampling_type, units='pc' )
+
 
     # re-define temperature with a fixed mean molecular weight
     field_u = ('gas', 'specific_thermal_energy') if ds.dataset_type == 'gamer' else ('PartType0', 'InternalEnergy')
