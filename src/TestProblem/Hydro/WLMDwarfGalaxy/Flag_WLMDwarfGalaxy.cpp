@@ -55,7 +55,7 @@ bool Flag_WLMDwarfGalaxy( const int i, const int j, const int k, const int lv, c
    const real  *Passive = NULL;
 
    const real   Pres    = Hydro_Con2Pres( Dens, MomX, MomY, MomZ, Engy, Passive,
-                                          CheckMinPres_Yes, MIN_PRES, Emag,
+                                          CheckMinPres_Yes, MIN_PRES, PassiveFloorMask, Emag,
                                           EoS_DensEint2Pres_CPUPtr, EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
                                           EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table, NULL );
 
