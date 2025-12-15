@@ -32,6 +32,7 @@ void Init_TestProb_Hydro_CR_ShockTube();
 void Init_TestProb_Hydro_CR_Diffusion();
 void Init_TestProb_Hydro_StarFormationThreshold();
 void Init_TestProb_Hydro_SNFeedbackBlastWave();
+void Init_TestProb_Hydro_GrackleTest();
 void Init_TestProb_Hydro_WLMDwarfGalaxy();
 
 void Init_TestProb_ELBDM_ExtPot();
@@ -101,6 +102,7 @@ void Init_TestProb()
       case TESTPROB_HYDRO_CR_DIFFUSION :                 Init_TestProb_Hydro_CR_Diffusion();                break;
       case TESTPROB_HYDRO_STAR_FORMATION_THRESHOLD :     Init_TestProb_Hydro_StarFormationThreshold();      break;
       case TESTPROB_HYDRO_SN_FEEDBACK_BLAST_WAVE :       Init_TestProb_Hydro_SNFeedbackBlastWave();         break;
+      case TESTPROB_HYDRO_GRACKLE_TEST :                 Init_TestProb_Hydro_GrackleTest();                 break;
       case TESTPROB_HYDRO_WLM_DWARF_GALAXY :             Init_TestProb_Hydro_WLMDwarfGalaxy();              break;
 
       case TESTPROB_ELBDM_EXTPOT :                       Init_TestProb_ELBDM_ExtPot();                      break;

@@ -387,7 +387,7 @@ struct SymConst_t
 // Structure   :  InputPara_t
 // Description :  Data structure for outputting the run-time parameters
 //
-// Note        :  1. All run-time parameters are loaded from the files "Input__XXX"
+// Note        :  1. Most of the run-time parameters are loaded from the files "Input__XXX"
 //-------------------------------------------------------------------------------------------------------
 struct InputPara_t
 {
@@ -479,6 +479,9 @@ struct InputPara_t
 #  ifdef CR_DIFFUSION
    double Dt__CR_Diffusion;
 #  endif
+#  ifdef SUPPORT_GRACKLE
+   double Dt__GrackleCooling;
+#  endif
 #  ifdef COMOVING
    double Dt__MaxDeltaA;
 #  endif
@@ -526,6 +529,9 @@ struct InputPara_t
 #  endif
 #  ifdef SRHD
    int    Opt__Flag_LrtzGradient;
+#  endif
+#  ifdef SUPPORT_GRACKLE
+   int    Opt__Flag_CoolingLen;
 #  endif
 #  ifdef COSMIC_RAY
    int    Opt__Flag_CRay;
@@ -624,6 +630,7 @@ struct InputPara_t
    int    Opt__FixUp_Restrict;
    long   FixUpRestrict_Var;
    int    Opt__CorrAfterAllSync;
+   long   PassiveFloor_Var;
    int    Opt__NormalizePassive;
    int    NormalizePassive_NVar;
    int    NormalizePassive_VarIdx[NCOMP_PASSIVE];
@@ -699,6 +706,10 @@ struct InputPara_t
    int    Grackle_ThreeBodyRate;
    int    Grackle_CIE_Cooling;
    int    Grackle_H2_OpaApprox;
+   int    Grackle_UseVHeatingRate;
+   int    Grackle_UseSHeatingRate;
+   double Grackle_HydrogenMFrac;
+   int    Opt__UnfreezeGrackle;
    int    Che_GPU_NPGroup;
 #  endif
 
@@ -840,6 +851,11 @@ struct InputPara_t
    int    Opt__Output_3Velocity;
    int    Opt__Output_Enthalpy;
 #  endif
+#  ifdef SUPPORT_GRACKLE
+   int    Opt__Output_GrackleTemp;
+   int    Opt__Output_GrackleMu;
+   int    Opt__Output_GrackleTCool;
+#  endif
 #  endif // #if ( MODEL == HYDRO )
    int    Opt__Output_UserField;
    int    Opt__Output_Mode;
@@ -921,6 +937,9 @@ struct InputPara_t
 #  endif
 #  ifdef SRHD
    double FlagTable_LrtzGradient[NLEVEL-1];
+#  endif
+#  ifdef SUPPORT_GRACKLE
+   double FlagTable_CoolingLen  [NLEVEL-1];
 #  endif
 #  ifdef COSMIC_RAY
    double FlagTable_CRay        [NLEVEL-1];

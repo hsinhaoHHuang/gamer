@@ -95,7 +95,8 @@ const TestProbID_t
    TESTPROB_HYDRO_CR_DIFFUSION                 =   23,
    TESTPROB_HYDRO_STAR_FORMATION_THRESHOLD     =   24,
    TESTPROB_HYDRO_SN_FEEDBACK_BLAST_WAVE       =   25,
-   TESTPROB_HYDRO_WLM_DWARF_GALAXY             =   26,
+   TESTPROB_HYDRO_GRACKLE_TEST                 =   26,
+   TESTPROB_HYDRO_WLM_DWARF_GALAXY             =   27,
    TESTPROB_HYDRO_BARRED_POT                   =   51,
    TESTPROB_HYDRO_JET_ICM_WALL                 =   52,
    TESTPROB_HYDRO_CDM_LSS                      =  100,
@@ -494,6 +495,12 @@ const FixUpRestrict_t
    FIXUP_REST_NO  = 0,
    FIXUP_REST_YES = 1;
 
+typedef int FloorPassive_t;
+const FloorPassive_t
+   FLOOR_NULL = -1,
+   FLOOR_NO   =  0,
+   FLOOR_YES  =  1;
+
 typedef int NormPassive_t;
 const NormPassive_t
    NORMALIZE_NO  = 0,
@@ -518,6 +525,13 @@ const GracklePriChe_t
    GRACKLE_PRI_CHE_NSPE6  = 1,
    GRACKLE_PRI_CHE_NSPE9  = 2,
    GRACKLE_PRI_CHE_NSPE12 = 3;
+
+// bitwise field indices used by Grackle
+typedef long GrackleFieldBIdx_t;
+const GrackleFieldBIdx_t
+   _GRACKLE_TEMP  = ( 1L << 0 ),
+   _GRACKLE_MU    = ( 1L << 1 ),
+   _GRACKLE_TCOOL = ( 1L << 2 );
 #endif
 
 
