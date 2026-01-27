@@ -31,6 +31,9 @@ prefix    = args.prefix
 colormap_dens = 'algae'
 dpi           = 150
 
+def _total_mass_density(field, data):
+    return data['density'] + data['particle_density_on_grid']
+
 yt.enable_parallelism()
 
 ts = yt.DatasetSeries( [ prefix+'/Data_%06d'%idx for idx in range(idx_start, idx_end+1, didx) ] )
@@ -41,6 +44,9 @@ for ds in ts.piter():
    if ds.parameters["Particle"] == 1:
       if ds.parameters["Par_NPar"] > 0:
          fields_list.append('particle_density_on_grid')
+
+         ds.add_field( ('gamer', 'total_mass_density'), function=_total_mass_density, display_name=r"$\rho_{\rm{tot}}$", units='g/cm**3', sampling_type='cell' )
+         fields_list.append('total_mass_density')
 
    for center_mode in ['c', 'm']:
       for direction in ['y', 'z']:
