@@ -103,6 +103,7 @@ OPT__FLAG_RHO_GRADIENT        0           # flag: density gradient (Input__Flag_
 OPT__FLAG_PRES_GRADIENT       0           # flag: pressure gradient (Input__Flag_PresGradient) [0] ##HYDRO ONLY##
 OPT__FLAG_VORTICITY           0           # flag: vorticity (Input__Flag_Vorticity) [0] ##HYDRO ONLY##
 OPT__FLAG_JEANS               0           # flag: Jeans length (Input__Flag_Jeans) [0] ##HYDRO ONLY##
+OPT__FLAG_COOLING_LEN         0           # flag: cooling length (Input__Flag_CoolingLen) [0] ##HYDRO+SUPPORT_GRACKLE ONLY##
 OPT__FLAG_LOHNER_DENS         0           # flag: Lohner for mass density   (Input__Flag_Lohner) [0] ##BOTH HYDRO AND ELBDM##
 OPT__FLAG_LOHNER_ENGY         0           # flag: Lohner for energy density (Input__Flag_Lohner) [0] ##HYDRO ONLY##
 OPT__FLAG_LOHNER_PRES         0           # flag: Lohner for pressure       (Input__Flag_Lohner) [0] ##HYDRO ONLY##
@@ -140,8 +141,15 @@ GRACKLE_METAL                 1           # ...    "metal_cooling" (must increas
 GRACKLE_UV                    0           # ...    "UVbackground" [0]
 GRACKLE_CMB_FLOOR             1           # ...    "cmb_temperature_floor" [1]
 GRACKLE_PE_HEATING            1           # ...    "photoelectric_heating" [0]
-GRACKLE_PE_HEATING_RATE       2.6e-27     # ...    "photoelectric_heating_rate (in erg/cm^3/s)" [8.5e-26]
+GRACKLE_PE_HEATING_RATE       0.0         # map to "photoelectric_heating_rate" (in erg/cm^3/s/n_H) [8.5e-26]
 GRACKLE_CLOUDY_TABLE          CloudyData_noUVB.h5   # "grackle_data_file"
+GRACKLE_THREE_BODY_RATE       0           # map to "three_body_rate" (0=Abel+02, 1=Palla+83, 2=Cohen+83, 3=Flower+07, 4=Glover+08, 5=Forrey+13) [0]
+GRACKLE_CIE_COOLING           0           # map to "cie_cooling" [0]
+GRACKLE_H2_OPA_APPROX         0           # map to "h2_optical_depth_approximation" (0=off, 1=Ripomonti+04) [0]
+GRACKLE_USE_V_HEATING_RATE    1           # map to "use_volumetric_heating_rate" [0]
+GRACKLE_USE_S_HEATING_RATE    0           # map to "use_specific_heating_rate" [0]
+GRACKLE_HYDROGEN_MFRAC        0.76        # map to "HydrogenFractionByMass" (NOT set to Grackle when GRACKLE_PRIMORDIAL==0) [0.76]
+OPT__UNFREEZE_GRACKLE         0           # allow the evolution by Grackle solver when the fluid is frozen (for OPT__FREEZE_FLUID==1 only) [0]
 CHE_GPU_NPGROUP              -1           # number of patch groups sent into the CPU/GPU Grackle solver (<=0=auto) [-1]
 
 
@@ -256,6 +264,9 @@ OPT__OUTPUT_ENTR              0           # output gas entropy [0] ##HYDRO ONLY#
 OPT__OUTPUT_CS                0           # output sound speed [0] ##HYDRO ONLY##
 OPT__OUTPUT_DIVVEL            0           # output divergence(velocity) [0] ##HYDRO ONLY##
 OPT__OUTPUT_MACH              0           # output mach number [0] ##HYDRO ONLY##
+OPT__OUTPUT_GRACKLE_TEMP      0           # output the temperature calculated by Grackle [0] ##SUPPORT_GRACKLE only##
+OPT__OUTPUT_GRACKLE_MU        0           # output the mean molecular weight calculated by Grackle [0] ##SUPPORT_GRACKLE only##
+OPT__OUTPUT_GRACKLE_TCOOL     0           # output the cooling time calculated by Grackle [0] ##SUPPORT_GRACKLE only##
 OPT__OUTPUT_USER_FIELD        0           # output user-defined derived fields [0] -> edit "Flu_DerivedField_User.cpp"
 OPT__OUTPUT_MODE              2           # (1=const step, 2=const dt, 3=dump table) -> edit "Input__DumpTable" for 3
 OUTPUT_STEP                   5           # output data every OUTPUT_STEP step ##OPT__OUTPUT_MODE==1 ONLY##
@@ -276,7 +287,7 @@ OPT__RECORD_MEMORY            1           # record the memory consumption [1]
 OPT__RECORD_PERFORMANCE       1           # record the code performance [1]
 OPT__MANUAL_CONTROL           1           # support manually dump data or stop run during the runtime
                                           # (by generating the file DUMP_GAMER_DUMP or STOP_GAMER_STOP) [1]
-OPT__RECORD_USER              0           # record the user-specified info -> edit "Aux_Record_User.cpp" [0]
+OPT__RECORD_USER              1           # record the user-specified info -> edit "Aux_Record_User.cpp" [0]
 OPT__OPTIMIZE_AGGRESSIVE      1           # apply aggressive optimizations (experimental) [0]
 
 
