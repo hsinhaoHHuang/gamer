@@ -55,7 +55,7 @@ def plot_outflow_thinlayer_projection(ds):
     p.set_zlim( field, 2.0e-30, 2.0e-27 )
     p.set_cmap( field, 'viridis' )
     p.annotate_timestamp( time_unit='Myr', corner='upper_right' )
-    p.save( 'fig_%s_galactic_outflow_thinlayer_Projection_x_density.png'%(ds), mpl_kwargs={'dpi':150} )
+    p.save( './imgs_tl/fig_%s_galactic_outflow_thinlayer_Projection_x_density.png'%(ds), mpl_kwargs={'dpi':150} )
 
     if ds.dataset_type == 'gamer':
         p.annotate_grids( periodic=False )
@@ -65,4 +65,4 @@ def plot_outflow_thinlayer_projection(ds):
         for px, pr in zip(ds.all_data()[('outflow_thinlayer_particle','particle_position')][mask].in_units('kpc'),ds.all_data()[('outflow_thinlayer_particle','smoothing_length')][mask].in_units('kpc')):
             p.annotate_sphere(center=px, radius=pr/25.0, circle_args={'color':'grey','alpha':0.7})
 
-    p.save( 'fig_%s_galactic_outflow_thinlayer_Projection_x_density_withgrids.png'%(ds), mpl_kwargs={'dpi':150} )
+    p.save( './imgs_tl/fig_%s_galactic_outflow_thinlayer_Projection_x_density_withgrids.png'%(ds), mpl_kwargs={'dpi':150} )

@@ -124,10 +124,10 @@ for ds in ts.piter():
                         s.annotate_quiver('velocity_x', 'velocity_y', factor=16)
                 s.annotate_timestamp( time_unit='Myr', corner='upper_right' )
                 s.annotate_text( (0.02, 0.88), '%s'%(field), coord_system='axis', text_args={'color':'w', 'path_effects':[patheffects.withStroke(linewidth=2, foreground='k')]} )
-                s.save( 'fig_%s_%s_Slice_%s_%s.png'%(ds, zoom_mode, direction, field), mpl_kwargs={'dpi':dpi} )
+                s.save( './imgs_a/fig_%s_%s_Slice_%s_%s.png'%(ds, zoom_mode, direction, field), mpl_kwargs={'dpi':dpi} )
                 if code == 'GAMER':
                     s.annotate_grids( periodic=False )
-                    s.save( 'fig_%s_%s_Slice_%s_%s_withgrids.png'%(ds, zoom_mode, direction, field), mpl_kwargs={'dpi':dpi} )
+                    s.save( './imgs_a/fig_%s_%s_Slice_%s_%s_withgrids.png'%(ds, zoom_mode, direction, field), mpl_kwargs={'dpi':dpi} )
 
 
                 if field == 'velocity_magnitude':
@@ -147,26 +147,26 @@ for ds in ts.piter():
                 p.annotate_timestamp( time_unit='Myr', corner='upper_right' )
                 p.annotate_text( (0.02, 0.88), '%s'%(field), coord_system='axis', text_args={'color':'w', 'path_effects':[patheffects.withStroke(linewidth=2, foreground='k')]} )
                 try:
-                    p.save( 'fig_%s_%s_Projection_%s_%s.png'%(ds, zoom_mode, direction, field), mpl_kwargs={'dpi':dpi} )
+                    p.save( './imgs_a/fig_%s_%s_Projection_%s_%s.png'%(ds, zoom_mode, direction, field), mpl_kwargs={'dpi':dpi} )
                     if code == 'GAMER':
                         p.annotate_grids( periodic=False )
-                        p.save( 'fig_%s_%s_Projection_%s_%s_withgrids.png'%(ds, zoom_mode, direction, field), mpl_kwargs={'dpi':dpi} )
+                        p.save( './imgs_a/fig_%s_%s_Projection_%s_%s_withgrids.png'%(ds, zoom_mode, direction, field), mpl_kwargs={'dpi':dpi} )
                         p.clear_annotations( index=-1 )
                     if field == 'density':
                         if ('new_star', 'particle_mass') in ds.derived_field_list:
                             p.annotate_particles( (width_kpc, 'kpc'), ptype='new_star', p_size=1, col='w', alpha=1.0, marker='o' )
-                            p.save( 'fig_%s_%s_Projection_%s_%s_withStars.png'%(ds, zoom_mode, direction, field), mpl_kwargs={'dpi':dpi} )
+                            p.save( './imgs_a/fig_%s_%s_Projection_%s_%s_withStars.png'%(ds, zoom_mode, direction, field), mpl_kwargs={'dpi':dpi} )
                         if code == 'GAMER':
                             p.annotate_particles( (width_kpc, 'kpc'), ptype='exp_SNII', p_size=1, col='r', alpha=1.0, marker='o' )
-                            p.save( 'fig_%s_%s_Projection_%s_%s_withSNe.png'%(ds, zoom_mode, direction, field), mpl_kwargs={'dpi':dpi} )
+                            p.save( './imgs_a/fig_%s_%s_Projection_%s_%s_withSNe.png'%(ds, zoom_mode, direction, field), mpl_kwargs={'dpi':dpi} )
                             p.clear_annotations( index=-1 )
                         if ('young_star', 'particle_mass') in ds.derived_field_list:
                             p.clear_annotations( index=-1 )
                             p.annotate_particles( (width_kpc, 'kpc'), ptype='young_star', p_size=10, col='w', alpha=1.0, marker='o' )
-                            p.save( 'fig_%s_%s_Projection_%s_%s_withYStars.png'%(ds, zoom_mode, direction, field), mpl_kwargs={'dpi':dpi} )
+                            p.save( './imgs_a/fig_%s_%s_Projection_%s_%s_withYStars.png'%(ds, zoom_mode, direction, field), mpl_kwargs={'dpi':dpi} )
                         if code == 'GAMER':
                             p.annotate_particles( (width_kpc, 'kpc'), ptype='young_SNII', p_size=10, col='r', alpha=1.0, marker='o' )
-                            p.save( 'fig_%s_%s_Projection_%s_%s_withYSNe.png'%(ds, zoom_mode, direction, field), mpl_kwargs={'dpi':dpi} )
+                            p.save( './imgs_a/fig_%s_%s_Projection_%s_%s_withYSNe.png'%(ds, zoom_mode, direction, field), mpl_kwargs={'dpi':dpi} )
                 except Exception as e:
                     print( e )
                     pass
@@ -180,7 +180,7 @@ for ds in ts.piter():
                 p.set_zlim( pfield, zlim[pfield][0], zlim[pfield][1] )
                 p.set_cmap( pfield, colormap['particle'] )
                 p.annotate_timestamp( time_unit='Myr', corner='upper_right', text_args={'color':'k'} )
-                p.save( 'fig_%s_%s_Particles_%s_%s.png'%(ds, zoom_mode, direction, pfield[0]), mpl_kwargs={'dpi':dpi} )
+                p.save( './imgs_a/fig_%s_%s_Particles_%s_%s.png'%(ds, zoom_mode, direction, pfield[0]), mpl_kwargs={'dpi':dpi} )
 
                 p = yt.ParticlePlot( ds, (pfield[0], 'particle_velocity_'+direction ), (pfield[0], 'particle_velocity_y'), (pfield[0], 'particle_mass') )
                 p.set_unit( pfield, 'Msun' )
@@ -191,4 +191,4 @@ for ds in ts.piter():
                 p.set_zlim( pfield, zlim[pfield][0], zlim[pfield][1] )
                 p.set_cmap( pfield, colormap['particle'] )
                 p.annotate_text( xpos=-96, ypos=76, text='%s\n%s'%(pfield), color='w', path_effects=[patheffects.withStroke(linewidth=2, foreground='k')] )
-                p.save( 'fig_%s_%s_Particles_v%s_vy_%s_%s.png'%(ds, zoom_mode, direction, pfield[0], pfield[1]), mpl_kwargs={'dpi':dpi} )
+                p.save( './imgs_a/fig_%s_%s_Particles_v%s_vy_%s_%s.png'%(ds, zoom_mode, direction, pfield[0], pfield[1]), mpl_kwargs={'dpi':dpi} )

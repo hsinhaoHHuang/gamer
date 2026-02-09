@@ -1,4 +1,5 @@
 import yt
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -78,7 +79,7 @@ def create_profiles(ds, outflow_region, outflow_p_type, phase):
 
 
     # save to file
-    np.savetxt( '%s_GalacticOutflow_Profiles_%s'%(ds, phase),
+    np.savetxt( './profs/%s_GalacticOutflow_Profiles_%s'%(ds, phase),
                 np.column_stack( (radius_v, gas_dens, gas_pres, radius_m, gas_temp, gas_entr, gas_velr, gas_cs, gas_mach, radius_n, gas_mout, gas_eout) ),
                 fmt='%19.8e',
                 header='%17s%20s%20s%20s%20s%20s%20s%20s%20s%20s%20s%20s'%('r_v', 'dens', 'pres', 'r_m', 'temp', 'entr', 'velr', 'cs', 'mach', 'r_n', 'mout', 'eout') )
@@ -91,7 +92,7 @@ def plot_outflow_radial_profiles_initial():
     f_orp.subplots_adjust( wspace=0.4 )
     return f_orp, ax_orp
 
-def plot_outflow_radial_profiles(ax_orp, code, idx_start, idx_end, phase):
+def plot_outflow_radial_profiles(ax_orp, code, indices, phase):
 
     gas_dens    = 0
     gas_pres    = 0
@@ -105,15 +106,17 @@ def plot_outflow_radial_profiles(ax_orp, code, idx_start, idx_end, phase):
     N_avg_skip0 = 0
     N_avg_total = 0
 
-    for idx in range(idx_start, idx_end+1, 1)[::-1]:
+    for idx in indices[::-1]:
         if code == 'GAMER':
-            filename = 'Data_%06d_GalacticOutflow_Profiles_%s'%(idx, phase)
+            filename = './profs/Data_%06d_GalacticOutflow_Profiles_%s'%(idx, phase)
         elif code == 'GIZMO':
-            filename = 'snap_%03d_GalacticOutflow_Profiles_%s'%(idx, phase)
+            filename = './profs/snap_%03d_GalacticOutflow_Profiles_%s'%(idx, phase)
+
+        if not os.path.exists(filename):   continue
 
         radius_v_i, gas_dens_i, gas_pres_i, radius_m_i, gas_temp_i, gas_entr_i, gas_velr_i, gas_cs_i, gas_mach_i, radius_n_i, gas_mout_i, gas_eout_i = np.loadtxt( filename, skiprows=1, unpack=True )
 
-        if idx == idx_end:
+        if idx == indices[-1]:
             radius_v = radius_v_i
             radius_m = radius_m_i
             radius_n = radius_n_i
@@ -183,7 +186,7 @@ def plot_outflow_radial_profiles(ax_orp, code, idx_start, idx_end, phase):
     ax_orp[1][3].plot( radius_m,  Mach_0*(radius_m/R)**(2./3.), 'k--',  lw=1, mec='none', ms=markersize, label=r'$r^{2/3}$'           )
 
 
-def plot_outflow_radial_profiles_final(f_orp, ax_orp, code, idx_start, idx_end, title, fileout):
+def plot_outflow_radial_profiles_final(f_orp, ax_orp, code, indices, title, fileout):
     ax_orp[0][0].set_ylim( 5.0e-32, 5.0e-28 )
     ax_orp[0][0].set_ylabel( r'$\rho_\mathrm{gas}\ \mathrm{[g\ cm^{-3}]}$',          fontsize='large' )
     ax_orp[0][1].set_ylim( 3.0e-20, 3.0e-15 )
@@ -209,4 +212,4 @@ def plot_outflow_radial_profiles_final(f_orp, ax_orp, code, idx_start, idx_end, 
           ax_orp[1][j].set_xlabel( '$r\ \mathrm{[kpc]}$', fontsize='large' )
 
     f_orp.suptitle( title, fontsize='large' )
-    f_orp.savefig( 'fig_'+fileout+'_outflow_profiles.png', bbox_inches='tight', pad_inches=0.05, dpi=150 )
+    f_orp.savefig( './imgs_o/fig_'+fileout+'_outflow_profiles.png', bbox_inches='tight', pad_inches=0.05, dpi=150 )

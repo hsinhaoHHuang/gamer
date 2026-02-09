@@ -59,8 +59,8 @@ for ds in ts.piter():
 
     WLMDwarfGalaxy_TempDens_Phase_and_PDF.create_PhaseDiagram( ds, sp, '', 'gas', 'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max )
     WLMDwarfGalaxy_TempDens_Phase_and_PDF.create_PhaseDiagram( ds, sp, '', 'gas', 'volume', nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max )
-    WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( idx, idx, code, '', 'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, '$t$ = {:.1f} {:s}'.format( ds.current_time.in_units('Myr').d, 'Myr' ), ds )
-    WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( idx, idx, code, '', 'volume', nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, '$t$ = {:.1f} {:s}'.format( ds.current_time.in_units('Myr').d, 'Myr' ), ds )
+    WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( range(idx, idx+1, didx), code, '', 'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, '$t$ = {:.1f} {:s}'.format( ds.current_time.in_units('Myr').d, 'Myr' ), ds )
+    WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( range(idx, idx+1, didx), code, '', 'volume', nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, '$t$ = {:.1f} {:s}'.format( ds.current_time.in_units('Myr').d, 'Myr' ), ds )
 
 comm = communication_system.communicators[-1]
 comm.barrier()
@@ -68,5 +68,5 @@ comm.barrier()
 if yt.is_root():
     idx_min = 30 if code == 'GAMER' else 150
     idx_sta = max( idx_start, idx_min )
-    WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( idx_sta, idx_end, code, '', 'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
-    WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( idx_sta, idx_end, code, '', 'volume', nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
+    WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( range(idx_sta, idx_end+1, didx), code, '', 'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
+    WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( range(idx_sta, idx_end+1, didx), code, '', 'volume', nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )

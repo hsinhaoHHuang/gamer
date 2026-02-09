@@ -108,7 +108,7 @@ def get_inoutflow_slab( ds, slab_z_kpc, slab_dz_kpc, phase, isIn=False ):
             s.annotate_quiver(('gas','velocity_y'), ('gas','velocity_z'), field_c=('gas','velocity_z'), factor=32, normalize=True, cmap='bwr_r', clim=(-5e6,5e6), alpha=0.7 )
         if ds.dataset_type != 'gadget_hdf5':
             s.annotate_grids( periodic=False )
-        s.save( 'fig_%s_galactic_%sflow_slab_%s_gas_Slice_%s_%s.png'%(ds, preFlow, suffix, direction, field[1]), mpl_kwargs={'dpi':150} )
+        s.save( './imgs_o/fig_%s_galactic_%sflow_slab_%s_gas_Slice_%s_%s.png'%(ds, preFlow, suffix, direction, field[1]), mpl_kwargs={'dpi':150} )
 
     def plot_inoutflow_slab_particle_projection(direction, field, width):
         if ds.dataset_type != 'gadget_hdf5':
@@ -122,7 +122,7 @@ def get_inoutflow_slab( ds, slab_z_kpc, slab_dz_kpc, phase, isIn=False ):
             p.set_cmap( field, 'viridis' )
             p.set_zlim( field, 1.0e-34, 1.0e-27 )
         p.annotate_timestamp( time_unit='Myr', corner='upper_right' )
-        p.save( 'fig_%s_galactic_%sflow_slab_%s_gas_Projection_%s_%s.png'%(ds, preFlow, suffix, direction, field[1]), mpl_kwargs={'dpi':150} )
+        p.save( './imgs_o/fig_%s_galactic_%sflow_slab_%s_gas_Projection_%s_%s.png'%(ds, preFlow, suffix, direction, field[1]), mpl_kwargs={'dpi':150} )
 
 
     # plot_inoutflow_slab_slice(              'x', (inoutflow_slab_p_type,'density'), (2.4*slab_z_kpc, 'kpc'))
@@ -155,7 +155,7 @@ def calculate_galactic_outflow_rate( ds, outflow_z_kpc, outflow_dz_kpc, outflow_
     energy_loading_factor = energy_outflow_rate / (star_formation_rate * E_SN / M_SN)
 
     # write to file
-    filename_outflow_rate_table = '%s_Galactic_Outflow_Rate_%s_z_%2d_kpc'%(ds, outflow_phase, int(outflow_z_kpc))
+    filename_outflow_rate_table = './tables/%s_Galactic_Outflow_Rate_%s_z_%2d_kpc'%(ds, outflow_phase, int(outflow_z_kpc))
     if os.path.exists(filename_outflow_rate_table) == False:
         # create the header
         File = open( filename_outflow_rate_table, 'a' )
@@ -197,7 +197,7 @@ def plot_galactic_outflow_rate_evolution(outflow_z_kpc, outflow_phase_list):
                   }
 
     def plot_outflow_rate_phase(ax_or, phase):
-        filename_outflow_rate_table = 'Galactic_Outflow_Rate_%s_z_%2d_kpc'%(phase, int(outflow_z_kpc))
+        filename_outflow_rate_table = './tables/Galactic_Outflow_Rate_%s_z_%2d_kpc'%(phase, int(outflow_z_kpc))
         DataID, Time_cu, Time_Myr, MassOutflowRate, EnergyOutflowRate, StarFormationRate, MassLoadingFactor, EnergyLoadingFactor = np.loadtxt( filename_outflow_rate_table, skiprows=1, unpack=True )
         _, sorted_indices   = np.unique(DataID[::-1], return_index=True)
         DataID              = DataID             [::-1][sorted_indices]
@@ -235,10 +235,10 @@ def plot_galactic_outflow_rate_evolution(outflow_z_kpc, outflow_phase_list):
         ax_or[1].set_ylabel( '$\dot{E}_\mathrm{10kpc}\mathrm{\ [10^{51}erg\ yr^{-1}]}$', fontsize='large' )
 
         # save figure
-        f_or.savefig( 'fig__galactic_outflow_rate_z_%2d_kpc.png'%(int(outflow_z_kpc)), bbox_inches='tight', pad_inches=0.05, dpi=150 )
+        f_or.savefig( './imgs_o/fig__galactic_outflow_rate_z_%2d_kpc.png'%(int(outflow_z_kpc)), bbox_inches='tight', pad_inches=0.05, dpi=150 )
 
     def plot_outflow_loading_factor_phase(ax_olf, phase):
-        filename_outflow_rate_table = 'Galactic_Outflow_Rate_%s_z_%2d_kpc'%(phase, int(outflow_z_kpc))
+        filename_outflow_rate_table = './tables/Galactic_Outflow_Rate_%s_z_%2d_kpc'%(phase, int(outflow_z_kpc))
         DataID, Time_cu, Time_Myr, MassOutflowRate, EnergyOutflowRate, StarFormationRate, MassLoadingFactor, EnergyLoadingFactor = np.loadtxt( filename_outflow_rate_table, skiprows=1, unpack=True )
         _, sorted_indices   = np.unique(DataID[::-1], return_index=True)
         DataID              = DataID             [::-1][sorted_indices]
@@ -275,7 +275,7 @@ def plot_galactic_outflow_rate_evolution(outflow_z_kpc, outflow_phase_list):
         ax_olf[1].set_ylabel( '$\eta_\mathrm{e}$',      fontsize='large' )
 
         # save figure
-        f_olf.savefig( 'fig__galactic_outflow_loading_factor_z_%2d_kpc.png'%(int(outflow_z_kpc)), bbox_inches='tight', pad_inches=0.05, dpi=150 )
+        f_olf.savefig( './imgs_o/fig__galactic_outflow_loading_factor_z_%2d_kpc.png'%(int(outflow_z_kpc)), bbox_inches='tight', pad_inches=0.05, dpi=150 )
 
     plot_outflow_rate()
     plot_outflow_loading_factor()

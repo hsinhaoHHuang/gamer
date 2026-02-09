@@ -37,8 +37,8 @@ def create_PDF( ds, obj, prefix, field_type, field_x, weighting_type, lim_x_min,
                               extrema={(field_type, field_x): (lim_x_min, lim_x_max)},
                               fractional=False,
                             )
-    prof.x.tofile('%s%s_%s_weighted_%s_profile_x.bin'%(ds, prefix, weighting_type, field_x.capitalize()))
-    prof[(field_type, weighting_type)].tofile('%s%s_%s_weighted_%s_profile_y.bin'%(ds, prefix, weighting_type, field_x.capitalize()))
+    prof.x.tofile('./bins/%s%s_%s_weighted_%s_profile_x.bin'%(ds, prefix, weighting_type, field_x.capitalize()))
+    prof[(field_type, weighting_type)].tofile('./bins/%s%s_%s_weighted_%s_profile_y.bin'%(ds, prefix, weighting_type, field_x.capitalize()))
 
     arr_x = prof.x.in_units(units_x).d
     arr_y = prof[(field_type, weighting_type)].d
@@ -46,7 +46,7 @@ def create_PDF( ds, obj, prefix, field_type, field_x, weighting_type, lim_x_min,
     log_bin_w = log_bin_width(arr_x)
     pdf_y = arr_y / (sum(arr_y) * log_bin_w)
 
-    np.savetxt( '%s%s_%s_weighted_%s_PDF'%(ds, prefix, weighting_type, field_x.capitalize()),
+    np.savetxt( './pdfs/%s%s_%s_weighted_%s_PDF'%(ds, prefix, weighting_type, field_x.capitalize()),
                 np.column_stack( (arr_x, pdf_y) ),
                 fmt='%24.8e',
                 header='%22s %24s'%( field_x.capitalize()+'_in_'+units_x, 'PDF') )
@@ -66,30 +66,34 @@ def create_PhaseDiagram( ds, obj, prefix, field_type, weighting_type, nbin, x_li
                                            extrema={(field_type, 'density'): (x_lim_min, x_lim_max), (field_type, 'T'): (y_lim_min, y_lim_max)},
                                            weight_field=None, n_bins=[nbin,nbin], fractional=False )
 
-    temp_dens_profile[(field_type, weighting_type)].tofile('%s%s_Temp-Dens_%s_weighted_PhaseDiagram_z.bin'%(ds, prefix, weighting_type))
-    temp_dens_profile.x.tofile('%s%s_Temp-Dens_%s_weighted_PhaseDiagram_x.bin'%(ds, prefix, weighting_type))
-    temp_dens_profile.y.tofile('%s%s_Temp-Dens_%s_weighted_PhaseDiagram_y.bin'%(ds, prefix, weighting_type))
+    temp_dens_profile[(field_type, weighting_type)].tofile('./bins/%s%s_Temp-Dens_%s_weighted_PhaseDiagram_z.bin'%(ds, prefix, weighting_type))
+    temp_dens_profile.x.tofile('./bins/%s%s_Temp-Dens_%s_weighted_PhaseDiagram_x.bin'%(ds, prefix, weighting_type))
+    temp_dens_profile.y.tofile('./bins/%s%s_Temp-Dens_%s_weighted_PhaseDiagram_y.bin'%(ds, prefix, weighting_type))
 
     create_PDF( ds, obj, prefix, field_type, 'density', weighting_type, x_lim_min, x_lim_max, nbin, units_x )
     create_PDF( ds, obj, prefix, field_type, 'T',       weighting_type, y_lim_min, y_lim_max, nbin, units_y )
 
 
-def plot_PDF( fig, pos_in_fig, idx_start, idx_end, code, prefix, field_x, weighting_type, lim_x_min, lim_x_max, nbin, units_x ):
+def plot_PDF( fig, pos_in_fig, indices, code, prefix, field_x, weighting_type, lim_x_min, lim_x_max, nbin, units_x ):
 
     assert weighting_type == 'volume' or weighting_type == 'mass', 'Incorrect weighting type'
 
-    for idx in range(idx_start, idx_end+1, 1)[::-1]:
+    for idx in indices[::-1]:
 
         if code == 'GAMER':
             filename = 'Data_%06d'%(idx)
         elif code == 'GIZMO':
             filename = 'snap_%03d'%(idx)
 
-        if idx == idx_end:
-            arr_x  = np.fromfile('%s%s_%s_weighted_%s_profile_x.bin'%(filename, prefix, weighting_type, field_x.capitalize()))
-            arr_y  = np.fromfile('%s%s_%s_weighted_%s_profile_y.bin'%(filename, prefix, weighting_type, field_x.capitalize()))
+        if idx == indices[-1]:
+            arr_x  = np.fromfile('./bins/%s%s_%s_weighted_%s_profile_x.bin'%(filename, prefix, weighting_type, field_x.capitalize()))
+            arr_y  = np.fromfile('./bins/%s%s_%s_weighted_%s_profile_y.bin'%(filename, prefix, weighting_type, field_x.capitalize()))
         else:
-            arr_y += np.fromfile('%s%s_%s_weighted_%s_profile_y.bin'%(filename, prefix, weighting_type, field_x.capitalize()))
+            try:
+                arr_y += np.fromfile('./bins/%s%s_%s_weighted_%s_profile_y.bin'%(filename, prefix, weighting_type, field_x.capitalize()))
+            except Exception as e:
+                print( e )
+                pass
 
 
     log_bin_w = log_bin_width(arr_x)
@@ -146,7 +150,7 @@ def plot_PDF( fig, pos_in_fig, idx_start, idx_end, code, prefix, field_x, weight
     ax.grid()
 
 
-def plot_PhaseDiagram( idx_start, idx_end, code, prefix, weighting_type, nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, title_time, fileout ):
+def plot_PhaseDiagram( indices, code, prefix, weighting_type, nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, title_time, fileout ):
 
     units_x = 'g/cm**3'
     units_y = 'K'
@@ -161,19 +165,23 @@ def plot_PhaseDiagram( idx_start, idx_end, code, prefix, weighting_type, nbin, x
                      aspect=False,
                    )
 
-    for idx in range(idx_start, idx_end+1, 1)[::-1]:
+    for idx in indices[::-1]:
 
         if code == 'GAMER':
             filename = 'Data_%06d'%(idx)
         elif code == 'GIZMO':
             filename = 'snap_%03d'%(idx)
 
-        if idx == idx_end:
-            xf  = np.fromfile('%s%s_Temp-Dens_%s_weighted_PhaseDiagram_x.bin'%(filename, prefix, weighting_type))
-            yf  = np.fromfile('%s%s_Temp-Dens_%s_weighted_PhaseDiagram_y.bin'%(filename, prefix, weighting_type))
-            zf  = np.fromfile('%s%s_Temp-Dens_%s_weighted_PhaseDiagram_z.bin'%(filename, prefix, weighting_type)).reshape(len(xf),len(yf))
+        if idx == indices[-1]:
+            xf  = np.fromfile('./bins/%s%s_Temp-Dens_%s_weighted_PhaseDiagram_x.bin'%(filename, prefix, weighting_type))
+            yf  = np.fromfile('./bins/%s%s_Temp-Dens_%s_weighted_PhaseDiagram_y.bin'%(filename, prefix, weighting_type))
+            zf  = np.fromfile('./bins/%s%s_Temp-Dens_%s_weighted_PhaseDiagram_z.bin'%(filename, prefix, weighting_type)).reshape(len(xf),len(yf))
         else:
-            zf += np.fromfile('%s%s_Temp-Dens_%s_weighted_PhaseDiagram_z.bin'%(filename, prefix, weighting_type)).reshape(len(xf),len(yf))
+            try:
+                zf += np.fromfile('./bins/%s%s_Temp-Dens_%s_weighted_PhaseDiagram_z.bin'%(filename, prefix, weighting_type)).reshape(len(xf),len(yf))
+            except Exception as e:
+                print( e )
+                pass
 
     w_total_obj = zf.sum()
     zf /= w_total_obj
@@ -202,7 +210,7 @@ def plot_PhaseDiagram( idx_start, idx_end, code, prefix, weighting_type, nbin, x
                             y_lim_min*10**(0.85*(np.log10(y_lim_max)-np.log10(y_lim_min)))),
                            color='black', fontsize='small' )
 
-    plot_PDF( fig, 'x', idx_start, idx_end, code, prefix, 'density', weighting_type, x_lim_min, x_lim_max, nbin, units_x )
-    plot_PDF( fig, 'y', idx_start, idx_end, code, prefix, 'T',       weighting_type, y_lim_min, y_lim_max, nbin, units_y )
-    fig.savefig( 'fig_%s%s_Temp-Dens_%s_weighted_PhaseDiagram.png'%(fileout, prefix, weighting_type) )
+    plot_PDF( fig, 'x', indices, code, prefix, 'density', weighting_type, x_lim_min, x_lim_max, nbin, units_x )
+    plot_PDF( fig, 'y', indices, code, prefix, 'T',       weighting_type, y_lim_min, y_lim_max, nbin, units_y )
+    fig.savefig( './imgs_pd/fig_%s%s_Temp-Dens_%s_weighted_PhaseDiagram.png'%(fileout, prefix, weighting_type) )
     plt.close()

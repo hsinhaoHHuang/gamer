@@ -94,7 +94,7 @@ def plot_inoutflow_region(ds, inoutflow_region, field_type, suffix, isIn=False):
         if direction == 'x':
             s.annotate_quiver(('gas','velocity_y'), ('gas','velocity_z'), field_c=('gas','velocity_z'), factor=32, normalize=True, cmap='bwr_r', clim=(-5e6,5e6), alpha=0.7 )
         try:
-            s.save( 'fig_%s_galactic_%sflow_global_%s_gas_Slice_%s_%s.png'%(ds, FlowDir, suffix, direction, field[1]), mpl_kwargs={'dpi':150} )
+            s.save( './imgs_o/fig_%s_galactic_%sflow_global_%s_gas_Slice_%s_%s.png'%(ds, FlowDir, suffix, direction, field[1]), mpl_kwargs={'dpi':150} )
         except Exception as e:
             print( e )
             pass
@@ -111,7 +111,7 @@ def plot_inoutflow_region(ds, inoutflow_region, field_type, suffix, isIn=False):
             p.set_cmap( field, 'viridis' )
             p.set_zlim( field, 1.0e-34, 1.0e-27 )
         p.annotate_timestamp( time_unit='Myr', corner='upper_right', text_args={'color':'k'} )
-        p.save( 'fig_%s_galactic_%sflow_global_%s_gas_Projection_%s_%s.png'%(ds, FlowDir, suffix, direction, field[1]), mpl_kwargs={'dpi':150} )
+        p.save( './imgs_o/fig_%s_galactic_%sflow_global_%s_gas_Projection_%s_%s.png'%(ds, FlowDir, suffix, direction, field[1]), mpl_kwargs={'dpi':150} )
 
     width = (6.0*(1.25**16), 'kpc')
     for direction in ['x']:
@@ -164,7 +164,7 @@ def plot_cold_dense_gas(ds, inoutflow_region, field_type, suffix, isIn=False):
         s.annotate_text( (0.02, 0.08), annotated_str,
                          coord_system='axis', text_args={'color':'w', 'path_effects':[patheffects.withStroke(linewidth=2, foreground='k')]} )
         try:
-            s.save( 'fig_%s_galactic_%sflow_local_%s_gas_Slice_%s_%s_%02d.png'%(ds, FlowDir, suffix, direction, field[1], zoom_out), mpl_kwargs={'dpi':150} )
+            s.save( './imgs_o/fig_%s_galactic_%sflow_local_%s_gas_Slice_%s_%s_%02d.png'%(ds, FlowDir, suffix, direction, field[1], zoom_out), mpl_kwargs={'dpi':150} )
         except Exception as e:
             print( e )
             pass
@@ -183,7 +183,7 @@ def plot_cold_dense_gas(ds, inoutflow_region, field_type, suffix, isIn=False):
         p.annotate_timestamp( time_unit='Myr', corner='upper_right' )
         p.annotate_text( (0.02, 0.08), annotated_str,
                          coord_system='axis', text_args={'color':'w', 'path_effects':[patheffects.withStroke(linewidth=2, foreground='k')]} )
-        p.save( 'fig_%s_galactic_%sflow_local_%s_gas_Projection_%s_%s_%02d.png'%(ds, FlowDir, suffix, direction, field[1], zoom_out), mpl_kwargs={'dpi':150} )
+        p.save( './imgs_o/fig_%s_galactic_%sflow_local_%s_gas_Projection_%s_%s_%02d.png'%(ds, FlowDir, suffix, direction, field[1], zoom_out), mpl_kwargs={'dpi':150} )
 
     for direction in ['x']:
         zoom_out_max = 1 if direction == 'x' else 0

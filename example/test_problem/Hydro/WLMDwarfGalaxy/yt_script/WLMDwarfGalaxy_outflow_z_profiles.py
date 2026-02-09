@@ -1,4 +1,5 @@
 import yt
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -67,7 +68,7 @@ def create_profiles(ds, outflow_region, outflow_p_type, phase):
 
 
     # save to file
-    np.savetxt( '%s_GalacticOutflow_Z_Profiles_%s'%(ds, phase),
+    np.savetxt( './profs/%s_GalacticOutflow_Z_Profiles_%s'%(ds, phase),
                 np.column_stack( (z_v, gas_dens, gas_pres, z_m, gas_temp, gas_entr, gas_velr, gas_cs, gas_mach, z_n, gas_mout, gas_eout) ),
                 fmt='%19.8e',
                 header='%17s%20s%20s%20s%20s%20s%20s%20s%20s%20s%20s%20s'%('z_v', 'dens', 'pres', 'z_m', 'temp', 'entr', 'velr', 'cs', 'mach', 'z_n', 'mout', 'eout') )
@@ -80,7 +81,7 @@ def plot_outflow_z_profiles_initial():
     f_ozp.subplots_adjust( wspace=0.4 )
     return f_ozp, ax_ozp
 
-def plot_outflow_z_profiles(ax_ozp, code, idx_start, idx_end, phase):
+def plot_outflow_z_profiles(ax_ozp, code, indices, phase):
 
     gas_dens    = 0
     gas_pres    = 0
@@ -94,15 +95,17 @@ def plot_outflow_z_profiles(ax_ozp, code, idx_start, idx_end, phase):
     N_avg_skip0 = 0
     N_avg_total = 0
 
-    for idx in range(idx_start, idx_end+1, 1)[::-1]:
+    for idx in indices[::-1]:
         if code == 'GAMER':
-            filename = 'Data_%06d_GalacticOutflow_Z_Profiles_%s'%(idx, phase)
+            filename = './profs/Data_%06d_GalacticOutflow_Z_Profiles_%s'%(idx, phase)
         elif code == 'GIZMO':
-            filename = 'snap_%03d_GalacticOutflow_Z_Profiles_%s'%(idx, phase)
+            filename = './profs/snap_%03d_GalacticOutflow_Z_Profiles_%s'%(idx, phase)
+
+        if not os.path.exists(filename):   continue
 
         z_v_i, gas_dens_i, gas_pres_i, z_m_i, gas_temp_i, gas_entr_i, gas_velr_i, gas_cs_i, gas_mach_i, z_n_i, gas_mout_i, gas_eout_i = np.loadtxt( filename, skiprows=1, unpack=True )
 
-        if idx == idx_end:
+        if idx == indices[-1]:
             z_v = z_v_i
             z_m = z_m_i
             z_n = z_n_i
@@ -149,7 +152,7 @@ def plot_outflow_z_profiles(ax_ozp, code, idx_start, idx_end, phase):
     ax_ozp[1][1].plot( z_n,  E_dot*(z_n/Z)**(0.0),    'k--',  lw=1, mec='none', ms=markersize, label=r'$\dot{E}_{\rm inj}$' )
 
 
-def plot_outflow_z_profiles_final(f_ozp, ax_ozp, code, idx_start, idx_end, title, fileout):
+def plot_outflow_z_profiles_final(f_ozp, ax_ozp, code, indices, title, fileout):
     ax_ozp[0][0].set_ylim( 5.0e-32, 5.0e-28 )
     ax_ozp[0][0].set_ylabel( r'$\rho_\mathrm{gas}\ \mathrm{[g\ cm^{-3}]}$',          fontsize='large' )
     ax_ozp[0][1].set_ylim( 3.0e-20, 3.0e-15 )
@@ -175,4 +178,4 @@ def plot_outflow_z_profiles_final(f_ozp, ax_ozp, code, idx_start, idx_end, title
           ax_ozp[1][j].set_xlabel( '$z\ \mathrm{[kpc]}$', fontsize='large' )
 
     f_ozp.suptitle( title, fontsize='large' )
-    f_ozp.savefig( 'fig_'+fileout+'_outflow_z_profiles.png', bbox_inches='tight', pad_inches=0.05, dpi=150 )
+    f_ozp.savefig( './imgs_o/fig_'+fileout+'_outflow_z_profiles.png', bbox_inches='tight', pad_inches=0.05, dpi=150 )
