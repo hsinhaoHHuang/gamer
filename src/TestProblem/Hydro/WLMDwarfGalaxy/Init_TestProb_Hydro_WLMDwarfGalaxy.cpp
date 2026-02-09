@@ -421,6 +421,14 @@ void Aux_Record_WLMDwarfGalaxy()
    Aux_FindWeightedAverageCenter( CoM_Coord, amr->BoxCenter, __FLT_MAX__, 0.0, _TOTAL_DENS,  __FLT_MAX__, 1, &FinaldR, &FinalNIter );
 
 
+// 6. Center of mass for the gas density field
+// find the center of mass for the gas density field
+   double GasCoM_Coord[3];
+   double GasFinaldR;
+   int    GasFinalNIter;
+   Aux_FindWeightedAverageCenter( GasCoM_Coord, amr->BoxCenter, __FLT_MAX__, 0.0, _DENS,  __FLT_MAX__, 1, &GasFinaldR, &GasFinalNIter );
+
+
 // Output the center to file
    if ( MPI_Rank == 0 )
    {
@@ -449,6 +457,9 @@ void Aux_Record_WLMDwarfGalaxy()
             fprintf( File, "  %14s  %14s  %14s  %14s  %14s",
                            "Final_NIter", "Final_dR", "CoM_x", "CoM_y", "CoM_z" );
 
+            fprintf( File, "  %14s  %14s  %14s  %14s  %14s",
+                           "GasFl_NIter", "GasFl_dR", "GasCoM_x", "GasCoM_y", "GasCoM_z" );
+
             fprintf( File, "\n" );
             fclose( File );
          }
@@ -474,14 +485,17 @@ void Aux_Record_WLMDwarfGalaxy()
       fprintf( File, "  %14d  %14.7e  %14.7e  %14.7e  %14.7e",
                      FinalNIter, FinaldR, CoM_Coord[0], CoM_Coord[1], CoM_Coord[2] );
 
+      fprintf( File, "  %14d  %14.7e  %14.7e  %14.7e  %14.7e",
+                     GasFinalNIter, GasFinaldR, GasCoM_Coord[0], GasCoM_Coord[1], GasCoM_Coord[2] );
+
       fprintf( File, "\n" );
       fclose( File );
    } // if ( MPI_Rank == 0 )
 
 // pass the values to set the volumetric heating rate
-   WLMDwarfGalaxy_CenterOfMass_X = CoM_Coord[0];
-   WLMDwarfGalaxy_CenterOfMass_Y = CoM_Coord[1];
-   WLMDwarfGalaxy_CenterOfMass_Z = CoM_Coord[2];
+   WLMDwarfGalaxy_CenterOfMass_X = GasCoM_Coord[0];
+   WLMDwarfGalaxy_CenterOfMass_Y = GasCoM_Coord[1];
+   WLMDwarfGalaxy_CenterOfMass_Z = GasCoM_Coord[2];
 
 } // FUNCTION : Aux_Record_WLMDwarfGalaxy
 
