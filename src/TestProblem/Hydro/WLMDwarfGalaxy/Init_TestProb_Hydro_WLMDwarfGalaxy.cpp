@@ -175,7 +175,7 @@ void LoadInputTestProb( const LoadParaMode_t load_mode, ReadPara_t *ReadPara, HD
    LOAD_PARA( load_mode, "WLMDwarfGalaxy_PEHeatingScaleLength",   &WLMDwarfGalaxy_PEHeatingScaleLength,    0.4,          Eps_double,       NoMax_double      );
    LOAD_PARA( load_mode, "WLMDwarfGalaxy_PEHeatingScaleHeight",   &WLMDwarfGalaxy_PEHeatingScaleHeight,    0.3,          Eps_double,       NoMax_double      );
    LOAD_PARA( load_mode, "WLMDwarfGalaxy_PEHeatingCoreLength",    &WLMDwarfGalaxy_PEHeatingCoreLength,     0.4,          0.0,              NoMax_double      );
-   LOAD_PARA( load_mode, "WLMDwarfGalaxy_PEHeatingCoreHeight",    &WLMDwarfGalaxy_PEHeatingCoreHeight,     0.1,          0.0,              NoMax_double      );
+   LOAD_PARA( load_mode, "WLMDwarfGalaxy_PEHeatingCoreHeight",    &WLMDwarfGalaxy_PEHeatingCoreHeight,     0.0,          0.0,              NoMax_double      );
    LOAD_PARA( load_mode, "WLMDwarfGalaxy_PEHeatingRate0",         &WLMDwarfGalaxy_PEHeatingRate0,          2.6e-27,      0.0,              NoMax_double      );
    LOAD_PARA( load_mode, "WLMDwarfGalaxy_PEHeatingRateBg",        &WLMDwarfGalaxy_PEHeatingRateBg,         2.1e-29,      0.0,              NoMax_double      );
 
