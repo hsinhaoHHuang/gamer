@@ -125,32 +125,35 @@ comm = communication_system.communicators[-1]
 comm.barrier()
 
 if yt.is_root():
-    idx_min = 30 if code == 'GAMER' else 150
-    idx_sta = max( idx_start, idx_min )
+    idx_min     = 30 if code == 'GAMER' else 150
+    idx_sta     = max( idx_start, idx_min )
+    didx_avg    = 1 if code == 'GAMER' else 5
+    didx_avg    = max( didx_avg, didx )
+    indices_avg = range(idx_sta, idx_end+1, didx_avg)
 
     f_orp, ax_orp = WLMDwarfGalaxy_outflow_radial_profiles.plot_outflow_radial_profiles_initial()
     f_ozp, ax_ozp = WLMDwarfGalaxy_outflow_z_profiles.plot_outflow_z_profiles_initial()
     for phase in list_phases:
 
-        WLMDwarfGalaxy_outflow_TV_relation.plot_PhaseDiagram( range(idx_sta, idx_end+1, didx), code, '_outflowing_%s'%phase, 'r', 'mass',   nbin, v_lim_min, v_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
-        WLMDwarfGalaxy_outflow_TV_relation.plot_PhaseDiagram( range(idx_sta, idx_end+1, didx), code, '_outflowing_%s'%phase, 'r', 'energy', nbin, v_lim_min, v_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
-        WLMDwarfGalaxy_outflow_TV_relation.plot_PhaseDiagram( range(idx_sta, idx_end+1, didx), code, '_outflowing_%s'%phase, 'z', 'mass',   nbin, v_lim_min, v_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
-        WLMDwarfGalaxy_outflow_TV_relation.plot_PhaseDiagram( range(idx_sta, idx_end+1, didx), code, '_outflowing_%s'%phase, 'z', 'energy', nbin, v_lim_min, v_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
-        WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( range(idx_sta, idx_end+1, didx), code, '_outflow_%s'%phase, 'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
-        WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( range(idx_sta, idx_end+1, didx), code, '_outflow_%s'%phase, 'volume', nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
+        WLMDwarfGalaxy_outflow_TV_relation.plot_PhaseDiagram(    indices_avg, code, '_outflowing_%s'%phase, 'r', 'mass',   nbin, v_lim_min, v_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
+        WLMDwarfGalaxy_outflow_TV_relation.plot_PhaseDiagram(    indices_avg, code, '_outflowing_%s'%phase, 'r', 'energy', nbin, v_lim_min, v_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
+        WLMDwarfGalaxy_outflow_TV_relation.plot_PhaseDiagram(    indices_avg, code, '_outflowing_%s'%phase, 'z', 'mass',   nbin, v_lim_min, v_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
+        WLMDwarfGalaxy_outflow_TV_relation.plot_PhaseDiagram(    indices_avg, code, '_outflowing_%s'%phase, 'z', 'energy', nbin, v_lim_min, v_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
+        WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( indices_avg, code, '_outflow_%s'%phase,         'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
+        WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( indices_avg, code, '_outflow_%s'%phase,         'volume', nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
 
-        for idx in range(idx_start, idx_end+1, 5):
+        for idx in indices_avg:
             prefix = 'Data_%06d'%idx if code == 'GAMER' else 'snap_%03d'%idx
             if idx == idx_start:
                 os.system("head -1 %s >> %s"%('./tables/%s_Galactic_Outflow_Rate_%s_z_%2d_kpc'%(prefix, phase, int(outflow_z_kpc)), './tables/Galactic_Outflow_Rate_%s_z_%2d_kpc'%(phase, int(outflow_z_kpc))))
             os.system("tail -1 %s >> %s"%('./tables/%s_Galactic_Outflow_Rate_%s_z_%2d_kpc'%(prefix, phase, int(outflow_z_kpc)), './tables/Galactic_Outflow_Rate_%s_z_%2d_kpc'%(phase, int(outflow_z_kpc))))
 
         # time-averaged outflow profiles
-        WLMDwarfGalaxy_outflow_radial_profiles.plot_outflow_radial_profiles(ax_orp, code, range(idx_sta, idx_end+1, didx), phase)
-        WLMDwarfGalaxy_outflow_z_profiles.plot_outflow_z_profiles(ax_ozp, code, range(idx_sta, idx_end+1, didx), phase)
+        WLMDwarfGalaxy_outflow_radial_profiles.plot_outflow_radial_profiles(ax_orp, code, indices_avg, phase)
+        WLMDwarfGalaxy_outflow_z_profiles.plot_outflow_z_profiles(ax_ozp, code, indices_avg, phase)
 
     # outflow rates time-evolution
     WLMDwarfGalaxy_outflow_rates.plot_galactic_outflow_rate_evolution(outflow_z_kpc, list_phases)
 
-    WLMDwarfGalaxy_outflow_radial_profiles.plot_outflow_radial_profiles_final(f_orp, ax_orp, code, range(idx_sta, idx_end+1, didx), 'Time-Averaged', 'Time-Averaged')
-    WLMDwarfGalaxy_outflow_z_profiles.plot_outflow_z_profiles_final(f_ozp, ax_ozp, code, range(idx_sta, idx_end+1, didx), 'Time-Averaged', 'Time-Averaged')
+    WLMDwarfGalaxy_outflow_radial_profiles.plot_outflow_radial_profiles_final(f_orp, ax_orp, code, indices_avg, 'Time-Averaged', 'Time-Averaged')
+    WLMDwarfGalaxy_outflow_z_profiles.plot_outflow_z_profiles_final(          f_ozp, ax_ozp, code, indices_avg, 'Time-Averaged', 'Time-Averaged')

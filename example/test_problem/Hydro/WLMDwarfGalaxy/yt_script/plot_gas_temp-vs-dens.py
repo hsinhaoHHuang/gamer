@@ -66,7 +66,11 @@ comm = communication_system.communicators[-1]
 comm.barrier()
 
 if yt.is_root():
-    idx_min = 30 if code == 'GAMER' else 150
-    idx_sta = max( idx_start, idx_min )
-    WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( range(idx_sta, idx_end+1, didx), code, '', 'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
-    WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( range(idx_sta, idx_end+1, didx), code, '', 'volume', nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
+    idx_min     = 30 if code == 'GAMER' else 150
+    idx_sta     = max( idx_start, idx_min )
+    didx_avg    = 1 if code == 'GAMER' else 5
+    didx_avg    = max( didx_avg, didx )
+    indices_avg = range(idx_sta, idx_end+1, didx_avg)
+
+    WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( indices_avg, code, '', 'mass',   nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
+    WLMDwarfGalaxy_TempDens_Phase_and_PDF.plot_PhaseDiagram( indices_avg, code, '', 'volume', nbin, x_lim_min, x_lim_max, y_lim_min, y_lim_max, 'Time-Averaged', 'Time-Averaged' )
