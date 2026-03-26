@@ -73,7 +73,6 @@ void Grackle_Close( const int lv, const int SaveSg, const real_che h_Che_Array[]
 // thread-private variables
    int  idx_p, idx_pg, PID, PID0, offset;    // idx_p/idx_pg: array indices within a patch/patch group
    real Dens, Eint;
-   real DensRatio_FluChe;
    real DensRatio_FluChe;                    // density ratio between the fluid array and the Che array, which could have been pre-floored
 #  ifdef DUAL_ENERGY
    real Pres;
