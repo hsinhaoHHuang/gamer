@@ -613,6 +613,8 @@ struct InputPara_t
    double ELBDM_Taylor3_Coeff;
    int    ELBDM_Taylor3_Auto;
    int    ELBDM_RemoveMotionCM;
+   int    ELBDM_RescaleMassError;
+   int    ELBDM_RescaleMassSteps;
    int    ELBDM_BaseSpectral;
 #  if ( ELBDM_SCHEME == ELBDM_HYBRID )
    int    ELBDM_FirstWaveLevel;
@@ -695,6 +697,9 @@ struct InputPara_t
 #  ifdef SUPPORT_GRACKLE
    int    Grackle_Activate;
    int    Grackle_Verbose;
+#  ifndef COMOVING
+   double Grackle_Redshift;
+#  endif
    int    Grackle_Cooling;
    int    Grackle_Primordial;
    int    Grackle_Metal;
@@ -708,6 +713,8 @@ struct InputPara_t
    int    Grackle_H2_OpaApprox;
    int    Grackle_UseVHeatingRate;
    int    Grackle_UseSHeatingRate;
+   int    Grackle_UseTempFloor;
+   double Grackle_TempFloorScalar;
    double Grackle_HydrogenMFrac;
    int    Opt__UnfreezeGrackle;
    int    Che_GPU_NPGroup;

@@ -208,6 +208,7 @@ SRC_GPU_NPGROUP              -1           # number of patch groups sent into the
 # Grackle library for chemistry and radiative cooling (SUPPORT_GRACKLE only)
 GRACKLE_ACTIVATE              1           # enable Grackle [1]
 GRACKLE_VERBOSE               1           # map to "grackle_verbose" [1]
+GRACKLE_REDSHIFT              0.0         # redshift to set "a_value" for the redshift-dependent chemistry and cooling terms (non-COMOVING only) [0.0]
 GRACKLE_COOLING               1           # map to "with_radiative_cooling" [1]
 GRACKLE_PRIMORDIAL            0           # map to "primordial_chemistry" (0=Cloudy, 1/2/3=6-/9-/12-species) (must increase NCOMP_PASSIVE_USER by 6/9/12, respectively) [0]
 GRACKLE_METAL                 0           # map to "metal_cooling" (must increase NCOMP_PASSIVE_USER by 1) [0]
@@ -221,6 +222,8 @@ GRACKLE_CIE_COOLING           0           # map to "cie_cooling" [0]
 GRACKLE_H2_OPA_APPROX         0           # map to "h2_optical_depth_approximation" (0=off, 1=Ripomonti+04) [0]
 GRACKLE_USE_V_HEATING_RATE    0           # map to "use_volumetric_heating_rate" [0]
 GRACKLE_USE_S_HEATING_RATE    0           # map to "use_specific_heating_rate" [0]
+GRACKLE_USE_TEMP_FLOOR        0           # map to "use_temperature_floor" (0=off, 1=single value, 2=array of values) [0]
+GRACKLE_TEMP_FLOOR_SCALAR     0.0         # map to "temperature_floor_scalar" (for GRACKLE_USE_TEMP_FLOOR==1) (in Kelvin) [0.0]
 GRACKLE_HYDROGEN_MFRAC        0.76        # map to "HydrogenFractionByMass" (NOT set to Grackle when GRACKLE_PRIMORDIAL==0) [0.76]
 OPT__UNFREEZE_GRACKLE         0           # allow the evolution by Grackle solver when the fluid is frozen (for OPT__FREEZE_FLUID==1 only) [0]
 CHE_GPU_NPGROUP              -1           # number of patch groups sent into the CPU/GPU Grackle solver (<=0=auto) [-1]
@@ -273,7 +276,7 @@ OPT__1ST_FLUX_CORR           -1           # correct unphysical results (defined 
                                           # (<0=auto, 0=off, 1=3D, 2=3D+1D) [-1] ##MHM/MHM_RP/CTU ONLY##
 OPT__1ST_FLUX_CORR_SCHEME    -1           # Riemann solver for OPT__1ST_FLUX_CORR (-1=auto, 0=none, 1=Roe, 2=HLLC, 3=HLLE, 4=HLLD) [-1]
 DUAL_ENERGY_SWITCH            2.0e-2      # apply dual-energy if E_int/E_kin < DUAL_ENERGY_SWITCH [2.0e-2] ##DUAL_ENERGY ONLY##
-OPT__SAME_INTERFACE_B         0           # ensure B field consistency on the shared interfaces between sibling patches (for debugging) [0] ##MHD ONLY##
+OPT__SAME_INTERFACE_B        -1           # ensure B field consistency on the shared interfaces between sibling patches (mainly for debugging) (-1=auto, 0=off, 1=on) [-1] ##MHD ONLY##
 
 
 # fluid solver in ELBDM (MODEL==ELBDM only)
@@ -284,6 +287,8 @@ ELBDM_TAYLOR3_COEFF           0.166666667 # 3rd Taylor expansion coefficient [1.
 ELBDM_TAYLOR3_AUTO            0           # Optimize ELBDM_TAYLOR3_COEFF automatically to minimize the damping at kmax [0]
 ELBDM_REMOVE_MOTION_CM        0           # remove the motion of center-of-mass (must enable OPT__CK_CONSERVATION):
                                           # (0=off, 1=init, 2=every step) [0]
+ELBDM_RESCALE_MASS_ERROR      0           # rescale the total ELBDM mass to its initial value (must enable OPT__CK_CONSERVATION) [0]
+ELBDM_RESCALE_MASS_STEPS     100          # number of steps between mass rescaling (must enable ELBDM_RESCALE_MASS_ERROR) [100]
 ELBDM_BASE_SPECTRAL           0           # adopt the spectral method to evolve base-level wave function (must enable SUPPORT_FFTW) [0]
 ELBDM_MATCH_PHASE             1           # match child phases with father phases during data restriction [1] ##ELBDM_HYBRID ONLY##
 ELBDM_FIRST_WAVE_LEVEL       -1           # level at which to switch to the wave solver (must >=1) [-1] ##ELBDM_HYBRID ONLY##

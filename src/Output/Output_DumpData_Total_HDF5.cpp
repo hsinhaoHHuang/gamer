@@ -79,7 +79,7 @@ Procedure for outputting new variables:
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  Output_DumpData_Total_HDF5 (FormatVersion = 2506)
+// Function    :  Output_DumpData_Total_HDF5 (FormatVersion = 2507)
 // Description :  Output all simulation data in the HDF5 format, which can be used as a restart file
 //                or loaded by YT
 //
@@ -279,13 +279,15 @@ Procedure for outputting new variables:
 //                                             Input__TestProb parameters in "Info/InputTest"
 //                2504 : 2025/04/29 --> output OPT__PAR_INIT_CHECK
 //                2505 : 2025/05/07 --> output PassiveFloor_Var
+//                2505 : 2025/06/27 --> output LB_N_REGRID
+//                2506 : 2025/12/01 --> output ELBDM_RESCALE_MASS_ERROR, ELBDM_RESCALE_MASS_STEPS
 //                2506 : 2025/12/15 --> output FB_RESOLVED_SNEII, FB_RESOLVED_SNEII_N_PER_MASS, FB_RESOLVED_SNEII_DELAY_TIME,
 //                                             FB_RESOLVED_SNEII_EJECT_ENGY, FB_RESOLVED_SNEII_EJECT_MASS, FB_RESOLVED_SNEII_EJECT_METAL,
 //                                             FB_RESOLVED_SNEII_MIN_M_GAS, FB_RESOLVED_SNEII_RECORD
 //                                      replace FB_LEVEL by FB_MIN_LEVEL
-//                2505 : 2025/06/27 --> output LB_N_REGRID
-//                2505 : 2025/05/07 --> output PassiveFloor_Var
-//                2506 : 2025/12/07 --> output GRACKLE_USE_V_HEATING_RATE, GRACKLE_USE_S_HEATING_RATE,
+//                2507 : 2026/02/15 --> output GRACKLE_USE_V_HEATING_RATE, GRACKLE_USE_S_HEATING_RATE,
+//                                             GRACKLE_USE_TEMP_FLOOR, GRACKLE_TEMP_FLOOR_SCALAR,
+//                                             GRACKLE_REDSHIFT,
 //                                             GRACKLE_HYDROGEN_MFRAC, OPT__UNFREEZE_GRACKLE,
 //                                             OPT__OUTPUT_GRACKLE_TEMP, OPT__OUTPUT_GRACKLE_MU, OPT__OUTPUT_GRACKLE_TCOOL,
 //                                             DT__GRACKLE_COOLING, OPT__FLAG_COOLING_LEN, FlagTable_CoolingLen
@@ -1755,7 +1757,7 @@ void FillIn_KeyInfo( KeyInfo_t &KeyInfo, const int NFieldStored )
 
    const time_t CalTime = time( NULL );   // calendar time
 
-   KeyInfo.FormatVersion        = 2506;
+   KeyInfo.FormatVersion        = 2507;
    KeyInfo.Model                = MODEL;
    KeyInfo.NLevel               = NLEVEL;
    KeyInfo.NCompFluid           = NCOMP_FLUID;
@@ -2675,6 +2677,8 @@ void FillIn_InputPara( InputPara_t &InputPara, const int NFieldStored, char Fiel
    InputPara.ELBDM_Taylor3_Coeff     = ELBDM_TAYLOR3_COEFF;
    InputPara.ELBDM_Taylor3_Auto      = ELBDM_TAYLOR3_AUTO;
    InputPara.ELBDM_RemoveMotionCM    = ELBDM_REMOVE_MOTION_CM;
+   InputPara.ELBDM_RescaleMassError  = ELBDM_RESCALE_MASS_ERROR;
+   InputPara.ELBDM_RescaleMassSteps  = ELBDM_RESCALE_MASS_STEPS;
    InputPara.ELBDM_BaseSpectral      = ELBDM_BASE_SPECTRAL;
 #  if ( ELBDM_SCHEME == ELBDM_HYBRID )
    InputPara.ELBDM_FirstWaveLevel    = ELBDM_FIRST_WAVE_LEVEL;
@@ -2772,6 +2776,9 @@ void FillIn_InputPara( InputPara_t &InputPara, const int NFieldStored, char Fiel
 #  ifdef SUPPORT_GRACKLE
    InputPara.Grackle_Activate        = GRACKLE_ACTIVATE;
    InputPara.Grackle_Verbose         = GRACKLE_VERBOSE;
+#  ifndef COMOVING
+   InputPara.Grackle_Redshift        = GRACKLE_REDSHIFT;
+#  endif
    InputPara.Grackle_Cooling         = GRACKLE_COOLING;
    InputPara.Grackle_Primordial      = GRACKLE_PRIMORDIAL;
    InputPara.Grackle_Metal           = GRACKLE_METAL;
@@ -2785,6 +2792,8 @@ void FillIn_InputPara( InputPara_t &InputPara, const int NFieldStored, char Fiel
    InputPara.Grackle_H2_OpaApprox    = GRACKLE_H2_OPA_APPROX;
    InputPara.Grackle_UseVHeatingRate = GRACKLE_USE_V_HEATING_RATE;
    InputPara.Grackle_UseSHeatingRate = GRACKLE_USE_S_HEATING_RATE;
+   InputPara.Grackle_UseTempFloor    = GRACKLE_USE_TEMP_FLOOR;
+   InputPara.Grackle_TempFloorScalar = GRACKLE_TEMP_FLOOR_SCALAR;
    InputPara.Grackle_HydrogenMFrac   = GRACKLE_HYDROGEN_MFRAC;
    InputPara.Opt__UnfreezeGrackle    = OPT__UNFREEZE_GRACKLE;
    InputPara.Che_GPU_NPGroup         = CHE_GPU_NPGROUP;
@@ -3762,6 +3771,8 @@ void GetCompound_InputPara( hid_t &H5_TypeID, const int NFieldStored )
    H5Tinsert( H5_TypeID, "ELBDM_Taylor3_Coeff",     HOFFSET(InputPara_t,ELBDM_Taylor3_Coeff    ), H5T_NATIVE_DOUBLE  );
    H5Tinsert( H5_TypeID, "ELBDM_Taylor3_Auto",      HOFFSET(InputPara_t,ELBDM_Taylor3_Auto     ), H5T_NATIVE_INT     );
    H5Tinsert( H5_TypeID, "ELBDM_RemoveMotionCM",    HOFFSET(InputPara_t,ELBDM_RemoveMotionCM   ), H5T_NATIVE_INT     );
+   H5Tinsert( H5_TypeID, "ELBDM_RescaleMassError",  HOFFSET(InputPara_t,ELBDM_RescaleMassError ), H5T_NATIVE_INT     );
+   H5Tinsert( H5_TypeID, "ELBDM_RescaleMassSteps",  HOFFSET(InputPara_t,ELBDM_RescaleMassSteps ), H5T_NATIVE_INT     );
    H5Tinsert( H5_TypeID, "ELBDM_BaseSpectral",      HOFFSET(InputPara_t,ELBDM_BaseSpectral     ), H5T_NATIVE_INT     );
 
 #  if ( ELBDM_SCHEME == ELBDM_HYBRID )
@@ -3867,6 +3878,9 @@ void GetCompound_InputPara( hid_t &H5_TypeID, const int NFieldStored )
 #  ifdef SUPPORT_GRACKLE
    H5Tinsert( H5_TypeID, "Grackle_Activate",        HOFFSET(InputPara_t,Grackle_Activate       ), H5T_NATIVE_INT              );
    H5Tinsert( H5_TypeID, "Grackle_Verbose",         HOFFSET(InputPara_t,Grackle_Verbose        ), H5T_NATIVE_INT              );
+#  ifndef COMOVING
+   H5Tinsert( H5_TypeID, "Grackle_Redshift",        HOFFSET(InputPara_t,Grackle_Redshift       ), H5T_NATIVE_DOUBLE           );
+#  endif
    H5Tinsert( H5_TypeID, "Grackle_Cooling",         HOFFSET(InputPara_t,Grackle_Cooling        ), H5T_NATIVE_INT              );
    H5Tinsert( H5_TypeID, "Grackle_Primordial",      HOFFSET(InputPara_t,Grackle_Primordial     ), H5T_NATIVE_INT              );
    H5Tinsert( H5_TypeID, "Grackle_Metal",           HOFFSET(InputPara_t,Grackle_Metal          ), H5T_NATIVE_INT              );
@@ -3880,6 +3894,8 @@ void GetCompound_InputPara( hid_t &H5_TypeID, const int NFieldStored )
    H5Tinsert( H5_TypeID, "Grackle_H2_OpaApprox",    HOFFSET(InputPara_t,Grackle_H2_OpaApprox   ), H5T_NATIVE_INT              );
    H5Tinsert( H5_TypeID, "Grackle_UseVHeatingRate", HOFFSET(InputPara_t,Grackle_UseVHeatingRate), H5T_NATIVE_INT              );
    H5Tinsert( H5_TypeID, "Grackle_UseSHeatingRate", HOFFSET(InputPara_t,Grackle_UseSHeatingRate), H5T_NATIVE_INT              );
+   H5Tinsert( H5_TypeID, "Grackle_UseTempFloor",    HOFFSET(InputPara_t,Grackle_UseTempFloor   ), H5T_NATIVE_INT              );
+   H5Tinsert( H5_TypeID, "Grackle_TempFloorScalar", HOFFSET(InputPara_t,Grackle_TempFloorScalar), H5T_NATIVE_DOUBLE           );
    H5Tinsert( H5_TypeID, "Grackle_HydrogenMFrac",   HOFFSET(InputPara_t,Grackle_HydrogenMFrac  ), H5T_NATIVE_DOUBLE           );
    H5Tinsert( H5_TypeID, "Opt__UnfreezeGrackle",    HOFFSET(InputPara_t,Opt__UnfreezeGrackle   ), H5T_NATIVE_INT              );
    H5Tinsert( H5_TypeID, "Che_GPU_NPGroup",         HOFFSET(InputPara_t,Che_GPU_NPGroup        ), H5T_NATIVE_INT              );

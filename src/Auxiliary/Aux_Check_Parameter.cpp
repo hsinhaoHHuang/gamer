@@ -729,17 +729,17 @@ void Aux_Check_Parameter()
 #  endif
 
 #  ifdef MHD
-#   if ( RSOLVER != NONE  &&  RSOLVER != ROE  &&  RSOLVER != HLLE  &&  RSOLVER != HLLD )
+#   if ( RSOLVER != OPTION_NONE  &&  RSOLVER != ROE  &&  RSOLVER != HLLE  &&  RSOLVER != HLLD )
 #     error : ERROR : unsupported Riemann solver for MHD (ROE/HLLE/HLLD) !!
 #   endif
-#   if ( RSOLVER_RESCUE != NONE  &&  RSOLVER_RESCUE != ROE  &&  RSOLVER_RESCUE != HLLE  &&  RSOLVER_RESCUE != HLLD )
+#   if ( RSOLVER_RESCUE != OPTION_NONE  &&  RSOLVER_RESCUE != ROE  &&  RSOLVER_RESCUE != HLLE  &&  RSOLVER_RESCUE != HLLD )
 #     error : ERROR : unsupported RSOLVER_RESCUE for MHD (ROE/HLLE/HLLD) !!
 #   endif
 #  else
-#   if ( RSOLVER != NONE  &&  RSOLVER != EXACT  &&  RSOLVER != ROE  &&  RSOLVER != HLLE  &&  RSOLVER != HLLC )
+#   if ( RSOLVER != OPTION_NONE  &&  RSOLVER != EXACT  &&  RSOLVER != ROE  &&  RSOLVER != HLLE  &&  RSOLVER != HLLC )
 #     error : ERROR : unsupported Riemann solver (EXACT/ROE/HLLE/HLLC) !!
 #   endif
-#   if ( RSOLVER_RESCUE != NONE  &&  RSOLVER_RESCUE != EXACT  &&  RSOLVER_RESCUE != ROE  &&  RSOLVER_RESCUE != HLLE  &&  RSOLVER_RESCUE != HLLC )
+#   if ( RSOLVER_RESCUE != OPTION_NONE  &&  RSOLVER_RESCUE != EXACT  &&  RSOLVER_RESCUE != ROE  &&  RSOLVER_RESCUE != HLLE  &&  RSOLVER_RESCUE != HLLC )
 #     error : ERROR : unsupported RSOLVER_RESCUE (EXACT/ROE/HLLE/HLLC) !!
 #   endif
 #  endif // MHD
@@ -1305,6 +1305,9 @@ void Aux_Check_Parameter()
       Aux_Error( ERROR_INFO, "\"%s\" does NOT support \"%s\" !!\n", "ELBDM_REMOVE_MOTION_CM", "BITWISE_REPRODUCIBILITY" );
 #  endif
 
+   if ( ELBDM_RESCALE_MASS_ERROR  &&  !OPT__CK_CONSERVATION )
+      Aux_Error( ERROR_INFO, "\"%s\" must work with \"%s\" !!\n", "ELBDM_RESCALE_MASS_ERROR", "OPT__CK_CONSERVATION" );
+
    for (int f=0; f<6; f++)
       if ( ELBDM_BASE_SPECTRAL  &&  OPT__BC_FLU[f] != BC_FLU_PERIODIC )
          Aux_Error( ERROR_INFO, "ELBDM_BASE_SPECTRAL only works with periodic boundary condition (OPT__BC_FLU=1) !!\n" );
@@ -1840,6 +1843,9 @@ void Aux_Check_Parameter()
 
    if ( DT__GRACKLE_COOLING >= 0.0  &&  ! GRACKLE_ACTIVATE )
       Aux_Error( ERROR_INFO, "DT__GRACKLE_COOLING requires the option GRACKLE_ACTIVATE !!\n");
+
+   if ( OPT__UNFREEZE_GRACKLE  &&  ! GRACKLE_ACTIVATE )
+      Aux_Error( ERROR_INFO, "OPT__UNFREEZE_GRACKLE requires the option GRACKLE_ACTIVATE !!\n");
 
 // warning
 // ------------------------------

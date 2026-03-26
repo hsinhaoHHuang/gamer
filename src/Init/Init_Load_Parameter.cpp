@@ -249,6 +249,9 @@ void Init_Load_Parameter()
 #  ifdef SUPPORT_GRACKLE
    ReadPara->Add( "GRACKLE_ACTIVATE",           &GRACKLE_ACTIVATE,                true,            Useless_bool,  Useless_bool   );
    ReadPara->Add( "GRACKLE_VERBOSE",            &GRACKLE_VERBOSE,                 true,            Useless_bool,  Useless_bool   );
+#  ifndef COMOVING
+   ReadPara->Add( "GRACKLE_REDSHIFT",           &GRACKLE_REDSHIFT,                0.0,             0.0,           NoMax_double   );
+#  endif
    ReadPara->Add( "GRACKLE_COOLING",            &GRACKLE_COOLING,                 true,            Useless_bool,  Useless_bool   );
    ReadPara->Add( "GRACKLE_PRIMORDIAL",         &GRACKLE_PRIMORDIAL,              0,               0,             3              );
    ReadPara->Add( "GRACKLE_METAL",              &GRACKLE_METAL,                   false,           Useless_bool,  Useless_bool   );
@@ -262,6 +265,8 @@ void Init_Load_Parameter()
    ReadPara->Add( "GRACKLE_H2_OPA_APPROX",      &GRACKLE_H2_OPA_APPROX,           0,               0,             1              );
    ReadPara->Add( "GRACKLE_USE_V_HEATING_RATE", &GRACKLE_USE_V_HEATING_RATE,      false,           Useless_bool,  Useless_bool   );
    ReadPara->Add( "GRACKLE_USE_S_HEATING_RATE", &GRACKLE_USE_S_HEATING_RATE,      false,           Useless_bool,  Useless_bool   );
+   ReadPara->Add( "GRACKLE_USE_TEMP_FLOOR",     &GRACKLE_USE_TEMP_FLOOR,          0,               0,             2              );
+   ReadPara->Add( "GRACKLE_TEMP_FLOOR_SCALAR",  &GRACKLE_TEMP_FLOOR_SCALAR,       0.0,             0.0,           NoMax_double   );
    ReadPara->Add( "GRACKLE_HYDROGEN_MFRAC",     &GRACKLE_HYDROGEN_MFRAC,          0.76,            0.0,           1.0            );
    ReadPara->Add( "OPT__UNFREEZE_GRACKLE",      &OPT__UNFREEZE_GRACKLE,           false,           Useless_bool,  Useless_bool   );
 // do not check CHE_GPU_NPGROUP since it may be reset by either Init_ResetParameter() or CUAPI_SetMemSize()
@@ -340,7 +345,7 @@ void Init_Load_Parameter()
    ReadPara->Add( "DUAL_ENERGY_SWITCH",         &DUAL_ENERGY_SWITCH,              2.0e-2,          0.0,           NoMax_double   );
 #  endif
 #  ifdef MHD
-   ReadPara->Add( "OPT__SAME_INTERFACE_B",      &OPT__SAME_INTERFACE_B,           false,           Useless_bool,  Useless_bool   );
+   ReadPara->Add( "OPT__SAME_INTERFACE_B",      &OPT__SAME_INTERFACE_B,          -1,                      -1,     1              );
 #  endif
 #  endif // #if ( MODEL == HYDRO )
 
@@ -356,6 +361,8 @@ void Init_Load_Parameter()
    ReadPara->Add( "ELBDM_TAYLOR3_COEFF",        &ELBDM_TAYLOR3_COEFF,             1.0/6.0,         NoMin_double,  NoMax_double   );
    ReadPara->Add( "ELBDM_TAYLOR3_AUTO",         &ELBDM_TAYLOR3_AUTO,              false,           Useless_bool,  Useless_bool   );
    ReadPara->Add( "ELBDM_REMOVE_MOTION_CM",     &ELBDM_REMOVE_MOTION_CM,          ELBDM_REMOVE_MOTION_CM_NONE, 0, 2              );
+   ReadPara->Add( "ELBDM_RESCALE_MASS_ERROR",   &ELBDM_RESCALE_MASS_ERROR,        false,           Useless_bool,  Useless_bool   );
+   ReadPara->Add( "ELBDM_RESCALE_MASS_STEPS",   &ELBDM_RESCALE_MASS_STEPS,        100,             1,             NoMax_int      );
    ReadPara->Add( "ELBDM_BASE_SPECTRAL",        &ELBDM_BASE_SPECTRAL,             false,           Useless_bool,  Useless_bool   );
 #  if ( ELBDM_SCHEME == ELBDM_HYBRID )
    ReadPara->Add( "ELBDM_MATCH_PHASE",          &ELBDM_MATCH_PHASE,               true,            Useless_bool,  Useless_bool   );
