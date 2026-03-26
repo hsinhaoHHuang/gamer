@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LOCAL_FILENAME1="ICsForTestProbWLMDwarfGalaxy_Ng7e6"
-FILE_ID1="6869527eed776d031cebfe68"
+FILE_ID1="69c4a2fe4a11f772ce54c51c"
 
 # file download
 curl https://hub.yt/api/v1/item/${FILE_ID1}/download -o "${LOCAL_FILENAME1}.tar.gz"
