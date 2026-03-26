@@ -179,6 +179,7 @@ For variables with `Default/Min/Max` labeled as `Depend`, click the parameter na
 | :---                                                                                                 |            :--- |            :--- |            :--- | :--- |
 | [[ LB_INPUT__PAR_WEIGHT \| [Runtime-Parameters]-MPI-and-OpenMP#LB_INPUT__PAR_WEIGHT ]]               |             0.0 |             0.0 |            None | load-balance weighting of one particle over one cell [0.0] |
 | [[ LB_INPUT__WLI_MAX \| [Runtime-Parameters]-MPI-and-OpenMP#LB_INPUT__WLI_MAX ]]                     |             0.1 |             0.0 |            None | weighted-load-imbalance (WLI) threshold for redistributing all patches [0.1] |
+| [[ LB_N_REGRID \| [Runtime-Parameters]-MPI-and-OpenMP#LB_N_REGRID ]]                                 |               0 |               0 |            None | redistribute patches on the refined level every LB_N_REGRID refinement (0=off, >0=on) [0] |
 
 # M
 | Name                                                                                                 |         Default |             Min |             Max | Short description |
@@ -408,7 +409,7 @@ For variables with `Default/Min/Max` labeled as `Depend`, click the parameter na
 | [[ SF_CREATE_STAR_MASS_EFF \| [Runtime-Parameters]-Star-Formation#SF_CREATE_STAR_MASS_EFF ]]         |          1.0e-2 | 2.22507386e-308 |            None | Gas-to-star mass conversion efficiency [1.0e-2] |
 | SF_CREATE_STAR_MAX_GAS_JEANSL                                                                        |             1.0 |             0.0 |            None | maximum gas Jeans length allowed to form stars (in dh of each level) (for SF_CREATE_STAR_SCHEME=2 only) [1.0] |
 | [[ SF_CREATE_STAR_MAX_STAR_MFRAC \| [Runtime-Parameters]-Star-Formation#SF_CREATE_STAR_MAX_STAR_MFRAC ]] |             0.5 | 2.22507386e-308 |             1.0 | maximum gas mass fraction allowed to convert to stars per substep [0.5] |
-| SF_CREATE_STAR_MIN_GAS_DENS                                                                          |           1.0e1 |             0.0 |            None | minimum gas density allowed to form stars (in HI count/cm^3) (for SF_CREATE_STAR_SCHEME=1 only) [1.0e1] |
+| [[ SF_CREATE_STAR_MIN_GAS_DENS \| [Runtime-Parameters]-Star-Formation#SF_CREATE_STAR_MIN_GAS_DENS ]] |           1.0e1 |             0.0 |            None | minimum gas density allowed to form stars (in HI count/cm^3) (for SF_CREATE_STAR_SCHEME=1 only) [1.0e1] |
 | [[ SF_CREATE_STAR_MIN_LEVEL \| [Runtime-Parameters]-Star-Formation#SF_CREATE_STAR_MIN_LEVEL ]]       |               0 |            None |       TOP_LEVEL | minimum AMR level allowed to form stars (<0=auto -> MAX_LEVEL) [0] |
 | [[ SF_CREATE_STAR_MIN_STAR_MASS \| [Runtime-Parameters]-Star-Formation#SF_CREATE_STAR_MIN_STAR_MASS ]] |             0.0 |             0.0 |            None | minimum star particle mass for the stochastical star formation (in Msun) [0.0] |
 | [[ SF_CREATE_STAR_RSEED \| [Runtime-Parameters]-Star-Formation#SF_CREATE_STAR_RSEED ]]               |             123 |               0 |            None | random seed [123] |
