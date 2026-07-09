@@ -1115,15 +1115,15 @@ void Aux_Check_Parameter()
 #  ifndef SRHD
 
    if ( MHM_REPREDICT_ITER_NUM < 1 )
-      Aux_Error( ERROR_INFO, "MHM_REPREDICT_ITER_NUM should be >= 1 for MHM_CHECK_PREDICT !!\n" );
+      Aux_Error( ERROR_INFO, "MHM_REPREDICT_ITER_NUM (%d) should be >= 1 for MHM_CHECK_PREDICT !!\n", MHM_REPREDICT_ITER_NUM );
 
-   if ( MHM_REPREDICT_STEPS_SAFE_FAC <= 0 )
+   if ( MHM_REPREDICT_STEPS_SAFE_FAC <= (real)0.0 )
       Aux_Error( ERROR_INFO, "MHM_REPREDICT_STEPS_SAFE_FAC should be > 0 for MHM_CHECK_PREDICT !!\n" );
 
    if ( MHM_REPREDICT_SUBSTEPS_MAX < 1 )
       Aux_Error( ERROR_INFO, "MHM_REPREDICT_SUBSTEPS_MAX should be >= 1 for MHM_CHECK_PREDICT !!\n" );
 
-   if ( MHM_REPREDICT_SLOPE_SAFE_FAC <= 0  ||  MHM_REPREDICT_SLOPE_SAFE_FAC >= 1 )
+   if ( MHM_REPREDICT_SLOPE_SAFE_FAC <= (real)0.0  ||  MHM_REPREDICT_SLOPE_SAFE_FAC >= (real)1.0 )
       Aux_Error( ERROR_INFO, "MHM_REPREDICT_SLOPE_SAFE_FAC should be > 0 and < 1 for MHM_CHECK_PREDICT !!\n" );
 
 #  endif // #ifndef SRHD

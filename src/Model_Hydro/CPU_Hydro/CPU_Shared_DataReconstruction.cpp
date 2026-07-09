@@ -85,7 +85,7 @@ static void Hydro_HancockPredict( real fcCon[][NCOMP_LR], const real fcPri[][NCO
 GPU_DEVICE
 static bool Hydro_HancockPredict_CheckUnphysical( const real fcCon[][NCOMP_LR], const real dt_dh,
                                                   const EoS_t *EoS, const long PassiveFloor );
-# ifndef SRHD
+#ifndef SRHD
 GPU_DEVICE
 static real Hydro_HancockPredict_GetDeplFracMax( const real fcCon[][NCOMP_LR],
                                                  const real fcCon_init[][NCOMP_LR], const real fcPri_init[][NCOMP_LR],
@@ -2138,7 +2138,7 @@ void Hydro_HancockPredict( real fcCon[][NCOMP_LR], const real fcPri[][NCOMP_LR],
 // check unphysical results in the prediction, repredict if needed, and apply floors
 #  ifdef MHM_CHECK_PREDICT
    bool repredict = false;           // whether the reprediction is needed
-   real depl_frac_max = MAX_ERROR;   // maximum of the depletion fraction to be found; initialized with a small positive value for safety
+   real depl_frac_max = MAX_ERROR;   // maximum depletion fraction to be determined; initialized with a small positive value for safety
 
 #  ifdef SRHD
 // currently, SRHD does not support the reprediction except for the zero-slope one
@@ -2156,7 +2156,7 @@ void Hydro_HancockPredict( real fcCon[][NCOMP_LR], const real fcPri[][NCOMP_LR],
    for (int repredict_iter=0; repredict_iter<repredict_iter_num; repredict_iter++)
    {
 //    check whether there are unphysical results after the update
-      repredict = Hydro_HancockPredict_CheckUnphysical( fcCon, dt_dh2*2, EoS, PassiveFloor );
+      repredict = Hydro_HancockPredict_CheckUnphysical( fcCon, dt_dh2*(real)2.0, EoS, PassiveFloor );
 
 //    break immediately when there is no need to repredict
       if ( !repredict )   break;
@@ -2165,7 +2165,7 @@ void Hydro_HancockPredict( real fcCon[][NCOMP_LR], const real fcPri[][NCOMP_LR],
 //    repredict with more accurate or safer methods to avoid overshoot
       if ( repredict_iter != repredict_iter_num-1 )
       {
-//       decide the maxium depletion fraction of density, energy, and internal energy
+//       determine the maxium depletion fraction of density, energy, and internal energy
 //       from the initial states and the original updates
          if ( repredict_iter == 0 )
             depl_frac_max = Hydro_HancockPredict_GetDeplFracMax( fcCon, fcCon_init, fcPri, MinEint, PassiveFloor );
@@ -2220,18 +2220,19 @@ void Hydro_HancockPredict( real fcCon[][NCOMP_LR], const real fcPri[][NCOMP_LR],
 # ifdef MHM_CHECK_PREDICT
 //-------------------------------------------------------------------------------------------------------
 // Function    :  Hydro_HancockPredict_CheckUnphysical
-// Description :  Check the unphysical results after the half time-step update in HancockPredict
+// Description :  Check the unphysical results after the half time-step update in Hydro_HancockPredict()
 //
 // Note        :  1. Work for the MHM scheme
 //                2. Invoked by Hydro_HancockPredict() only
 //                3. Input variables must be conserved variables
-//                4. Check negative, inf, and nan in density, energy, and pressure and high velocity
+//                4. Check negative, inf, and nan in density, energy, and pressure, as well as excessively high velocity
 //                5. It stops checking and returns once any unphysical result is found
 //
-// Parameter   :  fcCon             : Face-centered conserved variables to be checked
-//                dt_dh             : Time interval to advance solution / Cell size
-//                EoS               : EoS object
-//                PassiveFloor      : Bitwise flag to specify the passive scalars to be floored
+// Parameter   :  fcCon        : Face-centered conserved variables to be checked
+//                dt_dh        : Time interval to advance solution / cell size
+//                EoS          : EoS object
+//                PassiveFloor : Bitwise flag to specify the passive scalars to be floored
+// Return      : isUnphysical
 //-------------------------------------------------------------------------------------------------------
 GPU_DEVICE
 bool Hydro_HancockPredict_CheckUnphysical( const real fcCon[][NCOMP_LR], const real dt_dh,
@@ -2262,8 +2263,8 @@ bool Hydro_HancockPredict_CheckUnphysical( const real fcCon[][NCOMP_LR], const r
          break;
       }
 
-//    2. check the value of velocity
-      if ( MAX( FABS(fcCon[f][MOMX]), MAX( FABS(fcCon[f][MOMY]), FABS(fcCon[f][MOMZ]) ) )*dt_dh > FABS(fcCon[f][DENS]) )
+//    2. check the value of velocity: require max(v)*dt < dh
+      if ( FMAX( FABS(fcCon[f][MOMX]), FMAX( FABS(fcCon[f][MOMY]), FABS(fcCon[f][MOMZ]) ) )*dt_dh > FABS(fcCon[f][DENS]) )
       {
          isUnphysical = true;
          break;
@@ -2307,20 +2308,20 @@ bool Hydro_HancockPredict_CheckUnphysical( const real fcCon[][NCOMP_LR], const r
 # ifndef SRHD
 //-------------------------------------------------------------------------------------------------------
 // Function    :  Hydro_HancockPredict_GetDeplFracMax
-// Description :  Get the maximum of depletion fraction of the face-centered variables after update among all faces
+// Description :  Get the maximum depletion fraction of the face-centered variables after the update over all faces
 //
 // Note        :  1. Work for the MHM scheme
 //                2. Invoked by Hydro_HancockPredict() only when unphysical result is found
 //                3. The value will be used to estimate the required number of steps and the reduced slope
 //                   to rescue the unphysical results
 //
-// Parameter   :  fcCon             : Updated face-centered conserved variables
-//                fcCon_init        : Input face-centered conserved variables before update
-//                fcPri_init        : Input face-centered primitive variables before update
-//                MinEint           : Internal energy floors
-//                PassiveFloor      : Bitwise flag to specify the passive scalars to be floored
+// Parameter   :  fcCon         : Updated face-centered conserved variables
+//                fcCon_init    : Input face-centered conserved variables before update
+//                fcPri_init    : Input face-centered primitive variables before update
+//                MinEint       : Internal energy floor
+//                PassiveFloor  : Bitwise flag to specify the passive scalars to be floored
 //
-// Return      :  depl_frac_max     : Maximum depletion fraction
+// Return      :  depl_frac_max : Maximum depletion fraction
 //-------------------------------------------------------------------------------------------------------
 GPU_DEVICE
 real Hydro_HancockPredict_GetDeplFracMax( const real fcCon[][NCOMP_LR],
@@ -2332,18 +2333,18 @@ real Hydro_HancockPredict_GetDeplFracMax( const real fcCon[][NCOMP_LR],
    real depl_frac_max = MAX_ERROR;
 
 // depletion fraction is defined as (var_initial - var_updated)/var_initial
-// positive (>0) when the variable decreased after update
-//           =1 leads to vacuum, >1 is unphysical, and the larger the dangerous
-// negative (<0) when the variable increased after update, and it is safe
+// positive (>0) when the variable decreases after update
+//           =1 leads to vacuum, >1 is unphysical, and larger values are more dangerous
+// negative (<0) when the variable increases after update, which is safe
 
 // loop through all the faces to find the maximum
    for (int f=0; f<6; f++)
    {
 //    density depletion fraction
-      depl_frac_max = MAX( (real)1.0-fcCon[f][DENS]/fcCon_init[f][DENS], depl_frac_max );
+      depl_frac_max = FMAX( (real)1.0-fcCon[f][DENS]/fcCon_init[f][DENS], depl_frac_max );
 
 //    energy depletion fraction
-      depl_frac_max = MAX( (real)1.0-fcCon[f][ENGY]/fcCon_init[f][ENGY], depl_frac_max );
+      depl_frac_max = FMAX( (real)1.0-fcCon[f][ENGY]/fcCon_init[f][ENGY], depl_frac_max );
 
 //    internal energy depletion fraction
 #     ifndef BAROTROPIC_EOS
@@ -2386,26 +2387,26 @@ real Hydro_HancockPredict_GetDeplFracMax( const real fcCon[][NCOMP_LR],
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  Hydro_HancockPredict_IterateReprediction
-// Description :  Redo the HancockPredict evolution by iterations of different trials
+// Description :  Recompute the Hancock prediction through iterative trials
 //
 // Note        :  1. Work for the MHM scheme
 //                2. Invoked by Hydro_HancockPredict() only when unphysical result is found
-//                3. Invoke different rescue methods accordingly to the iteration times
+//                3. Invoke different rescue methods depending on the iteration count
 //                4. Input variables must be conserved variables
 //
-// Parameter   :  fcCon             : Face-centered conserved variables to be updated
-//                fcCon_init        : Input face-centered conserved variables before update
-//                dt_dh2            : 0.5 * Time interval to advance solution / Cell size
-//                g_cc_array        : Array storing the cell-centered conserved variables for checking
-//                                    negative density and pressure
-//                                    --> It is just the input array Flu_Array_In[]
-//                cc_idx            : Index for accessing g_cc_array[]
-//                MinPres           : Pressure floor
-//                EoS               : EoS object
-//                PassiveFloor      : Bitwise flag to specify the passive scalars to be floored
-//                Iter              : Current iteration
-//                IterNum           : Total number of iterations
-//                DeplFracMax       : Maximum depletion fraction based on the initial prediction
+// Parameter   :  fcCon        : Face-centered conserved variables to be updated
+//                fcCon_init   : Input face-centered conserved variables before update
+//                dt_dh2       : 0.5 * time interval to advance solution / cell size
+//                g_cc_array   : Array storing the cell-centered conserved variables for checking
+//                               negative density and pressure
+//                               --> It is just the input array Flu_Array_In[]
+//                cc_idx       : Index for accessing g_cc_array[]
+//                MinPres      : Pressure floor
+//                EoS          : EoS object
+//                PassiveFloor : Bitwise flag to specify the passive scalars to be floored
+//                Iter         : Current iteration
+//                IterNum      : Total number of iterations
+//                DeplFracMax  : Maximum depletion fraction based on the initial prediction
 //-------------------------------------------------------------------------------------------------------
 GPU_DEVICE
 void Hydro_HancockPredict_IterateReprediction( real fcCon[][NCOMP_LR],
@@ -2415,12 +2416,12 @@ void Hydro_HancockPredict_IterateReprediction( real fcCon[][NCOMP_LR],
                                                const int Iter, const int IterNum, const real DeplFracMax )
 {
 
-// iteration division of rescuing methods
+// select rescue methods based on the iteration count
 // Iter = [       0,          1, ..., IterHalf-1] -> more accurate method
 // Iter = [IterHalf, IterHalf+1, ..., IterNum -2] -> more diffusive method
    const int IterHalf = (IterNum-1)/2;
 
-// for the first half, try using higher-order integration method and smaller time-step
+// for the first half, try higher-order integration method and smaller time-step
    if ( Iter < IterHalf )
    {
 //    estimate the required numer of sub-steps according to the maximum depletion fraction
@@ -2428,7 +2429,7 @@ void Hydro_HancockPredict_IterateReprediction( real fcCon[][NCOMP_LR],
       const int  num_substeps_est = (int)ceilf( DeplFracMax/safety_factor );
 //    or at least increase by iterations
       const int  num_substeps_min = 1<<Iter;                                // 1 -> 2 -> 4
-      const int  num_substeps_max = MHM_REPREDICT_SUBSTEPS_MAX;             // to avoid too many sub-steps, for the performance consideration
+      const int  num_substeps_max = MHM_REPREDICT_SUBSTEPS_MAX;             // to avoid too many sub-steps for performance considerations
       const int  num_substeps     = MIN( MAX( num_substeps_est, num_substeps_min ), num_substeps_max );
 
       Hydro_HancockPredict_RescueByHigherSteps( fcCon, fcCon_init, dt_dh2,
@@ -2439,32 +2440,32 @@ void Hydro_HancockPredict_IterateReprediction( real fcCon[][NCOMP_LR],
    {
 //    reduce the slope according to the maximum depletion fraction
       const real safety_factor       = MHM_REPREDICT_SLOPE_SAFE_FAC/(1<<(Iter-IterHalf)); // e.g., 0.9 -> 0.45 -> 0.225
-      const real reduced_slope_ratio = MIN( safety_factor/DeplFracMax, safety_factor );
+      const real reduced_slope_ratio = FMIN( safety_factor/DeplFracMax, safety_factor );
 
       Hydro_HancockPredict_RescueByLowerSlopes( fcCon, fcCon_init, dt_dh2, g_cc_array, cc_idx,
                                                 MinPres, EoS, PassiveFloor, reduced_slope_ratio );
    } // if ( Iter < IterHalf ) ... else ...
 
-}
+} // FUNCTION :  Hydro_HancockPredict_IterateReprediction
 
 
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  Hydro_HancockPredict_RescueByHigherSteps
-// Description :  Evolve the face-centered variables by half time-step by subcyling steps
+// Description :  Evolve the face-centered variables using both half-step prediction and subcycling
 //
 // Note        :  1. Work for the MHM scheme
 //                2. Invoked by Hydro_HancockPredict_IterateReprediction() when unphysical result is found in Hydro_HancockPredict()
 //                3. Input variables must be conserved variables
-//                4. Warning: This is not helpful for rescuing most of the time and can waste time
+//                4. Warning: This is often ineffective for rescue and may waste time
 //
-// Parameter   :  fcCon             : Face-centered conserved variables to be updated
-//                fcCon_init        : Input face-centered conserved variables before update
-//                dt_dh2            : 0.5 * Time interval to advance solution / Cell size
-//                MinPres           : Pressure floors
-//                EoS               : EoS object
-//                PassiveFloor      : Bitwise flag to specify the passive scalars to be floored
-//                NumSubSteps       : Number of sub-steps to evolve
+// Parameter   :  fcCon        : Face-centered conserved variables to be updated
+//                fcCon_init   : Input face-centered conserved variables before update
+//                dt_dh2       : 0.5 * time interval to advance solution / cell size
+//                MinPres      : Pressure floor
+//                EoS          : EoS object
+//                PassiveFloor : Bitwise flag to specify the passive scalars to be floored
+//                NumSubSteps  : Number of sub-steps to evolve
 //-------------------------------------------------------------------------------------------------------
 GPU_DEVICE
 void Hydro_HancockPredict_RescueByHigherSteps( real fcCon[][NCOMP_LR],
@@ -2482,6 +2483,7 @@ void Hydro_HancockPredict_RescueByHigherSteps( real fcCon[][NCOMP_LR],
 // dt_sub is the sub-step time-step; evolution destination is 0.5*dt
    const real dt_sub_dh  = dt_dh2/NumSubSteps;    // for full sub-step update
    const real dt_sub_dh2 = (real)0.5*dt_sub_dh;   // for half sub-step update
+   
    for (int substep=0; substep<NumSubSteps; substep++)
    {
       real Flux[6][NCOMP_TOTAL_PLUS_MAG];
@@ -2536,12 +2538,12 @@ void Hydro_HancockPredict_RescueByHigherSteps( real fcCon[][NCOMP_LR],
 //
 // Parameter   :  fcCon             : Face-centered conserved variables to be updated
 //                fcCon_init        : Input face-centered conserved variables before update
-//                dt_dh2            : 0.5 * Time interval to advance solution / Cell size
+//                dt_dh2            : 0.5 * time interval to advance solution / cell size
 //                g_cc_array        : Array storing the cell-centered conserved variables for checking
 //                                    negative density and pressure
 //                                    --> It is just the input array Flu_Array_In[]
 //                cc_idx            : Index for accessing g_cc_array[]
-//                MinPres           : Density, pressure, and internal energy floors
+//                MinPres           : Pressure floor
 //                EoS               : EoS object
 //                PassiveFloor      : Bitwise flag to specify the passive scalars to be floored
 //                ReducedSlopeRatio : Reduced slope / original slope
