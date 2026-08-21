@@ -60,7 +60,7 @@ Only applicable when enabling the compilation options
 [[--particle | [Installation]-Option-List#--particle]].
 
 <a name="LB_N_REGRID"></a>
-* #### `LB_N_REGRID` &ensp; (0=off, >0=on) &ensp; [1]
+* #### `LB_N_REGRID` &ensp; (0=off, >0=on) &ensp; [0]
     * **Description:**
 Redistribute patches on the refined level every LB_N_REGRID refinement.
     * **Restriction:**
