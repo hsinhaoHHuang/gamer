@@ -80,6 +80,7 @@ struct KeyInfo_t
    int    NMagStored;               // NCOMP_MAG (declare it even when MHD is off)
 #  ifdef PARTICLE
    long   Par_NPar;                 // amr->Par->NPar_Active_AllRank
+   long   Par_NextPUID;             // amr->Par->NextPUID
    int    Par_NAttFltStored;        // PAR_NATT_FLT_STORED
    int    Par_NAttIntStored;        // PAR_NATT_INT_STORED
    int    Float8_Par;
@@ -175,6 +176,7 @@ struct Makefile_t
    int CosmicRay;
    int EoS;
    int BarotropicEoS;
+   int ExactCooling;
 
 #  elif ( MODEL == ELBDM )
    int ELBDMScheme;
@@ -298,6 +300,12 @@ struct SymConst_t
    int    InterpMask;
    int    FB_SepFluOut;
 
+#  if ( MODEL == HYDRO )
+   int    ExtraEoSCheck;
+#  endif
+   int    CheckUnphyRnd;
+   double CheckUnphyRndFactor;
+
 
 #  if   ( MODEL == HYDRO )
    int    Flu_BlockSize_x;
@@ -327,7 +335,7 @@ struct SymConst_t
    int    EoSNAuxMax;
    int    EoSNTableMax;
 
-#  elif  ( MODEL == ELBDM )
+#  elif ( MODEL == ELBDM )
    int    Flu_BlockSize_x;
    int    Flu_BlockSize_y;
 #  if ( ELBDM_SCHEME == ELBDM_HYBRID )
@@ -387,7 +395,7 @@ struct SymConst_t
 // Structure   :  InputPara_t
 // Description :  Data structure for outputting the run-time parameters
 //
-// Note        :  1. All run-time parameters are loaded from the files "Input__XXX"
+// Note        :  1. Most of the run-time parameters are loaded from the files "Input__XXX"
 //-------------------------------------------------------------------------------------------------------
 struct InputPara_t
 {
@@ -427,9 +435,11 @@ struct InputPara_t
 // particle
 #  ifdef PARTICLE
    int    Par_Init;
+   int    Par_FlagInit;
    int    Par_ICFormat;
    double Par_ICMass;
    int    Par_ICType;
+   int    Par_ICPUID;
    int    Par_ICFloat8;
    int    Par_ICInt8;
    int    Par_Interp;
@@ -479,6 +489,9 @@ struct InputPara_t
 #  ifdef CR_DIFFUSION
    double Dt__CR_Diffusion;
 #  endif
+#  ifdef SUPPORT_GRACKLE
+   double Dt__GrackleCooling;
+#  endif
 #  ifdef COMOVING
    double Dt__MaxDeltaA;
 #  endif
@@ -527,6 +540,9 @@ struct InputPara_t
 #  ifdef SRHD
    int    Opt__Flag_LrtzGradient;
 #  endif
+#  ifdef SUPPORT_GRACKLE
+   int    Opt__Flag_CoolingLen;
+#  endif
 #  ifdef COSMIC_RAY
    int    Opt__Flag_CRay;
 #  endif
@@ -557,6 +573,8 @@ struct InputPara_t
    int    Opt__Flag_NParPatch;
    int    Opt__Flag_NParCell;
    int    Opt__Flag_ParMassCell;
+   int    Opt__Flag_ParTarget;
+   int    Opt__Flag_ParTargetSib;
 #  endif
    int    Opt__NoFlagNearBoundary;
    int    Opt__PatchCount;
@@ -607,6 +625,8 @@ struct InputPara_t
    double ELBDM_Taylor3_Coeff;
    int    ELBDM_Taylor3_Auto;
    int    ELBDM_RemoveMotionCM;
+   int    ELBDM_RescaleMassError;
+   int    ELBDM_RescaleMassSteps;
    int    ELBDM_BaseSpectral;
 #  if ( ELBDM_SCHEME == ELBDM_HYBRID )
    int    ELBDM_FirstWaveLevel;
@@ -624,6 +644,7 @@ struct InputPara_t
    int    Opt__FixUp_Restrict;
    long   FixUpRestrict_Var;
    int    Opt__CorrAfterAllSync;
+   long   PassiveFloor_Var;
    int    Opt__NormalizePassive;
    int    NormalizePassive_NVar;
    int    NormalizePassive_VarIdx[NCOMP_PASSIVE];
@@ -683,11 +704,19 @@ struct InputPara_t
    int    Src_Deleptonization;
    int    Src_User;
    int    Src_GPU_NPGroup;
+   int    Src_ExactCooling;
+#  ifdef EXACT_COOLING
+   int    Src_EC_TEF_N;
+   double Src_EC_dtCoef;
+#  endif
 
 // Grackle
 #  ifdef SUPPORT_GRACKLE
    int    Grackle_Activate;
    int    Grackle_Verbose;
+#  ifndef COMOVING
+   double Grackle_Redshift;
+#  endif
    int    Grackle_Cooling;
    int    Grackle_Primordial;
    int    Grackle_Metal;
@@ -699,6 +728,12 @@ struct InputPara_t
    int    Grackle_ThreeBodyRate;
    int    Grackle_CIE_Cooling;
    int    Grackle_H2_OpaApprox;
+   int    Grackle_UseVHeatingRate;
+   int    Grackle_UseSHeatingRate;
+   int    Grackle_UseTempFloor;
+   double Grackle_TempFloorScalar;
+   double Grackle_HydrogenMFrac;
+   int    Opt__UnfreezeGrackle;
    int    Che_GPU_NPGroup;
 #  endif
 
@@ -831,6 +866,11 @@ struct InputPara_t
    int    Opt__Output_3Velocity;
    int    Opt__Output_Enthalpy;
 #  endif
+#  ifdef SUPPORT_GRACKLE
+   int    Opt__Output_GrackleTemp;
+   int    Opt__Output_GrackleMu;
+   int    Opt__Output_GrackleTCool;
+#  endif
 #  endif // #if ( MODEL == HYDRO )
    int    Opt__Output_UserField;
    int    Opt__Output_Mode;
@@ -912,6 +952,9 @@ struct InputPara_t
 #  endif
 #  ifdef SRHD
    double FlagTable_LrtzGradient[NLEVEL-1];
+#  endif
+#  ifdef SUPPORT_GRACKLE
+   double FlagTable_CoolingLen  [NLEVEL-1];
 #  endif
 #  ifdef COSMIC_RAY
    double FlagTable_CRay        [NLEVEL-1];

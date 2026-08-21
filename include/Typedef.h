@@ -35,7 +35,7 @@ typedef int  long_par;
 #endif
 
 #ifdef SUPPORT_GRACKLE
-#include <grackle_float.h>
+#include <grackle.h>
 #if   defined GRACKLE_FLOAT_8
 typedef double real_che;
 #elif defined GRACKLE_FLOAT_4
@@ -93,10 +93,14 @@ const TestProbID_t
    TESTPROB_HYDRO_CR_SOUNDWAVE                 =   20,
    TESTPROB_HYDRO_CR_SHOCKTUBE                 =   21,
    TESTPROB_HYDRO_CR_DIFFUSION                 =   23,
+   TESTPROB_HYDRO_GRACKLE_TEST                 =   24,
+   TESTPROB_HYDRO_PARTICLE_FLAG                =   25,
    TESTPROB_HYDRO_BARRED_POT                   =   51,
    TESTPROB_HYDRO_JET_ICM_WALL                 =   52,
    TESTPROB_HYDRO_CDM_LSS                      =  100,
    TESTPROB_HYDRO_ZELDOVICH                    =  101,
+   TESTPROB_HYDRO_GRACKLE_COMOVING             =  102,
+   TESTPROB_HYDRO_EXACTCOOLING                 =  123,
    TESTPROB_ELBDM_EXTPOT                       = 1000,
    TESTPROB_ELBDM_JEANS_INSTABILITY_COMOVING   = 1001,
    TESTPROB_ELBDM_JEANS_INSTABILITY_PHYSICAL   = 1002,
@@ -110,7 +114,9 @@ const TestProbID_t
    TESTPROB_ELBDM_PLANE_WAVE                   = 1010,
    TESTPROB_ELBDM_PERTURBATION                 = 1011,
    TESTPROB_ELBDM_HALO_MERGER                  = 1012,
-   TESTPROB_ELBDM_DISK_HEATING                 = 1013;
+   TESTPROB_ELBDM_DISK_HEATING                 = 1013,
+   TESTPROB_ELBDM_UNIFORM_GRANULE              = 1014;
+
 
 // program initialization options
 typedef int OptInit_t;
@@ -262,6 +268,14 @@ const IsUnphyMode_t
    UNPHY_MODE_PASSIVE_ONLY = 2;  // only check passive scalars
 
 
+// whether to check rounding errors in Hydro_IsUnphysical()
+typedef int CkUnphyRnd_t;
+const CkUnphyRnd_t
+   CK_UNPHY_RND_NA  = 0,   // not applicable
+   CK_UNPHY_RND_YES = 1,   // enable the check
+   CK_UNPHY_RND_NO  = 2;   // disable the check
+
+
 // verbosity levels of Hydro_IsUnphysical()
 typedef int IsUnphVerb_t;
 const IsUnphVerb_t
@@ -401,6 +415,13 @@ const ParOutputDens_t
    PAR_OUTPUT_DENS_PAR_ONLY = 1,
    PAR_OUTPUT_DENS_TOTAL    = 2;
 
+typedef int FlagParTarget_t;
+const FlagParTarget_t
+   FLAG_PAR_NONE = 0,
+   FLAG_PAR_MUST = 1,
+   FLAG_PAR_CAN  = 2,
+   FLAG_PAR_BOTH = 3;
+
 typedef int ParPass2Son_t;
 const ParPass2Son_t
    PAR_PASS2SON_GENERAL = 1,
@@ -491,6 +512,12 @@ const FixUpRestrict_t
    FIXUP_REST_NO  = 0,
    FIXUP_REST_YES = 1;
 
+typedef int FloorPassive_t;
+const FloorPassive_t
+   FLOOR_NULL = -1,
+   FLOOR_NO   =  0,
+   FLOOR_YES  =  1;
+
 typedef int NormPassive_t;
 const NormPassive_t
    NORMALIZE_NO  = 0,
@@ -515,6 +542,13 @@ const GracklePriChe_t
    GRACKLE_PRI_CHE_NSPE6  = 1,
    GRACKLE_PRI_CHE_NSPE9  = 2,
    GRACKLE_PRI_CHE_NSPE12 = 3;
+
+// bitwise field indices used by Grackle
+typedef long GrackleFieldBIdx_t;
+const GrackleFieldBIdx_t
+   _GRACKLE_TEMP  = ( 1L << 0 ),
+   _GRACKLE_MU    = ( 1L << 1 ),
+   _GRACKLE_TCOOL = ( 1L << 2 );
 #endif
 
 
@@ -559,6 +593,14 @@ typedef int LoadParaMode_t;
 const LoadParaMode_t
    LOAD_READPARA    = 1,
    LOAD_HDF5_OUTPUT = 2;
+
+
+// whether to enforce consistency of magnetic field at the patch interface
+typedef int SameInterfaceB_t;
+const SameInterfaceB_t
+   SAME_INTERFACE_B_DEFAULT = -1,
+   SAME_INTERFACE_B_NO      = 0,
+   SAME_INTERFACE_B_YES     = 1;
 
 
 // function pointers

@@ -310,8 +310,13 @@ void Aux_Check_Parameter()
    {
       int NDerField = UserDerField_Num;
 #     if ( MODEL == HYDRO )
-      if ( OPT__OUTPUT_DIVVEL )  NDerField ++;
-      if ( OPT__OUTPUT_MACH   )  NDerField ++;
+      if ( OPT__OUTPUT_DIVVEL        )  NDerField ++;
+      if ( OPT__OUTPUT_MACH          )  NDerField ++;
+#     ifdef SUPPORT_GRACKLE
+      if ( OPT__OUTPUT_GRACKLE_TEMP  )  NDerField ++;
+      if ( OPT__OUTPUT_GRACKLE_MU    )  NDerField ++;
+      if ( OPT__OUTPUT_GRACKLE_TCOOL )  NDerField ++;
+#     endif
 #     endif
 
       if ( NDerField > DER_NOUT_MAX )
@@ -428,6 +433,9 @@ void Aux_Check_Parameter()
 #  ifdef SRHD
    Flag |= OPT__FLAG_LRTZ_GRADIENT;
 #  endif
+#  ifdef SUPPORT_GRACKLE
+   Flag |= OPT__FLAG_COOLING_LEN;
+#  endif
 #  ifdef COSMIC_RAY
    Flag |= OPT__FLAG_CRAY;
    Flag |= OPT__FLAG_LOHNER_CRAY;
@@ -444,6 +452,7 @@ void Aux_Check_Parameter()
    Flag |= OPT__FLAG_NPAR_PATCH;
    Flag |= OPT__FLAG_NPAR_CELL;
    Flag |= OPT__FLAG_PAR_MASS_CELL;
+   Flag |= OPT__FLAG_PAR_TARGET;
 #  endif
 
    if ( !Flag )
@@ -721,17 +730,17 @@ void Aux_Check_Parameter()
 #  endif
 
 #  ifdef MHD
-#   if ( RSOLVER != NONE  &&  RSOLVER != ROE  &&  RSOLVER != HLLE  &&  RSOLVER != HLLD )
+#   if ( RSOLVER != OPTION_NONE  &&  RSOLVER != ROE  &&  RSOLVER != HLLE  &&  RSOLVER != HLLD )
 #     error : ERROR : unsupported Riemann solver for MHD (ROE/HLLE/HLLD) !!
 #   endif
-#   if ( RSOLVER_RESCUE != NONE  &&  RSOLVER_RESCUE != ROE  &&  RSOLVER_RESCUE != HLLE  &&  RSOLVER_RESCUE != HLLD )
+#   if ( RSOLVER_RESCUE != OPTION_NONE  &&  RSOLVER_RESCUE != ROE  &&  RSOLVER_RESCUE != HLLE  &&  RSOLVER_RESCUE != HLLD )
 #     error : ERROR : unsupported RSOLVER_RESCUE for MHD (ROE/HLLE/HLLD) !!
 #   endif
 #  else
-#   if ( RSOLVER != NONE  &&  RSOLVER != EXACT  &&  RSOLVER != ROE  &&  RSOLVER != HLLE  &&  RSOLVER != HLLC )
+#   if ( RSOLVER != OPTION_NONE  &&  RSOLVER != EXACT  &&  RSOLVER != ROE  &&  RSOLVER != HLLE  &&  RSOLVER != HLLC )
 #     error : ERROR : unsupported Riemann solver (EXACT/ROE/HLLE/HLLC) !!
 #   endif
-#   if ( RSOLVER_RESCUE != NONE  &&  RSOLVER_RESCUE != EXACT  &&  RSOLVER_RESCUE != ROE  &&  RSOLVER_RESCUE != HLLE  &&  RSOLVER_RESCUE != HLLC )
+#   if ( RSOLVER_RESCUE != OPTION_NONE  &&  RSOLVER_RESCUE != EXACT  &&  RSOLVER_RESCUE != ROE  &&  RSOLVER_RESCUE != HLLE  &&  RSOLVER_RESCUE != HLLC )
 #     error : ERROR : unsupported RSOLVER_RESCUE (EXACT/ROE/HLLE/HLLC) !!
 #   endif
 #  endif // MHD
@@ -1272,6 +1281,9 @@ void Aux_Check_Parameter()
       Aux_Error( ERROR_INFO, "\"%s\" does NOT support \"%s\" !!\n", "ELBDM_REMOVE_MOTION_CM", "BITWISE_REPRODUCIBILITY" );
 #  endif
 
+   if ( ELBDM_RESCALE_MASS_ERROR  &&  !OPT__CK_CONSERVATION )
+      Aux_Error( ERROR_INFO, "\"%s\" must work with \"%s\" !!\n", "ELBDM_RESCALE_MASS_ERROR", "OPT__CK_CONSERVATION" );
+
    for (int f=0; f<6; f++)
       if ( ELBDM_BASE_SPECTRAL  &&  OPT__BC_FLU[f] != BC_FLU_PERIODIC )
          Aux_Error( ERROR_INFO, "ELBDM_BASE_SPECTRAL only works with periodic boundary condition (OPT__BC_FLU=1) !!\n" );
@@ -1420,7 +1432,7 @@ void Aux_Check_Parameter()
 #  endif
 
 #  else // GRAMFE_SCHEME
-#  error : ERROR : Unsupported GRAMFE_SCHEME !!
+#  error : ERROR : unsupported GRAMFE_SCHEME !!
 #  endif // GRAMFE_SCHEME
 
 #  else // WAVE_SCHEME
@@ -1793,6 +1805,27 @@ void Aux_Check_Parameter()
 #     error : ERROR : SUPPORT_GRACKLE must work with EOS_GAMMA/EOS_COSMIC_RAY !!
 #  endif
 
+   if ( ! GRACKLE_ACTIVATE )
+   {
+      if ( OPT__OUTPUT_GRACKLE_TEMP )
+         Aux_Error( ERROR_INFO, "OPT__OUTPUT_GRACKLE_TEMP requires the option GRACKLE_ACTIVATE !!\n");
+
+      if ( OPT__OUTPUT_GRACKLE_MU )
+         Aux_Error( ERROR_INFO, "OPT__OUTPUT_GRACKLE_MU requires the option GRACKLE_ACTIVATE !!\n");
+
+      if ( OPT__OUTPUT_GRACKLE_TCOOL )
+         Aux_Error( ERROR_INFO, "OPT__OUTPUT_GRACKLE_TCOOL requires the option GRACKLE_ACTIVATE !!\n");
+
+      if ( OPT__FLAG_COOLING_LEN )
+         Aux_Error( ERROR_INFO, "OPT__FLAG_COOLING_LEN requires the option GRACKLE_ACTIVATE !!\n");
+
+      if ( DT__GRACKLE_COOLING >= 0.0 )
+         Aux_Error( ERROR_INFO, "DT__GRACKLE_COOLING requires the option GRACKLE_ACTIVATE !!\n");
+
+      if ( OPT__UNFREEZE_GRACKLE )
+         Aux_Error( ERROR_INFO, "OPT__UNFREEZE_GRACKLE requires the option GRACKLE_ACTIVATE !!\n");
+   }
+
 // warning
 // ------------------------------
    if ( MPI_Rank == 0 ) {
@@ -1802,6 +1835,25 @@ void Aux_Check_Parameter()
 
    if ( GRACKLE_PRIMORDIAL > 0 )
       Aux_Message( stderr, "WARNING : adiabatic index gamma is currently fixed to %13.7e for Grackle !!\n", GAMMA );
+
+   if ( OPT__UNFREEZE_GRACKLE  &&  ! OPT__FREEZE_FLUID )
+      Aux_Message( stderr, "WARNING : OPT__UNFREEZE_GRACKLE is useless when OPT__FREEZE_FLUID is off !!\n" );
+
+   if ( OPT__UNFREEZE_GRACKLE  &&  OPT__FREEZE_FLUID )
+      Aux_Message( stderr, "REMINDER : OPT__UNFREEZE_GRACKLE will allow fluid variables to be updated by Grackle solver even with OPT__FREEZE_FLUID enabled !!\n" );
+
+   if ( OPT__OUTPUT_GRACKLE_TEMP  &&  OPT__OUTPUT_TEMP )
+   {
+      Aux_Message( stderr, "WARNING : temperature field calculated by Grackle is named \"GrackleTemp\"\n"   );
+      Aux_Message( stderr, "          and it is different from the default temperature field \"Temp\" !!\n" );
+   }
+
+   if ( GRACKLE_PRIMORDIAL == GRACKLE_PRI_CHE_CLOUDY )
+   {
+      Aux_Message( stderr, "WARNING : For GRACKLE_PRIMORDIAL == %d, GRACKLE_HYDROGEN_MFRAC = %13.7e is only used outside Grackle\n",
+                           GRACKLE_PRI_CHE_CLOUDY, GRACKLE_HYDROGEN_MFRAC );
+      Aux_Message( stderr, "          and it can be different from HydrogenFractionByMass determined by and used inside Grackle !!\n" );
+   }
 
    } // if ( MPI_Rank == 0 )
 
@@ -1822,6 +1874,20 @@ void Aux_Check_Parameter()
    if ( SrcTerms.Deleptonization )
       Aux_Error( ERROR_INFO, "SRC_DELEPTONIZATION is only supported in HYDRO !!\n" );
 #  endif
+
+#  ifdef EXACT_COOLING
+#  if ( MODEL != HYDRO )
+#     error : ERROR : EXACT_COOLING must enable MODEL=HYDRO !!
+#  endif
+
+#  ifdef COMOVING
+#     error : ERROR : EXACT_COOLING does not support COMOVING !!
+#  endif
+
+#  else // #ifdef EXACT_COOLING
+   if ( SrcTerms.ExactCooling )
+      Aux_Error( ERROR_INFO, "SRC_EXACTCOOLING is only supported when EXACT_COOLING is enabled !!\n" );
+#  endif // #ifdef EXACT_COOLING ... else ...
 
 // warning
 // ------------------------------
