@@ -486,6 +486,7 @@ struct InputPara_t
 #  endif
    double Dt__SyncParentLv;
    double Dt__SyncChildrenLv;
+   int    Opt__DtFluidLeaf;
    int    Opt__DtUser;
    int    Opt__DtLevel;
    int    Opt__RecordDt;
