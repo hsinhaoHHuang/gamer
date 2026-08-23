@@ -117,7 +117,7 @@ real GetMaxCFL( const int lv, const bool isCRDiffusion )
                           ( isCRDiffusion ) ?
                           Hydro_GetCFL_CRDiffusion( MicroPhy ) :
 #                         endif
-                          Hydro_GetCFL( fluid, B, (real)MIN_PRES,
+                          Hydro_GetCFL( fluid, B, (real)MIN_PRES, PassiveFloorMask,
                                         EoS_DensEint2Pres_CPUPtr, EoS_DensPres2Eint_CPUPtr, EoS_DensPres2CSqr_CPUPtr,
                                         EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
                                         EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );

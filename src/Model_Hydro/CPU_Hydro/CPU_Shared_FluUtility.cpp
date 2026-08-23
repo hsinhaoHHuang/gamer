@@ -1738,6 +1738,7 @@ real MHD_GetCellCenteredBEnergy( const real Bx_FC[], const real By_FC[], const r
 // Parameter   :  fluid             : Input fluid array
 //                B                 : Input cell-centered B field array
 //                MinPres           : Minimum allowed pressure
+//                PassiveFloor      : Bitwise flag to specify the passive scalars to be floored
 //                EoS_DensEint2Pres : EoS routine to compute the gas pressure
 //                EoS_DensPres2Eint : EoS routine to compute the gas internal energy
 //                EoS_DensPres2CSqr : EoS routine to compute the gas sound speed squared
@@ -1749,7 +1750,7 @@ real MHD_GetCellCenteredBEnergy( const real Bx_FC[], const real By_FC[], const r
 // Return      :  CFL
 //-------------------------------------------------------------------------------------------------------
 GPU_DEVICE
-real Hydro_GetCFL( const real fluid[], const real B[], const real MinPres,
+real Hydro_GetCFL( const real fluid[], const real B[], const real MinPres, const long PassiveFloor,
                    const EoS_DE2P_t EoS_DensEint2Pres, const EoS_DP2E_t EoS_DensPres2Eint, const EoS_DP2C_t EoS_DensPres2CSqr,
                    const EoS_GUESS_t EoS_GuessHTilde, const EoS_H2TEM_t EoS_HTilde2Temp,
                    const double EoS_AuxArray_Flt[], const int EoS_AuxArray_Int[], const real *const EoS_Table[EOS_NTABLE_MAX] )
@@ -1762,7 +1763,7 @@ real Hydro_GetCFL( const real fluid[], const real B[], const real MinPres,
 #  ifdef SRHD
    real Pri[FLU_NIN_T], LorentzFactor, U_Max, Us_Max, LorentzFactor_Max, LorentzFactor_s_Max, Us, Rho;
 
-   Hydro_Con2Pri( fluid, Pri, MinPres, NULL_BOOL, NULL_INT, NULL, NULL_BOOL,
+   Hydro_Con2Pri( fluid, Pri, MinPres, PassiveFloor, NULL_BOOL, NULL_INT, NULL, NULL_BOOL,
                   (real)NULL_REAL, EoS_DensEint2Pres, EoS_DensPres2Eint,
                   EoS_GuessHTilde, EoS_HTilde2Temp,
                   EoS_AuxArray_Flt, EoS_AuxArray_Int, EoS_Table, NULL, &LorentzFactor );
@@ -1791,7 +1792,7 @@ real Hydro_GetCFL( const real fluid[], const real B[], const real MinPres,
    Vy   = FABS( fluid[MOMY] )*_Rho;
    Vz   = FABS( fluid[MOMZ] )*_Rho;
    Pres = Hydro_Con2Pres( fluid[DENS], fluid[MOMX], fluid[MOMY], fluid[MOMZ], fluid[ENGY], fluid+NCOMP_FLUID,
-                          CheckMinPres_Yes, MinPres, Emag,
+                          CheckMinPres_Yes, MinPres, PassiveFloor, Emag,
                           EoS_DensEint2Pres, EoS_GuessHTilde, EoS_HTilde2Temp,
                           EoS_AuxArray_Flt, EoS_AuxArray_Int, EoS_Table, NULL );
    a2   = EoS_DensPres2CSqr( fluid[DENS], Pres, fluid+NCOMP_FLUID, EoS_AuxArray_Flt, EoS_AuxArray_Int,

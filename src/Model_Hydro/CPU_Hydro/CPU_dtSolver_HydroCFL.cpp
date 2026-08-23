@@ -101,7 +101,7 @@ void CPU_dtSolver_HydroCFL  ( real g_dt_Array[], const real g_Flu_Array[][FLU_NI
 #        endif // #ifdef MHD
 
          MaxCFL = FMAX( MaxCFL,
-                        Hydro_GetCFL( fluid, B, MinPres,
+                        Hydro_GetCFL( fluid, B, MinPres, PassiveFloor,
                                       EoS.DensEint2Pres_FuncPtr, EoS.DensPres2Eint_FuncPtr, EoS.DensPres2CSqr_FuncPtr,
                                       EoS.GuessHTilde_FuncPtr, EoS.HTilde2Temp_FuncPtr,
                                       EoS.AuxArrayDevPtr_Flt, EoS.AuxArrayDevPtr_Int, EoS.Table ) );
