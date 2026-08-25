@@ -739,10 +739,6 @@ struct InputPara_t
    int    FB_ResolvedSNeII;
    int    FB_User;
    double FB_ResolvedSNeII_NPerMass;
-   double FB_ResolvedSNeII_DelayTime;
-   double FB_ResolvedSNeII_EjectEngy;
-   double FB_ResolvedSNeII_EjectMass;
-   double FB_ResolvedSNeII_EjectMetal;
    double FB_ResolvedSNeII_MinMGas;
    int    FB_ResolvedSNeII_Record;
 #  endif

@@ -3912,10 +3912,6 @@ void GetCompound_InputPara( hid_t &H5_TypeID, const int NFieldStored )
    H5Tinsert( H5_TypeID, "FB_ResolvedSNeII",            HOFFSET(InputPara_t,FB_ResolvedSNeII            ), H5T_NATIVE_INT     );
    H5Tinsert( H5_TypeID, "FB_User",                     HOFFSET(InputPara_t,FB_User                     ), H5T_NATIVE_INT     );
    H5Tinsert( H5_TypeID, "FB_ResolvedSNeII_NPerMass",   HOFFSET(InputPara_t,FB_ResolvedSNeII_NPerMass   ), H5T_NATIVE_DOUBLE  );
-   H5Tinsert( H5_TypeID, "FB_ResolvedSNeII_DelayTime",  HOFFSET(InputPara_t,FB_ResolvedSNeII_DelayTime  ), H5T_NATIVE_DOUBLE  );
-   H5Tinsert( H5_TypeID, "FB_ResolvedSNeII_EjectEngy",  HOFFSET(InputPara_t,FB_ResolvedSNeII_EjectEngy  ), H5T_NATIVE_DOUBLE  );
-   H5Tinsert( H5_TypeID, "FB_ResolvedSNeII_EjectMass",  HOFFSET(InputPara_t,FB_ResolvedSNeII_EjectMass  ), H5T_NATIVE_DOUBLE  );
-   H5Tinsert( H5_TypeID, "FB_ResolvedSNeII_EjectMetal", HOFFSET(InputPara_t,FB_ResolvedSNeII_EjectMetal ), H5T_NATIVE_DOUBLE  );
    H5Tinsert( H5_TypeID, "FB_ResolvedSNeII_MinMGas",    HOFFSET(InputPara_t,FB_ResolvedSNeII_MinMGas    ), H5T_NATIVE_DOUBLE  );
    H5Tinsert( H5_TypeID, "FB_ResolvedSNeII_Record",     HOFFSET(InputPara_t,FB_ResolvedSNeII_Record     ), H5T_NATIVE_INT     );
 #  endif

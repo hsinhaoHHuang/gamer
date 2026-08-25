@@ -2265,10 +2265,6 @@ void Check_InputPara( const char *FileName, const int FormatVersion )
    LoadField( "FB_ResolvedSNeII",            &RS.FB_ResolvedSNeII,            SID, TID, NonFatal, &RT.FB_ResolvedSNeII,            1, NonFatal );
    LoadField( "FB_User",                     &RS.FB_User,                     SID, TID, NonFatal, &RT.FB_User,                     1, NonFatal );
    LoadField( "FB_ResolvedSNeII_NPerMass",   &RS.FB_ResolvedSNeII_NPerMass,   SID, TID, NonFatal, &RT.FB_ResolvedSNeII_NPerMass,   1, NonFatal );
-   LoadField( "FB_ResolvedSNeII_DelayTime",  &RS.FB_ResolvedSNeII_DelayTime,  SID, TID, NonFatal, &RT.FB_ResolvedSNeII_DelayTime,  1, NonFatal );
-   LoadField( "FB_ResolvedSNeII_EjectEngy",  &RS.FB_ResolvedSNeII_EjectEngy,  SID, TID, NonFatal, &RT.FB_ResolvedSNeII_EjectEngy,  1, NonFatal );
-   LoadField( "FB_ResolvedSNeII_EjectMass",  &RS.FB_ResolvedSNeII_EjectMass,  SID, TID, NonFatal, &RT.FB_ResolvedSNeII_EjectMass,  1, NonFatal );
-   LoadField( "FB_ResolvedSNeII_EjectMetal", &RS.FB_ResolvedSNeII_EjectMetal, SID, TID, NonFatal, &RT.FB_ResolvedSNeII_EjectMetal, 1, NonFatal );
    LoadField( "FB_ResolvedSNeII_MinMGas",    &RS.FB_ResolvedSNeII_MinMGas,    SID, TID, NonFatal, &RT.FB_ResolvedSNeII_MinMGas,    1, NonFatal );
    LoadField( "FB_ResolvedSNeII_Record",     &RS.FB_ResolvedSNeII_Record,     SID, TID, NonFatal, &RT.FB_ResolvedSNeII_Record,     1, NonFatal );
 #  endif
