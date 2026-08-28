@@ -235,7 +235,7 @@ int FB_Resolved_SNeII( const int lv, const double TimeNew, const double TimeOld,
       if ( par_nSNII <= 0 )   continue;
 
       if ( par_nSNII < minNumSNeIIPerSPar  ||  par_nSNII > maxNumSNeIIPerSPar )
-         Aux_Error( ERROR_INFO, "Particle p=%d (mass = %14.8e) has a number of SNe = %14.8e not in the supported range [%14d, %14d] !!\n",
+         Aux_Error( ERROR_INFO, "Particle p=%d (mass = %14.8e) has a number of SNe = %14d not in the supported range [%14d, %14d] !!\n",
                     p, par_mass, par_nSNII, minNumSNeIIPerSPar, maxNumSNeIIPerSPar );
 
 //    2.5 to give feedback, the particle has to be in the range to update fluid
@@ -533,11 +533,13 @@ void FB_Init_Resolved_SNeII()
    if ( Idx_ParSNIINxtE == Idx_Undefined )
       Aux_Error( ERROR_INFO, "Idx_ParSNIINxtE is undefined !!\n" );
 
-#  ifdef STAR_FORMATION
-   minNumSNeIIPerSPar = MAX( (int)floor(SF_CREATE_STAR_MIN_STAR_MASS*FB_RESOLVED_SNEII_N_PER_MASS), 1 );
-   maxNumSNeIIPerSPar = MIN( (int) ceil(SF_CREATE_STAR_MIN_STAR_MASS*FB_RESOLVED_SNEII_N_PER_MASS), FB_SNII_NXTE_SEPDIGIT );
-#  else
    minNumSNeIIPerSPar = 1;
+#  ifdef STAR_FORMATION
+// number of SNeII is sampled from a capped Poisson distribution in the star formation routine
+// --> set the maximum as 2x the average number of SNeII per minimum-mass star particle
+// --> it should not exceed FB_SNII_NXTE_SEPDIGIT so the digits separation can work
+   maxNumSNeIIPerSPar = MIN( (int)ceil(2.0*SF_CREATE_STAR_MIN_STAR_MASS*FB_RESOLVED_SNEII_N_PER_MASS), FB_SNII_NXTE_SEPDIGIT );
+#  else
    maxNumSNeIIPerSPar = 1;
 #  endif
 

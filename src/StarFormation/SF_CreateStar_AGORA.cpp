@@ -271,15 +271,26 @@ void SF_CreateStar_AGORA( const int lv, const real TimeNew, const real dt, Rando
 //          --> The explosion will occur when the age of the star = the lifetime of SN progenitor
 //          Ref: Sec. 2.6 of Chia-Yu Hu, et al., 2023, ApJ, 950, 132 (https://doi.org/10.3847/1538-4357/accf9e)
 
-            const double Min = 0.0;
-            const double Max = 1.0;
+//          expected average number of SNeII in a star particle of the given mass
+            const double MeanNum_SNeII = StarMass*FB_RESOLVED_SNEII_N_PER_MASS;
 
-            double Random = FB_RNG->GetValue( TID, Min, Max );
+#           if ( RANDOM_NUMBER == RNG_CPP11 )
+//          randomly sampled number from a Poisson distribution of the given mean
+            const int PoissonRandom = FB_RNG->GetValue_Poisson( TID, MeanNum_SNeII );
+#           else
+            Aux_Error( ERROR_INFO, "Must use RNG_CPP11 for the Poisson random numbers!!\n" );
+            const int PoissonRandom = 0;
+#           endif
 
-            const int    flooredN_SNeII = (int)floor(StarMass*FB_RESOLVED_SNEII_N_PER_MASS);
-            const double fractnlN_SNeII = StarMass*FB_RESOLVED_SNEII_N_PER_MASS - flooredN_SNeII;
+//          maximum allowed number of SNeII per particle
+//          --> set to twice the mean; sampled number higher than this value should be rare
+            const int MaxNum_SNeII     = (int)ceil(2.0*MeanNum_SNeII);
 
-            const long_par SNII_NxtE = ( flooredN_SNeII + (1-( Random >= fractnlN_SNeII )) ) * FB_SNII_NXTE_SEPDIGIT;
+//          number of SNeII for this star particle, sampled from the capped Poisson distribution
+            const int SampledNum_SNeII = MIN( PoissonRandom, MaxNum_SNeII );
+
+//          next SNeII explosion event index for the feedback routine
+            const long_par SNII_NxtE = SampledNum_SNeII * FB_SNII_NXTE_SEPDIGIT;
 
             NewParAttInt[NNewPar][Idx_ParSNIINxtE] = SNII_NxtE;
          }
