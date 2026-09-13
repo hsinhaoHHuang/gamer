@@ -190,6 +190,7 @@ void SetParameter()
 
 // (2) set the problem-specific derived parameters
 // convert to code units
+// --> note that these are always in the physical units, regardless of COMOVING
    StarFormationThreshold_MassDensity_Min /= UNIT_D;
    StarFormationThreshold_MassDensity_Max /= UNIT_D;
 
@@ -386,7 +387,13 @@ int Flu_ResetByUser_StarFormationThreshold( real fluid[], const double Emag, con
 double Mis_GetTimeStep_StarFormationThreshold( const int lv, const double dTime_dt )
 {
 
-   double dt_user = 0.1*StarFormationThreshold_FreeFallTime_Min;
+   const double dt_user_phy = 0.1*StarFormationThreshold_FreeFallTime_Min;   // in the physical units
+
+#  ifdef COMOVING
+   const double dt_user = dt_user_phy / SQR(Time[lv]);   // divided by a^2 to convert from physical to comoving
+#  else
+   const double dt_user = dt_user_phy;
+#  endif
 
    return dt_user;
 

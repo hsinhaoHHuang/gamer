@@ -50,7 +50,7 @@ TESTPROB_ID                   0           # test problem ID [0]
                                           #   23: HYDRO MHD Cosmic Ray Diffusion
                                           #   24: HYDRO Grackle Test (+SUPPORT_GRACKLE)
                                           #   25: HYDRO particle flag (+GRAVITY & PARTICLE)
-                                          #   26: HYDRO Star Formation Threshold (+GRAVITY)
+                                          #   26: HYDRO Star Formation Threshold (+GRAVITY & PARTICLE & STAR_FORMATION)
                                           #  100: HYDRO CDM cosmological simulation (+GRAVITY & COMOVING & PARTICLE)
                                           #  101: HYDRO Zeldovich pancake collapse (+GRAVITY & COMOVING & PARTICLE)
                                           #  102: HYDRO Grackle comoving (+GRAVITY & COMOVING & GRACKLE )

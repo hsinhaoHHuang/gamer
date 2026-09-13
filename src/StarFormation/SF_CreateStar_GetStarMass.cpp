@@ -2,7 +2,7 @@
 
 #if ( defined PARTICLE  &&  defined STAR_FORMATION  &&  MODEL == HYDRO )
 
-static real SF_CreateStar_GetStarMass_StochasticLoaclSchmidtLaw( const real GasDens, const real CosmoScaleFactor, const real dv, const real dt, RandomNumber_t *RNG,
+static real SF_CreateStar_GetStarMass_StochasticLocalSchmidtLaw( const real GasDens, const real CosmoScaleFactor, const real dv, const real dt, RandomNumber_t *RNG,
                                                                  const real Efficiency, const real MinStarMass, const int TID );
 static real SF_CreateStar_GetStarMass_MaxStarM( const real GasDens, const real dv, const real MaxStarMFrac );
 
@@ -32,7 +32,7 @@ real SF_CreateStar_GetStarMass( const real GasDens, const real CosmoScaleFactor,
    {
       case SF_CREATE_STAR_SCHEME_AGORA:
       case SF_CREATE_STAR_SCHEME_DWARFGALAXY:
-         StarMass = SF_CreateStar_GetStarMass_StochasticLoaclSchmidtLaw( GasDens, CosmoScaleFactor, dv, dt, RNG, SF_CREATE_STAR_MASS_EFF, SF_CREATE_STAR_MIN_STAR_MASS, TID );
+         StarMass = SF_CreateStar_GetStarMass_StochasticLocalSchmidtLaw( GasDens, CosmoScaleFactor, dv, dt, RNG, SF_CREATE_STAR_MASS_EFF, SF_CREATE_STAR_MIN_STAR_MASS, TID );
          break;
 
       case SF_CREATE_STAR_SCHEME_NONE:
@@ -54,7 +54,7 @@ real SF_CreateStar_GetStarMass( const real GasDens, const real CosmoScaleFactor,
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  SF_CreateStar_GetStarMass_StochasticLoaclSchmidtLaw
+// Function    :  SF_CreateStar_GetStarMass_StochasticLocalSchmidtLaw
 // Description :  Determine the star particle mass stochastically following the AGORA project prescription
 //
 // Note        :  1. Ref: (1) Nathan Goldbaum, et al., 2015, ApJ, 814, 131 (arXiv: 1510.08458), sec. 2.4
@@ -74,7 +74,7 @@ real SF_CreateStar_GetStarMass( const real GasDens, const real CosmoScaleFactor,
 //
 // Return      :  StarMass
 //-------------------------------------------------------------------------------------------------------
-real SF_CreateStar_GetStarMass_StochasticLoaclSchmidtLaw( const real GasDens, const real CosmoScaleFactor, const real dv, const real dt, RandomNumber_t *RNG,
+real SF_CreateStar_GetStarMass_StochasticLocalSchmidtLaw( const real GasDens, const real CosmoScaleFactor, const real dv, const real dt, RandomNumber_t *RNG,
                                                           const real Efficiency, const real MinStarMass, const int TID )
 {
 
@@ -116,7 +116,7 @@ real SF_CreateStar_GetStarMass_StochasticLoaclSchmidtLaw( const real GasDens, co
 
    return StarMass;
 
-} // FUNCTION : SF_CreateStar_GetStarMass_StochasticLoaclSchmidtLaw
+} // FUNCTION : SF_CreateStar_GetStarMass_StochasticLocalSchmidtLaw
 
 
 
