@@ -325,11 +325,10 @@ void LoadData()
       if ( LoadPot )       NOut ++;
 
 #     if   ( MODEL == HYDRO )
-      if ( OutputSphVel )  NOut += 2;
+                           NOut += 2;   // vtheta, vphi
 #     elif ( MODEL == MHD )
 #     elif ( MODEL == ELBDM )
-      if ( ELBDM_GetVir )  NOut += 8;
-      if ( OutputSphVel )  NOut += 4;
+      if ( ELBDM_GetVir )  NOut += 12;  // Ek_Lap, Ek_Gra, vr, vr_abs, vt_abs, wr, wr_abs, wt_abs, vtheta, vphi, wtheta, wphi
 #     else
 #     error : ERROR : unsupported MODEL !!
 #     endif // MODEL
