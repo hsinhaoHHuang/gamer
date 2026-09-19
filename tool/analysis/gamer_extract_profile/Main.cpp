@@ -47,20 +47,20 @@ double      INT_MONO_COEFF    = 2.0;
 bool        ELBDM_IntPhase    = true;
 bool        ELBDM_GetVir      = false;    // analyze the ELBDM virial condition (output vel, Ek, and virial surface terms)
 double      ELBDM_ETA         = NULL_REAL;
-int         ELBDM_Scheme      = 1;        // 
+int         ELBDM_Scheme      = 1;        // ELBDM scheme (1: ELBDM_WAVE, 2: ELBDM_HYBRID)
 IntScheme_t IntScheme         = INT_CQUAR;
 double    (*ELBDM_Mom)[3]     = NULL;     // momentum used for subtracting the CM Ek in ELBDM_GetVir
 double     *ELBDM_RhoUr2      = NULL;     // Rho*(vr^2 + wr^2) in the virial surface terms
 double     *ELBDM_dRho_dr     = NULL;     // dRho/dr in the virial surface terms
 double     *ELBDM_LapRho      = NULL;     // Lap(Rho) in the virial surface terms
-bool        ELBDM_RichExtrap  = true;     // Richardson extrapolation for the velocity
+bool        ELBDM_5ptCenDiff  = true;     // five-point stencil finite difference to compute derivatives for the velocity
 #else
 IntScheme_t IntScheme         = INT_CQUAD;
 #endif
 bool        GetAvePot         = false;    // calculate the spherically symmetric gravitational potential
 double      NewtonG           = WRONG;    // gravitational constant (must be set if it cannot be determined from the input data)
-bool        RemoveCMV         = false;    // remove the center-of-mass velocity 
-bool        OutputSphVel      = false;    // output the sphere coordinate (r, theta, phi) velocity
+bool        RemoveCMV         = false;    // remove the center-of-mass velocity
+bool        OutputSphVel      = false;    // output the spherical coordinate (r, theta, phi) velocity
 
 
 // variables for the mode "maximum density"
@@ -244,21 +244,19 @@ void GetMaxRho()
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  Remove_CMVel
-// Description :  Remove center of mass velocity
+// Description :  Remove the center-of-mass velocity
 //-------------------------------------------------------------------------------------------------------
-
 void Remove_CMVel()
 {
-   
-   cout << "Get center of mass velocity ..." << endl;
-   double CMV[3] = {};
-   double massAll = 0.0;
-   const double dh_min = amr.dh[NLEVEL-1];
 
+   cout << "Get the center-of-mass velocity ..." << endl;
+
+   double CMV[3]  = {0.0, 0.0, 0.0};
+   double massAll = 0.0;
+
+   real Dens, MomX, MomY, MomZ;
 #  if   ( MODEL == HYDRO )
-#  warning : WAIT HYDRO !!!
    const int NGhost = 0;
-   real rho, vx, vy, vz, vr, vt, egy, pres, Pot, ParDens;
 
 #  elif ( MODEL == MHD )
 #  warning : WAIT MHD !!!
@@ -266,12 +264,9 @@ void Remove_CMVel()
 #  elif ( MODEL == ELBDM )
    const int  NGhost = 2;
    const real _Eta   = 1.0/ELBDM_ETA;
-   const real _2Eta  = 0.5*_Eta;
-   const real _2Eta2 = _Eta*_2Eta;
-   const real _Eta2  = _Eta*_Eta;
-   real Dens, Real, Imag, Pot, _Dens, ParDens;
-   real GradR[3], GradI[3], GradD[3], _2dh;
-   real v[3], w[3];
+   real Real, Imag;
+   real GradR[3], GradI[3], _2dh;
+   const double dh_min = amr.dh[NLEVEL-1];
 
 #  else
 #  error : ERROR : unsupported MODEL !!
@@ -285,27 +280,24 @@ void Remove_CMVel()
    const int NPG       = 1;
    const NSide_t NSide = NSIDE_26;
 
-   int    ShellID, Var, i, j, k, im, jm, km, ip, jp, kp;
-   int    imm, jmm, kmm, ipp, jpp, kpp;
+   int    i, j, k;
    long   TVar;
    double Radius, scale, dv;
    double x, x1, x2, y, y1, y2, z, z1, z2;   // (x,y,z) : relative coordinates to the vector "Center"
 
+   TVar = _TOTAL;
    real *Field1D = new real [NPG*8*NCOMP_TOTAL*ArraySize*ArraySize*ArraySize];
    real (*Field)[NCOMP_TOTAL][ArraySize][ArraySize][ArraySize] = ( real(*)[NCOMP_TOTAL][ArraySize][ArraySize][ArraySize] )Field1D;
 
-
-// determine the target variables
-   TVar    = _TOTAL;
-
-
+// collect the total quantities in the target patches
    for (int lv=0; lv<NLEVEL; lv++)
    {
       scale  = (double)amr.scale[lv];
       dv     = CUBE(scale);
+
 #     if ( MODEL == ELBDM )
       _2dh   = 0.5/amr.dh[lv];
-      #     endif
+#     endif
 
       cout << "   Level " << lv << " ... ";
 
@@ -335,108 +327,56 @@ void Remove_CMVel()
             for (int kk=0; kk<PATCH_SIZE; kk++) {  z1 = amr.patch[lv][PID]->corner[2] + (kk+0.5)*scale - Center    [2];
                                                    z2 = amr.patch[lv][PID]->corner[2] + (kk+0.5)*scale - Center_Map[2];
                                                    z  = ( fabs(z1) <= fabs(z2) ) ? z1 : z2;
-                                                   k  = kk + NGhost;   km = k - 1;   kp = k + 1;
-                                                   kmm = k - 2; kpp = k + 2;
+                                                   k  = kk + NGhost;
             for (int jj=0; jj<PATCH_SIZE; jj++) {  y1 = amr.patch[lv][PID]->corner[1] + (jj+0.5)*scale - Center    [1];
                                                    y2 = amr.patch[lv][PID]->corner[1] + (jj+0.5)*scale - Center_Map[1];
                                                    y  = ( fabs(y1) <= fabs(y2) ) ? y1 : y2;
-                                                   j  = jj + NGhost;   jm = j - 1;   jp = j + 1;
-                                                   jmm = j - 2; jpp = j + 2;
+                                                   j  = jj + NGhost;
             for (int ii=0; ii<PATCH_SIZE; ii++) {  x1 = amr.patch[lv][PID]->corner[0] + (ii+0.5)*scale - Center    [0];
                                                    x2 = amr.patch[lv][PID]->corner[0] + (ii+0.5)*scale - Center_Map[0];
                                                    x  = ( fabs(x1) <= fabs(x2) ) ? x1 : x2;
-                                                   i  = ii + NGhost;   im = i - 1;   ip = i + 1;
-                                                   imm = i - 2; ipp = i + 2;
+                                                   i  = ii + NGhost;
 
                Radius = sqrt( x*x + y*y + z*z );
 
                if ( Radius < MaxRadius )
                {
-                  if ( LogBin > 1.0 )  ShellID = ( Radius < ShellWidth ) ? 0 : int( log(Radius/ShellWidth)/log(LogBin) ) + 1;
-                  else                 ShellID = int( Radius / ShellWidth );
 
-                  if ( ShellID >= NShell )
-                  {
-                     cerr << "ERROR : ShellID >= NShell !!" << endl;
-                     exit( 1 );
-                  }
+//                get the density
+                  Dens = Field[p][DENS][k][j][i];
+                  if ( Dens == 0 )   continue;
 
+//                get the momentum
 #                 if   ( MODEL == HYDRO )
-//                evaluate the values on the shell
-#                 warning : WAIT HYDRO !!!
+                  MomX = Field[p][MOMX][k][j][i];
+                  MomY = Field[p][MOMY][k][j][i];
+                  MomZ = Field[p][MOMZ][k][j][i];
 
 #                 elif ( MODEL == MHD )
 #                 warning : WAIT MHD !!!
 
 #                 elif ( MODEL == ELBDM )
-//                evaluate the values on the shell
-                  Dens    = Field[p][DENS    ][k][j][i];
-                  Real    = Field[p][REAL    ][k][j][i];
-                  Imag    = Field[p][IMAG    ][k][j][i];
+                  Real = Field[p][REAL][k][j][i];
+                  Imag = Field[p][IMAG][k][j][i];
 
-                  if ( Dens == 0 )   continue;
+                  ELBDM_ComputeGradient( GradR, Field[p][REAL], i, j, k, _2dh );
+                  ELBDM_ComputeGradient( GradI, Field[p][IMAG], i, j, k, _2dh );
 
-
-                  if ( ELBDM_RichExtrap )
-                  {
-//                   Richardson extrapolation 2 order
-                     GradD[0] = (    4*_2dh*( Field[p][DENS][k  ][j  ][ip ] - Field[p][DENS][k  ][j  ][im ] ) 
-                                 - 0.5*_2dh*( Field[p][DENS][k  ][j  ][ipp] - Field[p][DENS][k  ][j  ][imm] ))/3;
-                     GradD[1] = (    4*_2dh*( Field[p][DENS][k  ][jp ][i  ] - Field[p][DENS][k  ][jm ][i  ] )
-                                 - 0.5*_2dh*( Field[p][DENS][k  ][jpp][i  ] - Field[p][DENS][k  ][jmm][i  ] ))/3;
-                     GradD[2] = (    4*_2dh*( Field[p][DENS][kp ][j  ][i  ] - Field[p][DENS][km ][j  ][i  ] )
-                                 - 0.5*_2dh*( Field[p][DENS][kpp][j  ][i  ] - Field[p][DENS][kmm][j  ][i  ] ))/3;
-
-                     GradR[0] = (    4*_2dh*( Field[p][REAL][k  ][j  ][ip ] - Field[p][REAL][k  ][j  ][im ] )
-                                 - 0.5*_2dh*( Field[p][REAL][k  ][j  ][ipp] - Field[p][REAL][k  ][j  ][imm] ))/3;
-                     GradR[1] = (    4*_2dh*( Field[p][REAL][k  ][jp ][i  ] - Field[p][REAL][k  ][jm ][i  ] )
-                                 - 0.5*_2dh*( Field[p][REAL][k  ][jpp][i  ] - Field[p][REAL][k  ][jmm][i  ] ))/3;
-                     GradR[2] = (    4*_2dh*( Field[p][REAL][kp ][j  ][i  ] - Field[p][REAL][km ][j  ][i  ] )
-                                 - 0.5*_2dh*( Field[p][REAL][kpp][j  ][i  ] - Field[p][REAL][kmm][j  ][i  ] ))/3;
-
-                     GradI[0] = (    4*_2dh*( Field[p][IMAG][k  ][j  ][ip ] - Field[p][IMAG][k  ][j  ][im ] )
-                                 - 0.5*_2dh*( Field[p][IMAG][k  ][j  ][ipp] - Field[p][IMAG][k  ][j  ][imm] ))/3;
-                     GradI[1] = (    4*_2dh*( Field[p][IMAG][k  ][jp ][i  ] - Field[p][IMAG][k  ][jm ][i  ] )
-                                 - 0.5*_2dh*( Field[p][IMAG][k  ][jpp][i  ] - Field[p][IMAG][k  ][jmm][i  ] ))/3;
-                     GradI[2] = (    4*_2dh*( Field[p][IMAG][kp ][j  ][i  ] - Field[p][IMAG][km ][j  ][i  ] )
-                                 - 0.5*_2dh*( Field[p][IMAG][kpp][j  ][i  ] - Field[p][IMAG][kmm][j  ][i  ] ))/3;
-                  }
-                  else
-                  {
-                     GradD[0] = _2dh*( Field[p][DENS][k ][j ][ip] - Field[p][DENS][k ][j ][im] );
-                     GradD[1] = _2dh*( Field[p][DENS][k ][jp][i ] - Field[p][DENS][k ][jm][i ] );
-                     GradD[2] = _2dh*( Field[p][DENS][kp][j ][i ] - Field[p][DENS][km][j ][i ] );
-
-                     GradR[0] = _2dh*( Field[p][REAL][k ][j ][ip] - Field[p][REAL][k ][j ][im] );
-                     GradR[1] = _2dh*( Field[p][REAL][k ][jp][i ] - Field[p][REAL][k ][jm][i ] );
-                     GradR[2] = _2dh*( Field[p][REAL][kp][j ][i ] - Field[p][REAL][km][j ][i ] );
-
-                     GradI[0] = _2dh*( Field[p][IMAG][k ][j ][ip] - Field[p][IMAG][k ][j ][im] );
-                     GradI[1] = _2dh*( Field[p][IMAG][k ][jp][i ] - Field[p][IMAG][k ][jm][i ] );
-                     GradI[2] = _2dh*( Field[p][IMAG][kp][j ][i ] - Field[p][IMAG][km][j ][i ] );
-                  }
-
-                  _Dens  = 1.0 / Dens;
-
-                  for (int d=0; d<3; d++)
-                  {
-                     v[d] = _Eta*_Dens*( Real*GradI[d] - Imag*GradR[d] );
-                     // w[d] = _2Eta*_Dens*GradD[d]; // This would cause jumped velocity sometimes
-                     w[d] = _Eta*_Dens*( Real*GradR[d] + Imag*GradI[d] );
-
-                  }
-
-//                sum up velocity for CMV
-                  CMV[0] += (double)(dv*Dens*v[0]);
-                  CMV[1] += (double)(dv*Dens*v[1]);
-                  CMV[2] += (double)(dv*Dens*v[2]);
-
-//                sum up values at the same shell
-                  massAll += (double)(dv*Dens);
+                  MomX = _Eta*( Real*GradI[0] - Imag*GradR[0] );
+                  MomY = _Eta*( Real*GradI[1] - Imag*GradR[1] );
+                  MomZ = _Eta*( Real*GradI[2] - Imag*GradR[2] );
 
 #                 else
 #                 error : ERROR : unsupported MODEL !!
 #                 endif // MODEL
+
+//                sum up the total momentum
+                  CMV[0]  += (double)(dv*MomX);
+                  CMV[1]  += (double)(dv*MomY);
+                  CMV[2]  += (double)(dv*MomZ);
+
+//                sum up the total mass
+                  massAll += (double)(dv*Dens);
 
                } // if ( Radius < MaxRadius )
             }}} // kk, jj, ii
@@ -448,33 +388,18 @@ void Remove_CMVel()
    } // for (int lv=0; lv<NLEVEL; lv++)
    delete [] Field1D;
 
-
-// get the average velocity
-#  if   ( MODEL == HYDRO )
-#  warning : WAIT HYDRO !!!
-
-#  elif ( MODEL == MHD )
-#  warning : WAIT MHD !!!
-
-#  elif ( MODEL == ELBDM )
-   for (int t=0; t<3; t++) CMV[t] = CMV[t]/massAll;
-
-#  else
-#  error : ERROR : unsupported MODEL !!
-#  endif // MODEL
-
+// get the center-of-mass velocity
+   for (int d=0; d<3; d++)   CMV[d] = CMV[d] / massAll;
 
    cout << " Bulk CoM velocity = ("<< CMV[0]<< ", "<< CMV[1] << ", "<<CMV[2]<< ")" << endl;
 
-   cout << "Remove the motion of center-of-mass by phase shift" << endl;
+   cout << "Get the center-of-mass velocity ... done" << endl;
 
-#  if   ( MODEL == HYDRO )
-#  warning : WAIT HYDRO !!!
+   if ( massAll <= 0.0 )
+      return;
 
-#  elif ( MODEL == MHD )
-#  warning : WAIT MHD !!!
-
-#  elif ( MODEL == ELBDM )
+// remove the center-of-mass velocity
+   cout << "Remove the center-of-mass motion ... " << endl;
    for (int lv=0; lv<NLEVEL; lv++)
    {
       scale = (double)amr.scale[lv];
@@ -496,13 +421,32 @@ void Remove_CMVel()
 
             Radius = sqrt( x*x + y*y + z*z );
 
-            real S = (x*CMV[0]+y*CMV[1]+z*CMV[2])*ELBDM_ETA*(dh_min);
+
+#           if   ( MODEL == HYDRO )
             Dens = amr.patch[lv][PID]->fluid[DENS][k][j][i];
+            MomX = amr.patch[lv][PID]->fluid[MOMX][k][j][i];
+            MomY = amr.patch[lv][PID]->fluid[MOMY][k][j][i];
+            MomZ = amr.patch[lv][PID]->fluid[MOMZ][k][j][i];
+
+            amr.patch[lv][PID]->fluid[MOMX][k][j][i] = MomX - Dens*CMV[0];
+            amr.patch[lv][PID]->fluid[MOMY][k][j][i] = MomY - Dens*CMV[1];
+            amr.patch[lv][PID]->fluid[MOMZ][k][j][i] = MomZ - Dens*CMV[2];
+
+#           elif ( MODEL == MHD )
+#           warning : WAIT MHD !!!
+
+#           elif ( MODEL == ELBDM )
+            const real S = (x*CMV[0]+y*CMV[1]+z*CMV[2])*ELBDM_ETA*(dh_min);
+
             Real = amr.patch[lv][PID]->fluid[REAL][k][j][i];
             Imag = amr.patch[lv][PID]->fluid[IMAG][k][j][i];
 
             amr.patch[lv][PID]->fluid[REAL][k][j][i] = +Real*COS(S) + Imag*SIN(S);
             amr.patch[lv][PID]->fluid[IMAG][k][j][i] = -Real*SIN(S) + Imag*COS(S);
+
+#           else
+#           error : ERROR : unsupported MODEL !!
+#           endif // MODEL
 
          }}} // k, j, i
       } // for (int PID=0; PID<amr.num[lv]; PID++)
@@ -510,10 +454,11 @@ void Remove_CMVel()
       cout << "done" << endl;
 
    } // for (int lv=0; lv<NLEVEL; lv++)
-#   else
-#   error : ERROR : unsupported MODEL !!
-#   endif // MODEL
-} // FUNCTION : Remove_CMVel 
+
+
+   cout << "Remove the center-of-mass motion ... done" << endl;
+
+} // FUNCTION : Remove_CMVel
 
 
 
@@ -530,7 +475,7 @@ void GetRMS()
 #  if   ( MODEL == HYDRO )
    const int NGhost = 0;
    real rho, vx, vy, vz, vr, vt, egy, pres, Pot, ParDens;
-   real v_sph[3];
+   real vtheta, vphi;
 
 #  elif ( MODEL == MHD )
 #  warning : WAIT MHD !!!
@@ -543,7 +488,7 @@ void GetRMS()
    real Dens, Real, Imag, Pot, _Dens, ParDens;
    real Ek_Lap, Ek_Gra, GradR[3], GradI[3], LapR, LapI, _2dh, _dh2;
    real v[3], w[3], vr, vr_abs, vt_abs, wr, wr_abs, wt_abs, GradD[3];
-   real v_sph[3], w_sph[3];
+   real vtheta, vphi, wtheta, wphi;
 
 #  else
 #  error : ERROR : unsupported MODEL !!
@@ -662,33 +607,31 @@ void GetRMS()
 
                   if ( OutputSphVel )
                   {
-                     v_sph[0] = vr;
-                     v_sph[1] = ( z*x*vx + z*y*vy - (x*x+y*y)*vz ) /sqrt(x*x+y*y) / Radius;
-                     v_sph[2] = ( x*vy - y*vx ) /sqrt(x*x+y*y);
+                     vtheta = ( z*x*vx + z*y*vy - (x*x+y*y)*vz ) /sqrt(x*x+y*y) / Radius;
+                     vphi   = ( -y*vx + x*vy ) /sqrt(x*x+y*y);
                   }
 
 
 //                evalute the square of deviation on the shell
                   Var = 0;
-                  RMS[ShellID][Var] += dv*pow( double(rho    )-Average[ShellID][Var], 2.0 );    Var++;
-                  RMS[ShellID][Var] += dv*pow( double(vr     )-Average[ShellID][Var], 2.0 );    Var++;
-                  RMS[ShellID][Var] += dv*pow( double(vt     )-Average[ShellID][Var], 2.0 );    Var++;
-                  RMS[ShellID][Var] += dv*pow( double(egy    )-Average[ShellID][Var], 2.0 );    Var++;
-                  RMS[ShellID][Var] += dv*pow( double(pres   )-Average[ShellID][Var], 2.0 );    Var++;
+                  RMS[ShellID][Var] +=     dv*pow( double(rho    )-Average[ShellID][Var], 2.0 );    Var++;
+                  RMS[ShellID][Var] += rho*dv*pow( double(vr     )-Average[ShellID][Var], 2.0 );    Var++;
+                  RMS[ShellID][Var] += rho*dv*pow( double(vt     )-Average[ShellID][Var], 2.0 );    Var++;
+                  RMS[ShellID][Var] +=     dv*pow( double(egy    )-Average[ShellID][Var], 2.0 );    Var++;
+                  RMS[ShellID][Var] +=     dv*pow( double(pres   )-Average[ShellID][Var], 2.0 );    Var++;
 
                   for (int v=0; v<NCOMP_PASSIVE; v++) {
-                  RMS[ShellID][Var] += dv*pow( double(pass[v])-Average[ShellID][Var], 2.0 );    Var++; }
+                  RMS[ShellID][Var] +=     dv*pow( double(pass[v])-Average[ShellID][Var], 2.0 );    Var++; }
 
                   if ( OutputPot ) {
-                  RMS[ShellID][Var] += dv*pow( double(Pot    )-Average[ShellID][Var], 2.0 );    Var++; }
+                  RMS[ShellID][Var] +=     dv*pow( double(Pot    )-Average[ShellID][Var], 2.0 );    Var++; }
 
                   if ( OutputParDens ) {
-                  RMS[ShellID][Var] += dv*pow( double(ParDens)-Average[ShellID][Var], 2.0 );    Var++; }
+                  RMS[ShellID][Var] +=     dv*pow( double(ParDens)-Average[ShellID][Var], 2.0 );    Var++; }
 
                   if ( OutputSphVel ) {
-                  RMS[ShellID][Var] += dv*rho*pow( double(v_sph[0])-Average[ShellID][Var], 2.0 );    Var++;
-                  RMS[ShellID][Var] += dv*rho*pow( double(v_sph[1])-Average[ShellID][Var], 2.0 );    Var++;
-                  RMS[ShellID][Var] += dv*rho*pow( double(v_sph[2])-Average[ShellID][Var], 2.0 );    Var++; }
+                  RMS[ShellID][Var] += rho*dv*pow( double(vtheta )-Average[ShellID][Var], 2.0 );    Var++;
+                  RMS[ShellID][Var] += rho*dv*pow( double(vphi   )-Average[ShellID][Var], 2.0 );    Var++; }
 
 #                 elif ( MODEL == MHD )
 #                 warning : WAIT MHD !!!
@@ -789,50 +732,49 @@ void GetRMS()
                      wr_abs = fabs( wr );
                      wt_abs = sqrt(  fabs( w[0]*w[0] + w[1]*w[1] + w[2]*w[2] - wr*wr )  );
 
-                     if ( OutputSphVel ){
-                     v_sph[0] = vr;
-                     v_sph[1] = ( z*x*v[0] + z*y*v[1] - (x*x+y*y)*v[2] ) /sqrt(x*x+y*y) / Radius;
-                     v_sph[2] = ( -y*v[0] + x*v[1] ) /sqrt(x*x+y*y);
+                     if ( OutputSphVel )
+                     {
+                        vtheta = ( z*x*v[0] + z*y*v[1] - (x*x+y*y)*v[2] ) /sqrt(x*x+y*y) / Radius;
+                        vphi   = ( -y*v[0] + x*v[1] ) /sqrt(x*x+y*y);
 
-                     w_sph[0] = wr;
-                     w_sph[1] = ( z*x*w[0] + z*y*w[1] - (x*x+y*y)*w[2] ) /sqrt(x*x+y*y) / Radius;
-                     w_sph[2] = ( -y*w[0] + x*w[1] ) /sqrt(x*x+y*y);
-                     }
+                        wtheta = ( z*x*w[0] + z*y*w[1] - (x*x+y*y)*w[2] ) /sqrt(x*x+y*y) / Radius;
+                        wphi   = ( -y*w[0] + x*w[1] ) /sqrt(x*x+y*y);
+                     } // if ( OutputSphVel )
                   } // if ( ELBDM_GetVir )
 
 
 //                evalute the square of deviation on the shell
                   Var = 0;
-                  RMS[ShellID][Var] += dv*pow( double(Dens   )-Average[ShellID][Var], 2.0 );  Var++;
-                  RMS[ShellID][Var] += dv*pow( double(Real   )-Average[ShellID][Var], 2.0 );  Var++;
-                  RMS[ShellID][Var] += dv*pow( double(Imag   )-Average[ShellID][Var], 2.0 );  Var++;
+                  RMS[ShellID][Var] +=      dv*pow( double(Dens   )-Average[ShellID][Var], 2.0 );  Var++;
+                  RMS[ShellID][Var] +=      dv*pow( double(Real   )-Average[ShellID][Var], 2.0 );  Var++;
+                  RMS[ShellID][Var] +=      dv*pow( double(Imag   )-Average[ShellID][Var], 2.0 );  Var++;
 
                   for (int v=0; v<NCOMP_PASSIVE; v++) {
-                  RMS[ShellID][Var] += dv*pow( double(pass[v])-Average[ShellID][Var], 2.0 );  Var++; }
+                  RMS[ShellID][Var] +=      dv*pow( double(pass[v])-Average[ShellID][Var], 2.0 );  Var++; }
 
                   if ( OutputPot   ) {
-                  RMS[ShellID][Var] += dv*pow( double(Pot    )-Average[ShellID][Var], 2.0 );  Var++; }
+                  RMS[ShellID][Var] +=      dv*pow( double(Pot    )-Average[ShellID][Var], 2.0 );  Var++; }
 
                   if ( OutputParDens ) {
-                  RMS[ShellID][Var] += dv*pow( double(ParDens)-Average[ShellID][Var], 2.0 );  Var++; }
+                  RMS[ShellID][Var] +=      dv*pow( double(ParDens)-Average[ShellID][Var], 2.0 );  Var++; }
 
-                  if ( ELBDM_GetVir ) {
-                  RMS[ShellID][Var] += dv*pow( double(Ek_Lap )-Average[ShellID][Var], 2.0 );  Var++;
-                  RMS[ShellID][Var] += dv*pow( double(Ek_Gra )-Average[ShellID][Var], 2.0 );  Var++;
-                  RMS[ShellID][Var] += dv*Dens*pow( double(vr     )-Average[ShellID][Var], 2.0 );  Var++;
-                  RMS[ShellID][Var] += dv*Dens*pow( double(vr_abs )-Average[ShellID][Var], 2.0 );  Var++;
-                  RMS[ShellID][Var] += dv*Dens*pow( double(vt_abs )-Average[ShellID][Var], 2.0 );  Var++;
-                  RMS[ShellID][Var] += dv*Dens*pow( double(wr     )-Average[ShellID][Var], 2.0 );  Var++;
-                  RMS[ShellID][Var] += dv*Dens*pow( double(wr_abs )-Average[ShellID][Var], 2.0 );  Var++;
-                  RMS[ShellID][Var] += dv*Dens*pow( double(wt_abs )-Average[ShellID][Var], 2.0 );  Var++; }
+                  if ( ELBDM_GetVir )
+                  {
+                  RMS[ShellID][Var] +=      dv*pow( double(Ek_Lap )-Average[ShellID][Var], 2.0 );  Var++;
+                  RMS[ShellID][Var] +=      dv*pow( double(Ek_Gra )-Average[ShellID][Var], 2.0 );  Var++;
+                  RMS[ShellID][Var] += Dens*dv*pow( double(vr     )-Average[ShellID][Var], 2.0 );  Var++;
+                  RMS[ShellID][Var] += Dens*dv*pow( double(vr_abs )-Average[ShellID][Var], 2.0 );  Var++;
+                  RMS[ShellID][Var] += Dens*dv*pow( double(vt_abs )-Average[ShellID][Var], 2.0 );  Var++;
+                  RMS[ShellID][Var] += Dens*dv*pow( double(wr     )-Average[ShellID][Var], 2.0 );  Var++;
+                  RMS[ShellID][Var] += Dens*dv*pow( double(wr_abs )-Average[ShellID][Var], 2.0 );  Var++;
+                  RMS[ShellID][Var] += Dens*dv*pow( double(wt_abs )-Average[ShellID][Var], 2.0 );  Var++;
 
                   if ( OutputSphVel ) {
-                  RMS[ShellID][Var] += dv*Dens*pow( double(v_sph[0])-Average[ShellID][Var], 2.0 );  Var++;
-                  RMS[ShellID][Var] += dv*Dens*pow( double(v_sph[1])-Average[ShellID][Var], 2.0 );  Var++;
-                  RMS[ShellID][Var] += dv*Dens*pow( double(v_sph[2])-Average[ShellID][Var], 2.0 );  Var++;
-                  RMS[ShellID][Var] += dv*Dens*pow( double(w_sph[0])-Average[ShellID][Var], 2.0 );  Var++;
-                  RMS[ShellID][Var] += dv*Dens*pow( double(w_sph[1])-Average[ShellID][Var], 2.0 );  Var++;
-                  RMS[ShellID][Var] += dv*Dens*pow( double(w_sph[2])-Average[ShellID][Var], 2.0 );  Var++; }
+                  RMS[ShellID][Var] += Dens*dv*pow( double(vtheta )-Average[ShellID][Var], 2.0 );  Var++;
+                  RMS[ShellID][Var] += Dens*dv*pow( double(vphi   )-Average[ShellID][Var], 2.0 );  Var++;
+                  RMS[ShellID][Var] += Dens*dv*pow( double(wtheta )-Average[ShellID][Var], 2.0 );  Var++;
+                  RMS[ShellID][Var] += Dens*dv*pow( double(wphi   )-Average[ShellID][Var], 2.0 );  Var++; }
+                  } // if ( ELBDM_GetVir )
 
 #                 else
 #                 error : ERROR : unsupported MODEL !!
@@ -852,20 +794,44 @@ void GetRMS()
    for (int n=0; n<NShell; n++)
    for (int v=0; v<NOut; v++)    RMS[n][v] = sqrt( RMS[n][v]/Volume[n] );
 
-#  if ( MODEL == ELBDM )
-   if (ELBDM_GetVir) {
-   for (int n=0; n<NShell; n++)
-   for (int v=NOut-12; v<NOut-6; v++)    RMS[n][v] = RMS[n][v]/sqrt(Average[n][0]);
-   }
 
-   if ( OutputSphVel ){
-   for (int n=0; n<NShell; n++)
-   for (int v=NOut-6; v<NOut; v++)    RMS[n][v] = RMS[n][v]/sqrt(Average[n][0]);
-   }
-
+// get the RMS velocity
+#  if   ( MODEL == HYDRO )
+   const int Idx_vr   = 1;                          // vr
+   const int Idx_vt   = 2;                          // vt
+   const int Idx_vsph = NCOMP_TOTAL + ( (OutputPot)?1:0 ) + ( (OutputParDens)?1:0 );
+   const int Nvsph    = ( OutputSphVel ) ? 2 : 0;   // vtheta, vphi
+#  elif ( MODEL == MHD )
+#  warning : WAIT MHD !!!
+#  elif ( MODEL == ELBDM )
+   const int Idx_vvir = NCOMP_TOTAL + 2 + ( (OutputPot)?1:0 ) + ( (OutputParDens)?1:0 );
+   const int Nvvir    = ( ELBDM_GetVir ) ? 6 : 0;   // vr, vr_abs, vt_abs, wr, wr_abs, wt_abs
+   const int Idx_vsph = Idx_vvir + Nvvir;
+   const int Nvsph    = ( OutputSphVel ) ? 4 : 0;   // vtheta, vphi, wtheta, wphi
 #  else
 #  error : ERROR : unsupported MODEL !!
 #  endif // MODEL
+
+// divide by an extra sqrt(<Rho>) since these velocities are weighted by mass
+   for (int n=0; n<NShell; n++)
+   {
+      const double sqrtAverageDens = sqrt( Average[n][0] );
+
+#     if ( MODEL == HYDRO )
+      RMS[n][Idx_vr] /= sqrtAverageDens;
+      RMS[n][Idx_vt] /= sqrtAverageDens;
+#     endif
+
+#     if ( MODEL == ELBDM )
+      for (int t=0; t<Nvvir; t++)
+      RMS[n][Idx_vvir+t] /= sqrtAverageDens;
+#     endif
+
+      for (int t=0; t<Nvsph; t++)
+      RMS[n][Idx_vsph+t] /= sqrtAverageDens;
+   }
+
+
    delete [] Field1D;
 
 } // FUNCTION : GetRMS
@@ -884,8 +850,8 @@ void ShellAverage()
 
 #  if   ( MODEL == HYDRO )
    const int NGhost = 0;
-   real px, py, pz, pr, pt, vr, vt, pres, rho, egy, Pot, ParDens;
-   real v_sph[3];
+   real px, py, pz, pr, pt, vr, vt, pres, rho, vx, vy, vz, egy, Pot, ParDens;
+   real vtheta, vphi;
 
 #  elif ( MODEL == MHD )
 #  warning : WAIT MHD !!!
@@ -897,9 +863,9 @@ void ShellAverage()
    const real _2Eta2 = _Eta*_2Eta;
    const real _Eta2  = _Eta*_Eta;
    real Dens, Real, Imag, Pot, _Dens, ParDens;
-   real Ek_Lap, Ek_Gra, GradR[3], GradI[3], LapR, LapI, _2dh, _dh2, dv_Eta;
-   real v[3], w[3], vr, vr1, vr2, vt1, vt2, wr, wr1, wr2, wt1, wt2, GradD[3], dR_dr, dI_dr;
-   real v_sph[3], w_sph[3];
+   real Ek_Lap, Ek_Gra, GradR[3], GradI[3], GradD[3], LapR, LapI, LapD, _2dh, _dh2, dv_Eta;
+   real v[3], w[3], vr, vr1, vr2, vt1, vt2, wr, wr1, wr2, wt1, wt2, dR_dr, dI_dr;
+   real vtheta, vphi, wtheta, wphi;
 
 #  else
 #  error : ERROR : unsupported MODEL !!
@@ -913,8 +879,7 @@ void ShellAverage()
    const int NPG       = 1;
    const NSide_t NSide = NSIDE_26;
 
-   int    ShellID, Var, i, j, k, im, jm, km, ip, jp, kp, POTE, PAR_DENS, NextIdx;
-   int    imm, jmm, kmm, ipp, jpp, kpp;
+   int    ShellID, Var, i, j, k, POTE, PAR_DENS, NextIdx;
    long   TVar;
    double Radius, scale, dv;
    double x, x1, x2, y, y1, y2, z, z1, z2;   // (x,y,z) : relative coordinates to the vector "Center"
@@ -970,18 +935,15 @@ void ShellAverage()
             for (int kk=0; kk<PATCH_SIZE; kk++) {  z1 = amr.patch[lv][PID]->corner[2] + (kk+0.5)*scale - Center    [2];
                                                    z2 = amr.patch[lv][PID]->corner[2] + (kk+0.5)*scale - Center_Map[2];
                                                    z  = ( fabs(z1) <= fabs(z2) ) ? z1 : z2;
-                                                   k  = kk + NGhost;   km = k - 1;   kp = k + 1;
-                                                   kmm = k - 2; kpp = k + 2;
+                                                   k  = kk + NGhost;
             for (int jj=0; jj<PATCH_SIZE; jj++) {  y1 = amr.patch[lv][PID]->corner[1] + (jj+0.5)*scale - Center    [1];
                                                    y2 = amr.patch[lv][PID]->corner[1] + (jj+0.5)*scale - Center_Map[1];
                                                    y  = ( fabs(y1) <= fabs(y2) ) ? y1 : y2;
-                                                   j  = jj + NGhost;   jm = j - 1;   jp = j + 1;
-                                                   jmm = j - 2; jpp = j + 2;
+                                                   j  = jj + NGhost;
             for (int ii=0; ii<PATCH_SIZE; ii++) {  x1 = amr.patch[lv][PID]->corner[0] + (ii+0.5)*scale - Center    [0];
                                                    x2 = amr.patch[lv][PID]->corner[0] + (ii+0.5)*scale - Center_Map[0];
                                                    x  = ( fabs(x1) <= fabs(x2) ) ? x1 : x2;
-                                                   i  = ii + NGhost;   im = i - 1;   ip = i + 1;
-                                                   imm = i - 2; ipp = i + 2;
+                                                   i  = ii + NGhost;
 
                Radius = sqrt( x*x + y*y + z*z );
 
@@ -1018,12 +980,14 @@ void ShellAverage()
                   pres = (GAMMA-1.0) * ( egy - 0.5*(px*px + py*py + pz*pz)/rho );
                   vr   = pr/rho;
                   vt   = pt/rho;
+                  vx   = px/rho;
+                  vy   = py/rho;
+                  vz   = pz/rho;
 
                   if ( OutputSphVel )
                   {
-                     v_sph[0] = vr;
-                     v_sph[1] = ( z*x*px + z*y*py - (x*x+y*y)*pz ) /sqrt(x*x+y*y) / Radius;
-                     v_sph[2] = ( x*py - y*px ) /sqrt(x*x+y*y);
+                     vtheta = ( z*x*vx + z*y*vy - (x*x+y*y)*vz ) /sqrt(x*x+y*y) / Radius;
+                     vphi   = ( -y*vx + x*vy ) /sqrt(x*x+y*y);
                   }
 
 
@@ -1044,12 +1008,9 @@ void ShellAverage()
                   if ( OutputParDens )
                   Average[ShellID][Var++] += (double)(dv*ParDens );
 
-                  if ( OutputSphVel )
-                  {
-                     Average[ShellID][Var++] += (double)(dv*rho*v_sph[0]);
-                     Average[ShellID][Var++] += (double)(dv*rho*v_sph[1]);
-                     Average[ShellID][Var++] += (double)(dv*rho*v_sph[2]);
-                  }
+                  if ( OutputSphVel ) {
+                  Average[ShellID][Var++] += (double)(dv*rho*vtheta);
+                  Average[ShellID][Var++] += (double)(dv*rho*vphi  ); }
 
 
 //                store the maximum and minimum values
@@ -1069,6 +1030,10 @@ void ShellAverage()
                   if ( OutputParDens ) {
                   if ( ParDens > Max[ShellID][Var] )  Max[ShellID][Var] = ParDens;   Var++; }
 
+                  if ( OutputSphVel ) {
+                  if ( vtheta  > Max[ShellID][Var] )  Max[ShellID][Var] = vtheta;    Var++;
+                  if ( vphi    > Max[ShellID][Var] )  Max[ShellID][Var] = vphi;      Var++; }
+
 
                   Var = 0;
                   if ( rho     < Min[ShellID][Var] )  Min[ShellID][Var] = rho;      Var++;
@@ -1085,6 +1050,10 @@ void ShellAverage()
 
                   if ( OutputParDens ) {
                   if ( ParDens < Min[ShellID][Var] )  Min[ShellID][Var] = ParDens;  Var++; }
+
+                  if ( OutputSphVel ) {
+                  if ( vtheta  < Min[ShellID][Var] )  Min[ShellID][Var] = vtheta;   Var++;
+                  if ( vphi    < Min[ShellID][Var] )  Min[ShellID][Var] = vphi;     Var++; }
 
 #                 elif ( MODEL == MHD )
 #                 warning : WAIT MHD !!!
@@ -1189,15 +1158,14 @@ void ShellAverage()
                      wr1 = fabs( wr );
                      wt1 = sqrt( wt2 );
 
-                     if ( OutputSphVel ){
-                     v_sph[0] = vr;
-                     v_sph[1] = ( z*x*v[0] + z*y*v[1] - (x*x+y*y)*v[2] ) /sqrt(x*x+y*y) / Radius;
-                     v_sph[2] = ( -y*v[0] + x*v[1]) /sqrt(x*x+y*y);
+                     if ( OutputSphVel )
+                     {
+                        vtheta = ( z*x*v[0] + z*y*v[1] - (x*x+y*y)*v[2] ) /sqrt(x*x+y*y) / Radius;
+                        vphi   = ( -y*v[0] + x*v[1] ) /sqrt(x*x+y*y);
 
-                     w_sph[0] = wr;
-                     w_sph[1] = ( z*x*w[0] + z*y*w[1] - (x*x+y*y)*w[2] ) /sqrt(x*x+y*y) / Radius;
-                     w_sph[2] = ( -y*w[0] + x*w[1]) /sqrt(x*x+y*y);
-                     }
+                        wtheta = ( z*x*w[0] + z*y*w[1] - (x*x+y*y)*w[2] ) /sqrt(x*x+y*y) / Radius;
+                        wphi   = ( -y*w[0] + x*w[1] ) /sqrt(x*x+y*y);
+                     } // if ( OutputSphVel )
                   } // if ( ELBDM_GetVir )
 
 
@@ -1216,7 +1184,8 @@ void ShellAverage()
                   if ( OutputParDens )
                   Average[ShellID][Var++] += (double)(dv*ParDens  );
 
-                  if ( ELBDM_GetVir ) {
+                  if ( ELBDM_GetVir )
+                  {
                   Average[ShellID][Var++] += (double)(dv*Ek_Lap   );
                   Average[ShellID][Var++] += (double)(dv*Ek_Gra   );
                   Average[ShellID][Var++] += (double)(dv*Dens*vr  );
@@ -1227,12 +1196,10 @@ void ShellAverage()
                   Average[ShellID][Var++] += (double)(dv*Dens*wt2 );
 
                   if ( OutputSphVel ) {
-                  Average[ShellID][Var++] += (double)(dv*Dens*v_sph[0] );
-                  Average[ShellID][Var++] += (double)(dv*Dens*v_sph[1] );
-                  Average[ShellID][Var++] += (double)(dv*Dens*v_sph[2] );
-                  Average[ShellID][Var++] += (double)(dv*Dens*w_sph[0] );
-                  Average[ShellID][Var++] += (double)(dv*Dens*w_sph[1] );
-                  Average[ShellID][Var++] += (double)(dv*Dens*w_sph[2] ); }
+                  Average[ShellID][Var++] += (double)(dv*Dens*vtheta );
+                  Average[ShellID][Var++] += (double)(dv*Dens*vphi   );
+                  Average[ShellID][Var++] += (double)(dv*Dens*wtheta );
+                  Average[ShellID][Var++] += (double)(dv*Dens*wphi   ); }
 
                   for (int d=0; d<3; d++)    ELBDM_Mom[ShellID][d] += (double)( Real*GradI[d] - Imag*GradR[d] )*dv_Eta;
 
@@ -1261,7 +1228,8 @@ void ShellAverage()
                   if ( OutputParDens ) {
                   if ( ParDens > Max[ShellID][Var] )  Max[ShellID][Var] = ParDens;  Var++; }
 
-                  if ( ELBDM_GetVir ) {
+                  if ( ELBDM_GetVir )
+                  {
                   if ( Ek_Lap  > Max[ShellID][Var] )  Max[ShellID][Var] = Ek_Lap;   Var++;
                   if ( Ek_Gra  > Max[ShellID][Var] )  Max[ShellID][Var] = Ek_Gra;   Var++;
                   if ( vr      > Max[ShellID][Var] )  Max[ShellID][Var] = vr;       Var++;
@@ -1269,15 +1237,14 @@ void ShellAverage()
                   if ( vt1     > Max[ShellID][Var] )  Max[ShellID][Var] = vt1;      Var++;
                   if ( wr      > Max[ShellID][Var] )  Max[ShellID][Var] = wr;       Var++;
                   if ( wr1     > Max[ShellID][Var] )  Max[ShellID][Var] = wr1;      Var++;
-                  if ( wt1     > Max[ShellID][Var] )  Max[ShellID][Var] = wt1;      Var++; }
+                  if ( wt1     > Max[ShellID][Var] )  Max[ShellID][Var] = wt1;      Var++;
 
                   if ( OutputSphVel ) {
-                  if ( v_sph[0] > Max[ShellID][Var] )  Max[ShellID][Var] = v_sph[0];  Var++;
-                  if ( v_sph[1] > Max[ShellID][Var] )  Max[ShellID][Var] = v_sph[1];  Var++;
-                  if ( v_sph[2] > Max[ShellID][Var] )  Max[ShellID][Var] = v_sph[2];  Var++;
-                  if ( w_sph[0] > Max[ShellID][Var] )  Max[ShellID][Var] = w_sph[0];  Var++;
-                  if ( w_sph[1] > Max[ShellID][Var] )  Max[ShellID][Var] = w_sph[1];  Var++;
-                  if ( w_sph[2] > Max[ShellID][Var] )  Max[ShellID][Var] = w_sph[2];  Var++; }
+                  if ( vtheta > Max[ShellID][Var] )  Max[ShellID][Var] = vtheta;    Var++;
+                  if ( vphi   > Max[ShellID][Var] )  Max[ShellID][Var] = vphi;      Var++;
+                  if ( wtheta > Max[ShellID][Var] )  Max[ShellID][Var] = wtheta;    Var++;
+                  if ( wphi   > Max[ShellID][Var] )  Max[ShellID][Var] = wphi;      Var++; }
+                  } // if ( ELBDM_GetVir )
 
                   Var = 0;
                   if ( Dens    < Min[ShellID][Var] )  Min[ShellID][Var] = Dens;     Var++;
@@ -1293,7 +1260,8 @@ void ShellAverage()
                   if ( OutputParDens ) {
                   if ( ParDens < Min[ShellID][Var] )  Min[ShellID][Var] = ParDens;  Var++; }
 
-                  if ( ELBDM_GetVir ) {
+                  if ( ELBDM_GetVir )
+                  {
                   if ( Ek_Lap  < Min[ShellID][Var] )  Min[ShellID][Var] = Ek_Lap;   Var++;
                   if ( Ek_Gra  < Min[ShellID][Var] )  Min[ShellID][Var] = Ek_Gra;   Var++;
                   if ( vr      < Min[ShellID][Var] )  Min[ShellID][Var] = vr;       Var++;
@@ -1301,15 +1269,14 @@ void ShellAverage()
                   if ( vt1     < Min[ShellID][Var] )  Min[ShellID][Var] = vt1;      Var++;
                   if ( wr      < Min[ShellID][Var] )  Min[ShellID][Var] = wr;       Var++;
                   if ( wr1     < Min[ShellID][Var] )  Min[ShellID][Var] = wr1;      Var++;
-                  if ( wt1     < Min[ShellID][Var] )  Min[ShellID][Var] = wt1;      Var++; }
+                  if ( wt1     < Min[ShellID][Var] )  Min[ShellID][Var] = wt1;      Var++;
 
                   if ( OutputSphVel ) {
-                  if ( v_sph[0] < Min[ShellID][Var] )  Min[ShellID][Var] = v_sph[0];  Var++;
-                  if ( v_sph[1] < Min[ShellID][Var] )  Min[ShellID][Var] = v_sph[1];  Var++;
-                  if ( v_sph[2] < Min[ShellID][Var] )  Min[ShellID][Var] = v_sph[2];  Var++;
-                  if ( w_sph[0] < Min[ShellID][Var] )  Min[ShellID][Var] = w_sph[0];  Var++;
-                  if ( w_sph[1] < Min[ShellID][Var] )  Min[ShellID][Var] = w_sph[1];  Var++;
-                  if ( w_sph[2] < Min[ShellID][Var] )  Min[ShellID][Var] = w_sph[2];  Var++; }
+                  if ( vtheta  < Min[ShellID][Var] )  Min[ShellID][Var] = vtheta;   Var++;
+                  if ( vphi    < Min[ShellID][Var] )  Min[ShellID][Var] = vphi;     Var++;
+                  if ( wtheta  < Min[ShellID][Var] )  Min[ShellID][Var] = wtheta;   Var++;
+                  if ( wphi    < Min[ShellID][Var] )  Min[ShellID][Var] = wphi;     Var++; }
+                  } // if ( ELBDM_GetVir )
 
 #                 else
 #                 error : ERROR : unsupported MODEL !!
@@ -1347,39 +1314,51 @@ void ShellAverage()
 
 // get the average velocity
 #  if   ( MODEL == HYDRO )
-   for (int n=0; n<NShell; n++)
-   {
-//    <v> = <Rho*v>/<Rho>
-      Average[n][1] /= Average[n][0];
-      Average[n][2] /= Average[n][0];
-   }
-
+   const int Idx_vr   = 1;                          // vr
+   const int Idx_vt   = 2;                          // vt
+   const int Idx_vsph = NCOMP_TOTAL + ( (OutputPot)?1:0 ) + ( (OutputParDens)?1:0 );
+   const int Nvsph    = ( OutputSphVel ) ? 2 : 0;   // vtheta, vphi
 #  elif ( MODEL == MHD )
 #  warning : WAIT MHD !!!
-
 #  elif ( MODEL == ELBDM )
-   if ( ELBDM_GetVir )
-   {
-      const int Idx_v = NCOMP_TOTAL + 2 + ( (OutputPot)?1:0 ) + ( (OutputParDens)?1:0 );
-      for (int n=0; n<NShell; n++)
-      {
-//       <v> = <Rho*v>/<Rho>, <|v|> = sqrt( <Rho*v^2>/<Rho> )
-         for (int t=0; t<6; t++)    Average[n][Idx_v+t] /= Average[n][0];
-
-         Average[n][Idx_v+1] = sqrt( Average[n][Idx_v+1] );
-         Average[n][Idx_v+2] = sqrt( Average[n][Idx_v+2] );
-         Average[n][Idx_v+4] = sqrt( Average[n][Idx_v+4] );
-         Average[n][Idx_v+5] = sqrt( Average[n][Idx_v+5] );
-
-         if ( OutputSphVel ) {
-         for (int t=6; t<12; t++)   Average[n][Idx_v+t] /= Average[n][0];
-         }
-      }
-   }
-
+   const int Idx_vvir = NCOMP_TOTAL + 2 + ( (OutputPot)?1:0 ) + ( (OutputParDens)?1:0 );
+   const int Nvvir    = ( ELBDM_GetVir ) ? 6 : 0;   // vr, vr2, vt2, wr, wr2, wt2
+   const int Idx_vsph = Idx_vvir + Nvvir;
+   const int Nvsph    = ( OutputSphVel ) ? 4 : 0;   // vtheta, vphi, wtheta, wphi
 #  else
 #  error : ERROR : unsupported MODEL !!
 #  endif // MODEL
+
+// divide by an extra <Rho> since these velocities are weighted by mass
+   for (int n=0; n<NShell; n++)
+   {
+      const double AverageDens = Average[n][0];
+
+//    <v> = <Rho*v>/<Rho>
+#     if ( MODEL == HYDRO )
+      Average[n][Idx_vr] /= AverageDens;
+      Average[n][Idx_vt] /= AverageDens;
+#     endif
+
+//    <v> = <Rho*v>/<Rho>, <|v|> = sqrt( <Rho*v^2>/<Rho> )
+#     if ( MODEL == ELBDM )
+      for (int t=0; t<Nvvir; t++)
+      Average[n][Idx_vvir+t] /= AverageDens;
+
+      if ( Nvvir == 6 )
+      {
+                                                                   // <vr>
+         Average[n][Idx_vvir+1] = sqrt( Average[n][Idx_vvir+1] );  // <vr2>  -->  <|vr|>
+         Average[n][Idx_vvir+2] = sqrt( Average[n][Idx_vvir+2] );  // <vt2>  -->  <|vt|>
+                                                                   // <wr>
+         Average[n][Idx_vvir+4] = sqrt( Average[n][Idx_vvir+4] );  // <wr2>  -->  <|wr|>
+         Average[n][Idx_vvir+5] = sqrt( Average[n][Idx_vvir+5] );  // <wt2>  -->  <|wt|>
+      }
+#     endif
+
+      for (int t=0; t<Nvsph; t++)
+      Average[n][Idx_vsph+t] /= AverageDens;
+   }
 
 
    delete [] Field1D;
@@ -1447,7 +1426,7 @@ void ReadOption( int argc, char **argv )
                    break;
          case 'V': ELBDM_GetVir      = true;
                    break;
-         case 'b': ELBDM_RichExtrap = false;
+         case 'b': ELBDM_5ptCenDiff  = false;
                    break;
 #        endif
          case 'u': INT_MONO_COEFF    = atof(optarg);
@@ -1575,7 +1554,7 @@ void ReadOption( int argc, char **argv )
    {
       ELBDM_GetVir = true;
 
-      fprintf( stdout, "NOTE : option \"ELBDM_GetVir (-O)\" is turned on automatically for \"OutputSphVel (-O)\" in ELBDM mode\n" );
+      fprintf( stdout, "NOTE : option \"ELBDM_GetVir (-V)\" is turned on automatically for \"OutputSphVel (-O)\" in ELBDM mode\n" );
    }
 #  endif
 
@@ -1815,7 +1794,7 @@ void Output_ShellAve()
       fprintf( File, "#%19s  %10s  %13s  %13s  %13s  %13s", "Radius", "NCount", "Ave", "RMS", "Max", "Min" );
 
       if ( OutputAccMass )
-      fprintf( File, "  %13s  %13s  %13s  %13s %13s","ShellMass", "ShellVol", "AccMass", "AccVolume", "AveDens" );
+      fprintf( File, "  %13s  %13s  %13s  %13s  %13s", "ShellMass", "ShellVol", "AccMass", "AccVolume", "AveDens" );
 
 #     if ( MODEL == ELBDM )
       if ( ELBDM_OutputAccEk )
@@ -1847,7 +1826,7 @@ void Output_ShellAve()
             AccMass   += Average[n][v]*Volume[n];
             AccVolume += Volume[n];
 
-            fprintf( File, "  %13.6e  %13.6e  %13.6e  %13.6e %13.6e", Average[n][v]*Volume[n], Volume[n], AccMass, AccVolume, AccMass/AccVolume );
+            fprintf( File, "  %13.6e  %13.6e  %13.6e  %13.6e  %13.6e", Average[n][v]*Volume[n], Volume[n], AccMass, AccVolume, AccMass/AccVolume );
          }
 
 
@@ -2543,16 +2522,16 @@ void TakeNote( int argc, char **argv )
                                             ( IntScheme == INT_QUAR     ) ? "QUAR"     :
                                             "UNKNOWN" );
 #  if ( MODEL == ELBDM )
-   printf( "ELBDM_IntPhase   =  %s\n",      (ELBDM_IntPhase)?"YES":"NO" );
-   printf( "ELBDM_GetVir     =  %s\n",      (ELBDM_GetVir  )?"YES":"NO" );
-   printf( "ELBDM_ETA        = %14.7e\n",   ELBDM_ETA );
-   printf( "ELBDMScheme      =  %d\n",      ELBDM_Scheme   );
-   printf( "ELBDM_RichExtrap =  %s\n",      (ELBDM_RichExtrap)?"YES":"NO" );
+   printf( "ELBDM_IntPhase   =  %s\n",      (ELBDM_IntPhase)?"YES":"NO"   );
+   printf( "ELBDM_GetVir     =  %s\n",      (ELBDM_GetVir  )?"YES":"NO"   );
+   printf( "ELBDM_ETA        = %14.7e\n",   ELBDM_ETA                     );
+   printf( "ELBDMScheme      =  %d\n",      ELBDM_Scheme                  );
+   printf( "ELBDM_5ptCenDiff =  %s\n",      (ELBDM_5ptCenDiff)?"YES":"NO" );
 #  endif
    printf( "INT_MONO_COEFF   = %14.7e\n",   INT_MONO_COEFF );
    printf( "GetAvePot        =  %s\n",      (GetAvePot)?"YES":"NO"      );
-   printf( "Remove_CMVel     =  %s\n",      (Remove_CMVel)?"YES":"NO"  );
-   printf( "OutputSphVel     =  %s\n",      (OutputSphVel)?"YES":"NO"  );
+   printf( "RemoveCMV        =  %s\n",      (RemoveCMV)?"YES":"NO"      );
+   printf( "OutputSphVel     =  %s\n",      (OutputSphVel)?"YES":"NO"   );
    if ( GetAvePot )
    printf( "NewtonG          = %14.7e\n",   NewtonG                     );
    printf( "======================================================================================\n"   );

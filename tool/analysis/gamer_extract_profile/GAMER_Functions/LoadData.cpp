@@ -325,7 +325,7 @@ void LoadData()
       if ( LoadPot )       NOut ++;
 
 #     if   ( MODEL == HYDRO )
-      if ( OutputSphVel )     NOut += 3;
+      if ( OutputSphVel )  NOut += 3;
 #     elif ( MODEL == MHD )
 #     elif ( MODEL == ELBDM )
       if ( ELBDM_GetVir )  NOut += 8;

@@ -82,6 +82,10 @@ typedef float  real;
 #  define _REAL            ( 1L << (REAL) )
 #  define _IMAG            ( 1L << (IMAG) )
 
+// ELBDM schemes
+#  define ELBDM_WAVE       1
+#  define ELBDM_HYBRID     2
+
 #else
 #  error : ERROR : unsupported MODEL !!
 #endif // MODEL
