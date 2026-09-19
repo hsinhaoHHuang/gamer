@@ -1656,7 +1656,6 @@ void Output_ShellAve()
    else if ( OutputParDens == 2 )   sprintf( FileName[Var++], "%s", "AveTotDens" );
    if      ( OutputSphVel )
    {
-                                    sprintf( FileName[Var++], "%s", "AveVr"     );
                                     sprintf( FileName[Var++], "%s", "AveVtheta" );
                                     sprintf( FileName[Var++], "%s", "AveVphi"   );
    }
@@ -1682,16 +1681,14 @@ void Output_ShellAve()
                         sprintf( FileName[Var++], "%s", "AveWr-N"  );
                         sprintf( FileName[Var++], "%s", "AveWr-A"  );
                         sprintf( FileName[Var++], "%s", "AveWt-A"  );
-   }
    if ( OutputSphVel )
    {
-                        sprintf( FileName[Var++], "%s", "AveVr"    );
                         sprintf( FileName[Var++], "%s", "AveVtheta");
                         sprintf( FileName[Var++], "%s", "AveVphi"  );
-                        sprintf( FileName[Var++], "%s", "AveWr"    );
                         sprintf( FileName[Var++], "%s", "AveWtheta");
                         sprintf( FileName[Var++], "%s", "AveWphi"  );
    }
+   } // if ( ELBDM_GetVir )
 
 #  else
 #  error : ERROR : unsupported MODEL !!

@@ -325,11 +325,11 @@ void LoadData()
       if ( LoadPot )       NOut ++;
 
 #     if   ( MODEL == HYDRO )
-      if ( OutputSphVel )  NOut += 3;
+      if ( OutputSphVel )  NOut += 2;
 #     elif ( MODEL == MHD )
 #     elif ( MODEL == ELBDM )
       if ( ELBDM_GetVir )  NOut += 8;
-      if ( OutputSphVel )  NOut += 6;
+      if ( OutputSphVel )  NOut += 4;
 #     else
 #     error : ERROR : unsupported MODEL !!
 #     endif // MODEL
