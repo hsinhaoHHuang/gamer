@@ -11,8 +11,7 @@ void SetMaxRhoPos( const int AveN );
 void End();
 void Init_ShellAve();
 void Output_ShellAve();
-void ShellAverage();
-void GetRMS();
+void ShellAverage( const bool FirstStatistics );
 #if ( MODEL == ELBDM )
 void ELBDM_ComputeGradient( real *grad_f, const real f[PATCH_SIZE+2*2][PATCH_SIZE+2*2][PATCH_SIZE+2*2],
                             const int i, const int j, const int k, const real _2dh );
