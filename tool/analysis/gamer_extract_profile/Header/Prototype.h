@@ -13,6 +13,12 @@ void Init_ShellAve();
 void Output_ShellAve();
 void ShellAverage();
 void GetRMS();
+#if ( MODEL == ELBDM )
+void ELBDM_ComputeGradient( real *grad_f, const real f[PATCH_SIZE+2*2][PATCH_SIZE+2*2][PATCH_SIZE+2*2],
+                            const int i, const int j, const int k, const real _2dh );
+void ELBDM_ComputeLaplacian( real *laplacian_f, const real f[PATCH_SIZE+2*2][PATCH_SIZE+2*2][PATCH_SIZE+2*2],
+                             const int i, const int j, const int k, const real _dh2 );
+#endif
 void GetMaxRho();
 double GetMinShellWidth( const double TCen[], const double TCen_Map[] );
 void GetR( const int n, double &R, double &dR );

@@ -74,6 +74,92 @@ double      GetNShell         = 2.0;   // set the minimum shell width to "GetNSh
 
 
 
+#if ( MODEL == ELBDM )
+//-------------------------------------------------------------------------------------------------------
+// Function    :  ELBDM_ComputeGradident
+// Description :  Compute the gradient of the input field at a given cell
+//
+// Note        :  1. Results will be stored in the input grad_f array
+//                2. The number of ghost cell on each side must be 2
+//                   --> ArraySize must be PATCH_SIZE+2*2
+//
+// Parameter   :  grad_f : Gradient of the input field in the x, y, z directions
+//                f      : Input field (e.g., Dens, Real, Imag) of a patch with ghost zone
+//                i/j/k  : Cell index
+//                _2dh   : 0.5/dh
+//
+// Return      :  grad_f
+//-------------------------------------------------------------------------------------------------------
+void ELBDM_ComputeGradient( real *grad_f, const real f[PATCH_SIZE+2*2][PATCH_SIZE+2*2][PATCH_SIZE+2*2],
+                      const int i, const int j, const int k, const real _2dh )
+{
+
+   const int imm = i-2;   const int im = i-1;   const int ip = i+1;   const int ipp = i+2;
+   const int jmm = j-2;   const int jm = j-1;   const int jp = j+1;   const int jpp = j+2;
+   const int kmm = k-2;   const int km = k-1;   const int kp = k+1;   const int kpp = k+2;
+
+   if ( ELBDM_5ptCenDiff )
+   {
+      grad_f[0] = (  (real)4.0*_2dh*( f[k  ][j  ][ip ] - f[k  ][j  ][im ] )
+                   - (real)0.5*_2dh*( f[k  ][j  ][ipp] - f[k  ][j  ][imm] ) )/(real)3.0;
+      grad_f[1] = (  (real)4.0*_2dh*( f[k  ][jp ][i  ] - f[k  ][jm ][i  ] )
+                   - (real)0.5*_2dh*( f[k  ][jpp][i  ] - f[k  ][jmm][i  ] ) )/(real)3.0;
+      grad_f[2] = (  (real)4.0*_2dh*( f[kp ][j  ][i  ] - f[km ][j  ][i  ] )
+                   - (real)0.5*_2dh*( f[kpp][j  ][i  ] - f[kmm][j  ][i  ] ) )/(real)3.0;
+   }
+   else
+   {
+      grad_f[0] = _2dh*( f[k ][j ][ip] - f[k ][j ][im] );
+      grad_f[1] = _2dh*( f[k ][jp][i ] - f[k ][jm][i ] );
+      grad_f[2] = _2dh*( f[kp][j ][i ] - f[km][j ][i ] );
+   }
+
+} // FUNCTION : ELBDM_ComputeGradient
+
+
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  ELBDM_ComputeLaplacian
+// Description :  Compute the Laplacian of the input field at a given cell
+//
+// Note        :  1. Results will be stored in the input laplacian_f variable
+//                2. The number of ghost cell on each side must be 2
+//                   --> ArraySize must be PATCH_SIZE+2*2
+//
+// Parameter   :  laplacian_f : Laplacian of the input field
+//                f           : Input field (e.g., Dens, Real, Imag) of a patch with ghost zone
+//                i/j/k       : Cell index
+//                _dh2        : 1/dh^2
+//
+// Return      :  laplacian_f
+//-------------------------------------------------------------------------------------------------------
+void ELBDM_ComputeLaplacian( real *laplacian_f, const real f[PATCH_SIZE+2*2][PATCH_SIZE+2*2][PATCH_SIZE+2*2],
+                             const int i, const int j, const int k, const real _dh2 )
+{
+
+   const int imm = i-2;   const int im = i-1;   const int ip = i+1;   const int ipp = i+2;
+   const int jmm = j-2;   const int jm = j-1;   const int jp = j+1;   const int jpp = j+2;
+   const int kmm = k-2;   const int km = k-1;   const int kp = k+1;   const int kpp = k+2;
+
+   if ( ELBDM_5ptCenDiff )
+   {
+      *laplacian_f = ( (real)4.00*_dh2*( f[k  ][j  ][ip ] + f[k  ][jp ][i  ] + f[kp ][j  ][i  ] +
+                                         f[k  ][j  ][im ] + f[k  ][jm ][i  ] + f[km ][j  ][i  ] - (real)6.0*f[k][j][i] )
+                     - (real)0.25*_dh2*( f[k  ][j  ][ipp] + f[k  ][jpp][i  ] + f[kpp][j  ][i  ] +
+                                         f[k  ][j  ][imm] + f[k  ][jmm][i  ] + f[kmm][j  ][i  ] - (real)6.0*f[k][j][i] ) )/(real)3.0;
+   }
+   else
+   {
+      *laplacian_f = ( f[k ][j ][ip] + f[k ][jp][i ] + f[kp][j ][i ] +
+                       f[k ][j ][im] + f[k ][jm][i ] + f[km][j ][i ] -
+                       6.0*f[k][j][i] )*_dh2;
+   }
+
+} // FUNCTION : ELBDM_ComputeLaplaican
+#endif // #if ( MODEL == ELBDM )
+
+
+
 //-------------------------------------------------------------------------------------------------------
 // Function    :  GetMaxRho
 // Description :  Output the mesh information if the density exceeds a given threshold "RhoThres"
@@ -655,61 +741,11 @@ void GetRMS()
 
                   if ( ELBDM_GetVir )
                   {
-                     if ( ELBDM_RichExtrap )
-                     {
-//                      Richardson extrapolation 2 order
-                        GradD[0] = (    4*_2dh*( Field[p][DENS][k  ][j  ][ip ] - Field[p][DENS][k  ][j  ][im ] ) 
-                                    - 0.5*_2dh*( Field[p][DENS][k  ][j  ][ipp] - Field[p][DENS][k  ][j  ][imm] ))/3;
-                        GradD[1] = (    4*_2dh*( Field[p][DENS][k  ][jp ][i  ] - Field[p][DENS][k  ][jm ][i  ] )
-                                    - 0.5*_2dh*( Field[p][DENS][k  ][jpp][i  ] - Field[p][DENS][k  ][jmm][i  ] ))/3;
-                        GradD[2] = (    4*_2dh*( Field[p][DENS][kp ][j  ][i  ] - Field[p][DENS][km ][j  ][i  ] )
-                                    - 0.5*_2dh*( Field[p][DENS][kpp][j  ][i  ] - Field[p][DENS][kmm][j  ][i  ] ))/3;
-
-                        GradR[0] = (    4*_2dh*( Field[p][REAL][k  ][j  ][ip ] - Field[p][REAL][k  ][j  ][im ] )
-                                    - 0.5*_2dh*( Field[p][REAL][k  ][j  ][ipp] - Field[p][REAL][k  ][j  ][imm] ))/3;
-                        GradR[1] = (    4*_2dh*( Field[p][REAL][k  ][jp ][i  ] - Field[p][REAL][k  ][jm ][i  ] )
-                                    - 0.5*_2dh*( Field[p][REAL][k  ][jpp][i  ] - Field[p][REAL][k  ][jmm][i  ] ))/3;
-                        GradR[2] = (    4*_2dh*( Field[p][REAL][kp ][j  ][i  ] - Field[p][REAL][km ][j  ][i  ] )
-                                    - 0.5*_2dh*( Field[p][REAL][kpp][j  ][i  ] - Field[p][REAL][kmm][j  ][i  ] ))/3;
-
-                        GradI[0] = (    4*_2dh*( Field[p][IMAG][k  ][j  ][ip ] - Field[p][IMAG][k  ][j  ][im ] )
-                                    - 0.5*_2dh*( Field[p][IMAG][k  ][j  ][ipp] - Field[p][IMAG][k  ][j  ][imm] ))/3;
-                        GradI[1] = (    4*_2dh*( Field[p][IMAG][k  ][jp ][i  ] - Field[p][IMAG][k  ][jm ][i  ] )
-                                    - 0.5*_2dh*( Field[p][IMAG][k  ][jpp][i  ] - Field[p][IMAG][k  ][jmm][i  ] ))/3;
-                        GradI[2] = (    4*_2dh*( Field[p][IMAG][kp ][j  ][i  ] - Field[p][IMAG][km ][j  ][i  ] )
-                                    - 0.5*_2dh*( Field[p][IMAG][kpp][j  ][i  ] - Field[p][IMAG][kmm][j  ][i  ] ))/3;
-
-                        LapR     = (    4*_dh2*( Field[p][REAL][k  ][j  ][ip ] + Field[p][REAL][k  ][jp ][i  ] + Field[p][REAL][kp ][j  ][i  ] +
-                                                 Field[p][REAL][k  ][j  ][im ] + Field[p][REAL][k  ][jm ][i  ] + Field[p][REAL][km ][j  ][i  ] - 6.0*Real ) 
-                                   - 0.25*_dh2*( Field[p][REAL][k  ][j  ][ipp] + Field[p][REAL][k  ][jpp][i  ] + Field[p][REAL][kpp][j  ][i  ] +
-                                                 Field[p][REAL][k  ][j  ][imm] + Field[p][REAL][k  ][jmm][i  ] + Field[p][REAL][kmm][j  ][i  ] - 6.0*Real ) )/3;
-
-                        LapI     = (    4*_dh2*( Field[p][IMAG][k  ][j  ][ip ] + Field[p][IMAG][k  ][jp ][i  ] + Field[p][IMAG][kp ][j  ][i  ] +
-                                                 Field[p][IMAG][k  ][j  ][im ] + Field[p][IMAG][k  ][jm ][i  ] + Field[p][IMAG][km ][j  ][i  ] - 6.0*Imag ) 
-                                   - 0.25*_dh2*( Field[p][IMAG][k  ][j  ][ipp] + Field[p][IMAG][k  ][jpp][i  ] + Field[p][IMAG][kpp][j  ][i  ] +
-                                                 Field[p][IMAG][k  ][j  ][imm] + Field[p][IMAG][k  ][jmm][i  ] + Field[p][IMAG][kmm][j  ][i  ] - 6.0*Imag ) )/3;
-                     }
-                     else
-                     {
-                        GradD[0] = _2dh*( Field[p][DENS][k ][j ][ip] - Field[p][DENS][k ][j ][im] );
-                        GradD[1] = _2dh*( Field[p][DENS][k ][jp][i ] - Field[p][DENS][k ][jm][i ] );
-                        GradD[2] = _2dh*( Field[p][DENS][kp][j ][i ] - Field[p][DENS][km][j ][i ] );
-
-                        GradR[0] = _2dh*( Field[p][REAL][k ][j ][ip] - Field[p][REAL][k ][j ][im] );
-                        GradR[1] = _2dh*( Field[p][REAL][k ][jp][i ] - Field[p][REAL][k ][jm][i ] );
-                        GradR[2] = _2dh*( Field[p][REAL][kp][j ][i ] - Field[p][REAL][km][j ][i ] );
-
-                        GradI[0] = _2dh*( Field[p][IMAG][k ][j ][ip] - Field[p][IMAG][k ][j ][im] );
-                        GradI[1] = _2dh*( Field[p][IMAG][k ][jp][i ] - Field[p][IMAG][k ][jm][i ] );
-                        GradI[2] = _2dh*( Field[p][IMAG][kp][j ][i ] - Field[p][IMAG][km][j ][i ] );
-
-                        LapR     = ( Field[p][REAL][k ][j ][ip] + Field[p][REAL][k ][jp][i ] + Field[p][REAL][kp][j ][i ] +
-                                    Field[p][REAL][k ][j ][im] + Field[p][REAL][k ][jm][i ] + Field[p][REAL][km][j ][i ] -
-                                    6.0*Real )*_dh2;
-                        LapI     = ( Field[p][IMAG][k ][j ][ip] + Field[p][IMAG][k ][jp][i ] + Field[p][IMAG][kp][j ][i ] +
-                                    Field[p][IMAG][k ][j ][im] + Field[p][IMAG][k ][jm][i ] + Field[p][IMAG][km][j ][i ] -
-                                    6.0*Imag )*_dh2;
-                     }
+                     ELBDM_ComputeGradient(  GradD, Field[p][DENS], i, j, k, _2dh );
+                     ELBDM_ComputeGradient(  GradR, Field[p][REAL], i, j, k, _2dh );
+                     ELBDM_ComputeGradient(  GradI, Field[p][IMAG], i, j, k, _2dh );
+                     ELBDM_ComputeLaplacian( &LapR, Field[p][REAL], i, j, k, _dh2 );
+                     ELBDM_ComputeLaplacian( &LapI, Field[p][IMAG], i, j, k, _dh2 );
 
                      Ek_Lap = -_2Eta2*( Real*LapR + Imag*LapI );
                      Ek_Gra = +_2Eta2*( SQR(GradR[0]) + SQR(GradR[1]) + SQR(GradR[2]) +
@@ -1077,61 +1113,12 @@ void ShellAverage()
 
                   if ( ELBDM_GetVir )
                   {
-                     if ( ELBDM_RichExtrap )
-                     {
-//                      Richardson extrapolation 2 order
-                        GradD[0] = (    4*_2dh*( Field[p][DENS][k  ][j  ][ip ] - Field[p][DENS][k  ][j  ][im ] ) 
-                                    - 0.5*_2dh*( Field[p][DENS][k  ][j  ][ipp] - Field[p][DENS][k  ][j  ][imm] ))/3;
-                        GradD[1] = (    4*_2dh*( Field[p][DENS][k  ][jp ][i  ] - Field[p][DENS][k  ][jm ][i  ] )
-                                    - 0.5*_2dh*( Field[p][DENS][k  ][jpp][i  ] - Field[p][DENS][k  ][jmm][i  ] ))/3;
-                        GradD[2] = (    4*_2dh*( Field[p][DENS][kp ][j  ][i  ] - Field[p][DENS][km ][j  ][i  ] )
-                                    - 0.5*_2dh*( Field[p][DENS][kpp][j  ][i  ] - Field[p][DENS][kmm][j  ][i  ] ))/3;
-
-                        GradR[0] = (    4*_2dh*( Field[p][REAL][k  ][j  ][ip ] - Field[p][REAL][k  ][j  ][im ] )
-                                    - 0.5*_2dh*( Field[p][REAL][k  ][j  ][ipp] - Field[p][REAL][k  ][j  ][imm] ))/3;
-                        GradR[1] = (    4*_2dh*( Field[p][REAL][k  ][jp ][i  ] - Field[p][REAL][k  ][jm ][i  ] )
-                                    - 0.5*_2dh*( Field[p][REAL][k  ][jpp][i  ] - Field[p][REAL][k  ][jmm][i  ] ))/3;
-                        GradR[2] = (    4*_2dh*( Field[p][REAL][kp ][j  ][i  ] - Field[p][REAL][km ][j  ][i  ] )
-                                    - 0.5*_2dh*( Field[p][REAL][kpp][j  ][i  ] - Field[p][REAL][kmm][j  ][i  ] ))/3;
-
-                        GradI[0] = (    4*_2dh*( Field[p][IMAG][k  ][j  ][ip ] - Field[p][IMAG][k  ][j  ][im ] )
-                                    - 0.5*_2dh*( Field[p][IMAG][k  ][j  ][ipp] - Field[p][IMAG][k  ][j  ][imm] ))/3;
-                        GradI[1] = (    4*_2dh*( Field[p][IMAG][k  ][jp ][i  ] - Field[p][IMAG][k  ][jm ][i  ] )
-                                    - 0.5*_2dh*( Field[p][IMAG][k  ][jpp][i  ] - Field[p][IMAG][k  ][jmm][i  ] ))/3;
-                        GradI[2] = (    4*_2dh*( Field[p][IMAG][kp ][j  ][i  ] - Field[p][IMAG][km ][j  ][i  ] )
-                                    - 0.5*_2dh*( Field[p][IMAG][kpp][j  ][i  ] - Field[p][IMAG][kmm][j  ][i  ] ))/3;
-
-                        LapR     = (    4*_dh2*( Field[p][REAL][k  ][j  ][ip ] + Field[p][REAL][k  ][jp ][i  ] + Field[p][REAL][kp ][j  ][i  ] +
-                                                 Field[p][REAL][k  ][j  ][im ] + Field[p][REAL][k  ][jm ][i  ] + Field[p][REAL][km ][j  ][i  ] - 6.0*Real ) 
-                                   - 0.25*_dh2*( Field[p][REAL][k  ][j  ][ipp] + Field[p][REAL][k  ][jpp][i  ] + Field[p][REAL][kpp][j  ][i  ] +
-                                                 Field[p][REAL][k  ][j  ][imm] + Field[p][REAL][k  ][jmm][i  ] + Field[p][REAL][kmm][j  ][i  ] - 6.0*Real ) )/3;
-
-                        LapI     = (    4*_dh2*( Field[p][IMAG][k  ][j  ][ip ] + Field[p][IMAG][k  ][jp ][i  ] + Field[p][IMAG][kp ][j  ][i  ] +
-                                                 Field[p][IMAG][k  ][j  ][im ] + Field[p][IMAG][k  ][jm ][i  ] + Field[p][IMAG][km ][j  ][i  ] - 6.0*Imag) 
-                                   - 0.25*_dh2*( Field[p][IMAG][k  ][j  ][ipp] + Field[p][IMAG][k  ][jpp][i  ] + Field[p][IMAG][kpp][j  ][i  ] +
-                                                 Field[p][IMAG][k  ][j  ][imm] + Field[p][IMAG][k  ][jmm][i  ] + Field[p][IMAG][kmm][j  ][i  ] - 6.0*Imag ))/3;
-                     }
-                     else
-                     {
-                        GradD[0] = _2dh*( Field[p][DENS][k ][j ][ip] - Field[p][DENS][k ][j ][im] );
-                        GradD[1] = _2dh*( Field[p][DENS][k ][jp][i ] - Field[p][DENS][k ][jm][i ] );
-                        GradD[2] = _2dh*( Field[p][DENS][kp][j ][i ] - Field[p][DENS][km][j ][i ] );
-
-                        GradR[0] = _2dh*( Field[p][REAL][k ][j ][ip] - Field[p][REAL][k ][j ][im] );
-                        GradR[1] = _2dh*( Field[p][REAL][k ][jp][i ] - Field[p][REAL][k ][jm][i ] );
-                        GradR[2] = _2dh*( Field[p][REAL][kp][j ][i ] - Field[p][REAL][km][j ][i ] );
-
-                        GradI[0] = _2dh*( Field[p][IMAG][k ][j ][ip] - Field[p][IMAG][k ][j ][im] );
-                        GradI[1] = _2dh*( Field[p][IMAG][k ][jp][i ] - Field[p][IMAG][k ][jm][i ] );
-                        GradI[2] = _2dh*( Field[p][IMAG][kp][j ][i ] - Field[p][IMAG][km][j ][i ] );
-
-                        LapR     = ( Field[p][REAL][k ][j ][ip] + Field[p][REAL][k ][jp][i ] + Field[p][REAL][kp][j ][i ] +
-                                    Field[p][REAL][k ][j ][im] + Field[p][REAL][k ][jm][i ] + Field[p][REAL][km][j ][i ] -
-                                    6.0*Real )*_dh2;
-                        LapI     = ( Field[p][IMAG][k ][j ][ip] + Field[p][IMAG][k ][jp][i ] + Field[p][IMAG][kp][j ][i ] +
-                                    Field[p][IMAG][k ][j ][im] + Field[p][IMAG][k ][jm][i ] + Field[p][IMAG][km][j ][i ] -
-                                    6.0*Imag )*_dh2;
-                     }
+                     ELBDM_ComputeGradient(  GradD, Field[p][DENS], i, j, k, _2dh );
+                     ELBDM_ComputeGradient(  GradR, Field[p][REAL], i, j, k, _2dh );
+                     ELBDM_ComputeGradient(  GradI, Field[p][IMAG], i, j, k, _2dh );
+                     ELBDM_ComputeLaplacian( &LapD, Field[p][DENS], i, j, k, _dh2 );
+                     ELBDM_ComputeLaplacian( &LapR, Field[p][REAL], i, j, k, _dh2 );
+                     ELBDM_ComputeLaplacian( &LapI, Field[p][IMAG], i, j, k, _dh2 );
 
                      Ek_Lap = -_2Eta2*( Real*LapR + Imag*LapI );
                      Ek_Gra = +_2Eta2*( SQR(GradR[0]) + SQR(GradR[1]) + SQR(GradR[2]) +
@@ -1207,10 +1194,8 @@ void ShellAverage()
                   dI_dr                   = ( x*GradI[0] + y*GradI[1] + z*GradI[2] ) / Radius;
                   ELBDM_RhoUr2 [ShellID] += (double)dv*( SQR(dR_dr) + SQR(dI_dr) )*_Eta2;
                   ELBDM_dRho_dr[ShellID] += (double)dv*( x*GradD[0] + y*GradD[1] + z*GradD[2] ) / Radius;
-                  ELBDM_LapRho [ShellID] += (double)dv*( Field[p][DENS][k ][j ][ip] + Field[p][DENS][k ][jp][i ] +
-                                                         Field[p][DENS][kp][j ][i ] + Field[p][DENS][k ][j ][im] +
-                                                         Field[p][DENS][k ][jm][i ] + Field[p][DENS][km][j ][i ] -
-                                                         6.0*Dens )*_dh2; }
+                  ELBDM_LapRho [ShellID] += (double)dv*( LapD );
+                  } // if ( ELBDM_GetVir )
 
 
 //                store the maximum and minimum values
