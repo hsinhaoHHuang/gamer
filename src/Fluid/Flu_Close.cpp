@@ -1107,9 +1107,6 @@ void CorrectUnphysical( const int lv, const int NPG, const int *PID0_List,
                   fprintf( File, "%14s, ", FieldLabel[v] );
 
                   fprintf( File, "%14s, %14s", "Eint", "Pres" );
-#                 if ( DUAL_ENERGY == DE_ENPY )
-                  fprintf( File, ", %14s", FieldLabel[DUAL] );
-#                 endif
 #                 ifdef MHD
                   fprintf( File, ", %14s, %14s, %14s, %14s, %14s, %14s, %14s", "Emag", "BxL", "BxR", "ByL", "ByR", "BzL", "BzR" );
 #                 endif
@@ -1128,9 +1125,6 @@ void CorrectUnphysical( const int lv, const int NPG, const int *PID0_List,
                                            CheckMinPres_No, NULL_REAL, PassiveFloorMask, Emag_In,
                                            EoS_DensEint2Pres_CPUPtr, EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
                                            EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table, NULL ) );
-#                 if ( DUAL_ENERGY == DE_ENPY )
-                  fprintf( File, ", %14.7e", In[DUAL] );
-#                 endif
 #                 ifdef MHD
                   fprintf( File, ", %14.7e", Emag_In );
                   fprintf( File, ", %14.7e", h_Mag_Array_F_In[TID][MAGX][ IDX321_BX(idx_in_i  ,idx_in_j  ,idx_in_k  ,FLU_NXT,FLU_NXT) ] );
@@ -1155,9 +1149,6 @@ void CorrectUnphysical( const int lv, const int NPG, const int *PID0_List,
                                            CheckMinPres_No, NULL_REAL, PassiveFloorMask, Emag_Out,
                                            EoS_DensEint2Pres_CPUPtr, EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
                                            EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table, NULL ) );
-#                 if ( DUAL_ENERGY == DE_ENPY )
-                  fprintf( File, ", %14.7e", Out[DUAL] );
-#                 endif
 #                 ifdef MHD
                   fprintf( File, ", %14.7e", Emag_Out );
                   fprintf( File, ", %14.7e", h_Mag_Array_F_Out[TID][MAGX][ IDX321_BX(ijk_out[0]  ,ijk_out[1]  ,ijk_out[2]  ,PS2,PS2) ] );
@@ -1182,9 +1173,6 @@ void CorrectUnphysical( const int lv, const int NPG, const int *PID0_List,
                                            CheckMinPres_No, NULL_REAL, PassiveFloorMask, Emag_Update,
                                            EoS_DensEint2Pres_CPUPtr, EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
                                            EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table, NULL ) );
-#                 if ( DUAL_ENERGY == DE_ENPY )
-                  fprintf( File, ", %14.7e", Update[DUAL] );
-#                 endif
 #                 ifdef MHD
                   fprintf( File, ", %14.7e", Emag_Update );
                   fprintf( File, ", %14.7e", h_Mag_Array_F_Out[TID][MAGX][ IDX321_BX(ijk_out[0]  ,ijk_out[1]  ,ijk_out[2]  ,PS2,PS2) ] );

@@ -48,7 +48,7 @@ int                  MPI_Rank, MPI_Rank_X[3], MPI_SibRank[26], NX0[3], NPatchTot
 int                 *BaseP = NULL;
 int                  Flu_ParaBuf;
 
-double               BOX_SIZE, DT__MAX, DT__FLUID, DT__FLUID_INIT, END_T, OUTPUT_DT, OUTPUT_WALLTIME, DT__SYNC_PARENT_LV, DT__SYNC_CHILDREN_LV;
+double               BOX_SIZE, DT__MAX, DT__FLUID, DT__FLUID_INIT, INIT_T, END_T, OUTPUT_DT, OUTPUT_WALLTIME, DT__SYNC_PARENT_LV, DT__SYNC_CHILDREN_LV;
 long                 END_STEP;
 int                  NX0_TOT[3], OUTPUT_STEP, OUTPUT_WALLTIME_UNIT, REGRID_COUNT, REFINE_NLEVEL, FLU_GPU_NPGROUP, SRC_GPU_NPGROUP, OMP_NTHREAD;
 int                  MPI_NRank, MPI_NRank_X[3];
@@ -233,6 +233,9 @@ bool                 FFTW3_Double_OMP_Enabled, FFTW3_Single_OMP_Enabled;
 #ifdef PARTICLE
 double               DT__PARVEL, DT__PARVEL_MAX, DT__PARACC;
 bool                 OPT__CK_PARTICLE, OPT__FLAG_NPAR_CELL, OPT__FLAG_PAR_MASS_CELL, OPT__FREEZE_PAR, OPT__OUTPUT_PAR_MESH, OPT__PAR_INIT_CHECK;
+#ifdef GRAVITY
+bool                 OPT__OUTPUT_PAR_POT;
+#endif
 bool                 OPT__FLAG_PAR_TARGET_SIB;
 int                  OPT__OUTPUT_PAR_MODE, OPT__PARTICLE_COUNT, OPT__FLAG_NPAR_PATCH, PAR_IC_FLOAT8, PAR_IC_INT8, FlagTable_NParPatch[NLEVEL-1], FlagTable_NParCell[NLEVEL-1];
 double               FlagTable_ParMassCell[NLEVEL-1];
@@ -286,14 +289,19 @@ int                  CHE_GPU_NPGROUP;
 
 // (2-8) star formation
 #ifdef STAR_FORMATION
-SF_CreateStarScheme_t SF_CREATE_STAR_SCHEME;
-int                   SF_CREATE_STAR_RSEED;
-int                   SF_CREATE_STAR_DET_RANDOM;
-int                   SF_CREATE_STAR_MIN_LEVEL;
-double                SF_CREATE_STAR_MIN_GAS_DENS;
-double                SF_CREATE_STAR_MASS_EFF;
-double                SF_CREATE_STAR_MIN_STAR_MASS;
-double                SF_CREATE_STAR_MAX_STAR_MFRAC;
+SF_CreateStarScheme_t   SF_CREATE_STAR_SCHEME;
+SF_CreateStarCriteria_t SF_CREATE_STAR_CRITERIA;
+SF_CreateStarMassRate_t SF_CREATE_STAR_MASS_RATE;
+SF_CreateStarParSpawn_t SF_CREATE_STAR_PAR_SPAWN;
+int                     SF_CREATE_STAR_RSEED;
+int                     SF_CREATE_STAR_DET_RANDOM;
+int                     SF_CREATE_STAR_MIN_LEVEL;
+double                  SF_CREATE_STAR_MIN_GAS_DENS;
+double                  SF_CREATE_STAR_MAX_GAS_TEMP;
+double                  SF_CREATE_STAR_MAX_GAS_JEANSL;
+double                  SF_CREATE_STAR_MASS_EFF;
+double                  SF_CREATE_STAR_MIN_STAR_MASS;
+double                  SF_CREATE_STAR_MAX_STAR_MFRAC;
 #endif
 
 // (2-9) equation of state
