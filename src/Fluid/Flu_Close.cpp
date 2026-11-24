@@ -1004,8 +1004,13 @@ void CorrectUnphysical( const int lv, const int NPG, const int *PID0_List,
             {
 //             when the last-resort pressure floor is applied,
 //             ensure that the corresponding internal energy also meets the floor MIN_EINT
+#ifdef COSMIC_RAY
+               const real PresFromMinEint = EoS_GasEint2GasPres_CPUPtr( (real)MIN_EINT,
+                                                                        EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
+#else
                const real PresFromMinEint = EoS_DensEint2Pres_CPUPtr( Update[DENS], (real)MIN_EINT, Update+NCOMP_FLUID,
                                                                       EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
+#endif
                MinPresForDEFix = FMAX( MinPresForDEFix, PresFromMinEint );
             }
 
