@@ -461,10 +461,19 @@ bool Unphysical( const real Fluid[], const bool CheckStrictFloor, const real Ema
    }
 #  endif // DUAL_ENERGY
 
-//###NOTE: Eint currently includes cosmic-ray energy; consider excluding it for a more stringent check
+// cosmic-ray energy; to be excluded
+#  ifdef COSMIC_RAY
+   const real E_CR = Fluid[CRAY];
+#  else
+   const real E_CR = (real)0.0;
+#  endif // COSMIC_RAY
+
+//###NOTE: Eint currently includes cosmic-ray energy; excluding it for a more stringent check
    const real Eint = Hydro_Con2Eint( Fluid[DENS], Fluid[MOMX], Fluid[MOMY], Fluid[MOMZ], Fluid[ENGY],
                                      NoFloor, NULL_REAL, PassiveFloorMask, Emag, EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
-                                     EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
+                                     EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table )
+                     - E_CR;
+
 #  ifndef DUAL_ENERGY
 // when the dual-energy formalism is enabled, we don't check Eint strictly
 // --> we have checked the pressure from the dual-energy variable above
@@ -490,6 +499,13 @@ bool Unphysical( const real Fluid[], const bool CheckStrictFloor, const real Ema
 
    if ( OPT__CHECK_PRES_AFTER_FLU )
    {
+//    cosmic-ray pressure; to be excluded
+#     ifdef COSMIC_RAY
+      const real Pres_CR = EoS_CREint2CRPres_CPUPtr( E_CR, EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
+#     else
+      const real Pres_CR = (real)0.0;
+#     endif // COSMIC_RAY
+
 //    when CheckStrictFloor is false, only check the pressure from maximally upward perturbed energy
       for (int i=(CheckStrictFloor?CHECK_UNPHY_ROUNDING_IMIN:CHECK_UNPHY_ROUNDING_IMAX); i<=CHECK_UNPHY_ROUNDING_IMAX; i++)
       {
@@ -501,7 +517,8 @@ bool Unphysical( const real Fluid[], const bool CheckStrictFloor, const real Ema
                                                  EoS_DensEint2Pres_CPUPtr,
                                                  EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
                                                  EoS_AuxArray_Flt,
-                                                 EoS_AuxArray_Int, h_EoS_Table, NULL );
+                                                 EoS_AuxArray_Int, h_EoS_Table, NULL )
+                                 - Pres_CR;
 
          if ( Pres < (real)MIN_PRES  ||  !Aux_IsFinite(Pres) )
             return true;
@@ -1004,13 +1021,13 @@ void CorrectUnphysical( const int lv, const int NPG, const int *PID0_List,
             {
 //             when the last-resort pressure floor is applied,
 //             ensure that the corresponding internal energy also meets the floor MIN_EINT
-#ifdef COSMIC_RAY
+#              ifdef COSMIC_RAY
                const real PresFromMinEint = EoS_GasEint2GasPres_CPUPtr( (real)MIN_EINT,
                                                                         EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
-#else
+#              else
                const real PresFromMinEint = EoS_DensEint2Pres_CPUPtr( Update[DENS], (real)MIN_EINT, Update+NCOMP_FLUID,
                                                                       EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
-#endif
+#              endif // COSMIC_RAY
                MinPresForDEFix = FMAX( MinPresForDEFix, PresFromMinEint );
             }
 
