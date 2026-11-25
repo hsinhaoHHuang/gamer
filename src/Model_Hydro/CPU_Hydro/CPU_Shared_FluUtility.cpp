@@ -806,6 +806,66 @@ real Hydro_CheckMinEintInEngy( const real Dens, const real MomX, const real MomY
    return OutEngy;
 
 } // FUNCTION : Hydro_CheckMinEintInEngy
+
+
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  Hydro_CheckMinGasEintInEngy
+// Description :  Ensure that the gas internal energy density in the input total energy density is greater than
+//                a threshold
+//
+// Note        :  1. Invoke Hydro_CheckMinEintInEngy()
+//                2. Input conserved instead of primitive variables
+//                3. For MHD, one must provide the magnetic energy density Emag (i.e., 0.5*B^2)
+//                4. When COSMIC_RAY is enabled, one must provide the cosmic-ray energy density E_CR
+//
+// Parameter   :  Dens         : Mass density
+//                MomX/Y/Z     : Momentum density
+//                InEngy       : Energy density
+//                MinEint      : Internal energy density floor
+//                PassiveFloor : Bitwise flag to specify the passive scalars to be floored
+//                Emag         : Magnetic energy density (0.5*B^2) --> For MHD only
+//                E_CR         : Cosmic-ray energy density --> For COSMIC_RAY only
+//
+// Return      :  Total energy density with gas internal energy density greater than a given threshold
+//-------------------------------------------------------------------------------------------------------
+GPU_DEVICE
+real Hydro_CheckMinGasEintInEngy( const real Dens, const real MomX, const real MomY, const real MomZ, const real InEngy,
+                                  const real MinEint, const long PassiveFloor, const real Emag, const real E_CR )
+{
+
+   real InEngy_excludingNonGas = InEngy;
+   real MinGasEint             = MinEint;
+
+#  ifdef COSMIC_RAY
+// exclude the cosmic-ray energy only when E_CR > 0.0
+// --> effectively, apply a floor of 0.0 to E_CR
+   if ( E_CR > (real)0.0 )
+   {
+      InEngy_excludingNonGas -= E_CR;
+      MinGasEint             -= E_CR;
+   }
+#  endif // #ifdef COSMIC_RAY
+
+// set an additional minimum of 0.0 for GasEint when E_CR > MinEint
+   MinGasEint = FMAX( MinGasEint, (real)0.0 );
+
+// check gas internal energy
+   real OutEngy = Hydro_CheckMinEintInEngy( Dens, MomX, MomY, MomZ,
+                                            InEngy_excludingNonGas,
+                                            MinGasEint, PassiveFloor, Emag );
+
+#  ifdef COSMIC_RAY
+// add back the cosmic-ray energy
+   if ( E_CR > (real)0.0 )
+   {
+      OutEngy += E_CR;
+   }
+#  endif // #ifdef COSMIC_RAY
+
+   return OutEngy;
+
+} // FUNCTION : Hydro_CheckMinGasEintInEngy
 #endif // #ifndef SRHD
 
 
