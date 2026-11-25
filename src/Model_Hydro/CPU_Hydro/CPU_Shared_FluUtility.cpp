@@ -995,10 +995,28 @@ bool Hydro_IsUnphysical( const IsUnphyMode_t Mode, const real Fields[],
          if ( Eint < -CHECK_UNPHY_ROUNDING_FACTOR*Fields[ENGY]*MACHINE_EPSILON  ||  Eint > HUGE_NUMBER  ||  Eint != Eint )
             UnphyCell = true;
 
+#        ifdef COSMIC_RAY
+//       check gas internal energy, excluding cosmic-ray energy
+         const real Eint_Gas = Eint - Fields[CRAY];
+
+         if ( Eint_Gas < -CHECK_UNPHY_ROUNDING_FACTOR*Fields[ENGY]*MACHINE_EPSILON  ||  Eint_Gas > HUGE_NUMBER  ||  Eint_Gas != Eint_Gas )
+            UnphyCell = true;
+#        endif // #ifdef COSMIC_RAY
+
 //       check pressure for non-trivial EoS (which cannot be negative)
 //       --> for trivial EoS like EOS_GAMMA, checking internal energy is sufficient and pressure can be
 //           slightly negative if it's within machine precision
 #        ifdef EXTRA_EOS_CHECK
+#        ifdef COSMIC_RAY
+//       cosmic-ray pressure
+//       --> obtained by replacing the total internal energy (Eint) with the cosmic-ray energy
+//           in EoS_DensEint2Pres()
+         const real Pres_CR = ( Fields[CRAY] > (real)0.0 ) ?
+                              EoS_DensEint2Pres( Fields[DENS], Fields[CRAY], Fields+NCOMP_FLUID,
+                                                 EoS_AuxArray_Flt, EoS_AuxArray_Int, EoS_Table )
+                              : (real)0.0;
+#        endif // #ifdef COSMIC_RAY
+
          real Pres;
 //       must parenthesize i<=() since ?: has lower precedence than <=
          for (int i =((CkUnphyRnd==CK_UNPHY_RND_YES)?CHECK_UNPHY_ROUNDING_IMIN:0);
@@ -1015,6 +1033,17 @@ bool Hydro_IsUnphysical( const IsUnphyMode_t Mode, const real Fields[],
                UnphyCell = true;
                break;
             }
+
+#           ifdef COSMIC_RAY
+//          check gas pressure, excluding cosmic-ray pressure
+            const real Pres_Gas = Pres - Pres_CR;
+
+            if ( Pres_Gas < (real)0.0  ||  Pres_Gas > HUGE_NUMBER  ||  Pres_Gas != Pres_Gas )
+            {
+               UnphyCell = true;
+               break;
+            }
+#           endif // #ifdef COSMIC_RAY
          }
 #        endif // #ifdef EXTRA_EOS_CHECK
 #        endif // #ifndef BAROTROPIC_EOS
