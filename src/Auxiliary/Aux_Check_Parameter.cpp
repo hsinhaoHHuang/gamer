@@ -2009,7 +2009,8 @@ void Aux_Check_Parameter()
 
 #  if ( defined STAR_FORMATION  &&  RANDOM_NUMBER != RNG_CPP11 )
    if ( FB_RESOLVED_SNEII  &&  FB_RESOLVED_SNEII_SAMPLING == FB_RESOLVED_SNEII_SAMPLING_CAPPED_POISSON )
-      Aux_Error( ERROR_INFO, "FB_RESOLVED_SNEII_CAPPED_POISSON needs RANDOM_NUMBER = RNG_CPP11 for the Poisson random numbers in star formation !!\n" );
+      Aux_Error( ERROR_INFO, "FB_RESOLVED_SNEII_SAMPLING = %d (capped Poisson) needs RANDOM_NUMBER = RNG_CPP11 for the Poisson random numbers in star formation !!\n",
+                 FB_RESOLVED_SNEII_CAPPED_POISSON );
 #  endif
 
    if ( FB_RESOLVED_SNEII  &&  PAR_NATT_INT_USER < 1 )

@@ -106,15 +106,24 @@ Only for [[FB_RESOLVED_SNEII | Runtime Parameters:-Feedback#FB_RESOLVED_SNEII ]]
 * #### `FB_RESOLVED_SNEII_SAMPLING` &ensp; (0=off, 1=capped Poisson, 2=shifted Bernoulli) &ensp; [1]
     * **Description:**
 Method of sampling the number of SNeII in a star particle.
-For a given expected mean number of SNeII, the capped Poisson option samples the numbers
-following a Poisson probability distribution capped at 5 standard deviations above the mean,
-while the shifted Bernoulli option samples either `floor(mean)` or `ceil(mean)`
-with a Bernoulli probability distribution.
+For a given expected mean number of SNeII, the capped Poisson
+option samples the number from a Poisson distribution, while
+the shifted Bernoulli option samples either `floor(mean)` or
+`ceil(mean)` with a Bernoulli probability distribution.
 The latter has a lower variance.
+With both options, the sampled number is capped
+at `max(ceil(mean_min + 5*sqrt(mean_min)), 2)` (capped Poisson)
+or `ceil(mean_min)` (shifted Bernoulli),
+where `mean_min = SF_CREATE_STAR_MIN_STAR_MASS*FB_RESOLVED_SNEII_N_PER_MASS`,
+and a warning is printed for every capped draw.
+A particle heavier than `SF_CREATE_STAR_MIN_STAR_MASS` may thus be capped.
+The tables `FeedbackTable_Resolved_SNeII_N000001` up to
+the cap of the chosen option must be present.
     * **Restriction:**
 Only for [[FB_RESOLVED_SNEII | Runtime Parameters:-Feedback#FB_RESOLVED_SNEII ]].
 Only applicable when enabling the compilation option
 [[--star_formation | [Installation]-Option-List#--star_formation]].
+Capped Poisson must compile with [[--rng | [Installation]-Option-List#--rng]]=RNG_CPP11.
 
 
 ## Remarks

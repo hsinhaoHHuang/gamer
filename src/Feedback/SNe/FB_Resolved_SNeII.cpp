@@ -243,8 +243,8 @@ int FB_Resolved_SNeII( const int lv, const double TimeNew, const double TimeOld,
       if ( par_nSNII <= 0 )   continue;
 
       if ( par_nSNII < minNumSNeIIPerSPar  ||  par_nSNII > maxNumSNeIIPerSPar )
-         Aux_Error( ERROR_INFO, "Particle p=%d (mass = %14.8e) has a number of SNe = %14d not in the supported range [%14d, %14d] !!\n",
-                    p, par_mass, par_nSNII, minNumSNeIIPerSPar, maxNumSNeIIPerSPar );
+         Aux_Error( ERROR_INFO, "Particle p=%d (mass = %14.8e) has a number of SNe = %14ld not in the supported range [%14d, %14d] !!\n",
+                    p, par_mass, (long)par_nSNII, minNumSNeIIPerSPar, maxNumSNeIIPerSPar );
 
 //    2.5 to give feedback, the particle has to be in the range to update fluid
       if ( cell_idx[0] + (maxfbDiameter  -isOnLeftCell[0])/2 <        FB_GHOST_SIZE  ||

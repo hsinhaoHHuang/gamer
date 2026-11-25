@@ -2355,6 +2355,7 @@ void Check_InputPara( const char *FileName, const int FormatVersion )
    LoadField( "FB_ResolvedSNeII_NPerMass",   &RS.FB_ResolvedSNeII_NPerMass,   SID, TID, NonFatal, &RT.FB_ResolvedSNeII_NPerMass,   1, NonFatal );
    LoadField( "FB_ResolvedSNeII_MinMGas",    &RS.FB_ResolvedSNeII_MinMGas,    SID, TID, NonFatal, &RT.FB_ResolvedSNeII_MinMGas,    1, NonFatal );
    LoadField( "FB_ResolvedSNeII_Record",     &RS.FB_ResolvedSNeII_Record,     SID, TID, NonFatal, &RT.FB_ResolvedSNeII_Record,     1, NonFatal );
+   LoadField( "FB_ResolvedSNeII_Sampling",   &RS.FB_ResolvedSNeII_Sampling,   SID, TID, NonFatal, &RT.FB_ResolvedSNeII_Sampling,   1, NonFatal );
 #  endif
 
 // cosmic rays
