@@ -461,18 +461,16 @@ bool Unphysical( const real Fluid[], const bool CheckStrictFloor, const real Ema
    }
 #  endif // DUAL_ENERGY
 
-// cosmic-ray energy; to be excluded
-#  ifdef COSMIC_RAY
-   const real E_CR = Fluid[CRAY];
-#  else
-   const real E_CR = (real)0.0;
-#  endif // COSMIC_RAY
-
-//###NOTE: Eint currently includes cosmic-ray energy; excluding it for a more stringent check
+//###NOTE: Eint currently includes cosmic-ray energy
    const real Eint = Hydro_Con2Eint( Fluid[DENS], Fluid[MOMX], Fluid[MOMY], Fluid[MOMZ], Fluid[ENGY],
                                      NoFloor, NULL_REAL, PassiveFloorMask, Emag, EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
-                                     EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table )
-                     - E_CR;
+                                     EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
+
+// separate cosmic-ray energy and gas internal energy for a more stringent check
+#  ifdef COSMIC_RAY
+   const real Eint_CR  = Fluid[CRAY];
+   const real Eint_Gas = Eint - Eint_CR;
+#  endif // #ifdef COSMIC_RAY
 
 #  ifndef DUAL_ENERGY
 // when the dual-energy formalism is enabled, we don't check Eint strictly
@@ -482,6 +480,11 @@ bool Unphysical( const real Fluid[], const bool CheckStrictFloor, const real Ema
    {
       if ( Eint < (real)MIN_EINT  ||  !Aux_IsFinite(Eint) )
          return true;
+
+#     ifdef COSMIC_RAY
+      if ( Eint_Gas < (real)0.0  ||  !Aux_IsFinite(Eint_Gas) )
+         return true;
+#     endif // #ifdef COSMIC_RAY
    }
    else
 #  endif // #ifndef DUAL_ENERGY
@@ -495,16 +498,19 @@ bool Unphysical( const real Fluid[], const bool CheckStrictFloor, const real Ema
 //           it is still possible and acceptable for Eint to be below MIN_EINT to the rounding-error scale of Etot
       if ( Eint + Fluid[ENGY]*CHECK_UNPHY_ROUNDING_FACTOR*MACHINE_EPSILON < (real)MIN_EINT  ||  !Aux_IsFinite(Eint) )
          return true;
+
+#     ifdef COSMIC_RAY
+      if ( Eint_Gas + Fluid[ENGY]*CHECK_UNPHY_ROUNDING_FACTOR*MACHINE_EPSILON < (real)0.0  ||  !Aux_IsFinite(Eint_Gas) )
+         return true;
+#     endif // #ifdef COSMIC_RAY
    } // if ( CheckStrictFloor ) ... else ...
 
    if ( OPT__CHECK_PRES_AFTER_FLU )
    {
-//    cosmic-ray pressure; to be excluded
+//    cosmic-ray pressure
 #     ifdef COSMIC_RAY
-      const real Pres_CR = EoS_CREint2CRPres_CPUPtr( E_CR, EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
-#     else
-      const real Pres_CR = (real)0.0;
-#     endif // COSMIC_RAY
+      const real Pres_CR = EoS_CREint2CRPres_CPUPtr( Eint_CR, EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
+#     endif // # ifdef COSMIC_RAY
 
 //    when CheckStrictFloor is false, only check the pressure from maximally upward perturbed energy
       for (int i=(CheckStrictFloor?CHECK_UNPHY_ROUNDING_IMIN:CHECK_UNPHY_ROUNDING_IMAX); i<=CHECK_UNPHY_ROUNDING_IMAX; i++)
@@ -517,11 +523,17 @@ bool Unphysical( const real Fluid[], const bool CheckStrictFloor, const real Ema
                                                  EoS_DensEint2Pres_CPUPtr,
                                                  EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
                                                  EoS_AuxArray_Flt,
-                                                 EoS_AuxArray_Int, h_EoS_Table, NULL )
-                                 - Pres_CR;
+                                                 EoS_AuxArray_Int, h_EoS_Table, NULL );
 
          if ( Pres < (real)MIN_PRES  ||  !Aux_IsFinite(Pres) )
             return true;
+
+#        ifdef COSMIC_RAY
+         const real Pres_Gas = Pres - Pres_CR;
+
+         if ( Pres_Gas < (real)0.0  ||  !Aux_IsFinite(Pres_Gas) )
+            return true;
+#        endif // #ifdef COSMIC_RAY
       }
    } // if ( OPT__CHECK_PRES_AFTER_FLU )
 #  endif // #ifndef BAROTROPIC_EOS
@@ -1016,39 +1028,55 @@ void CorrectUnphysical( const int lv, const int NPG, const int *PID0_List,
 //          --> we apply the minimum pressure check in Hydro_DualEnergyFix() here only when AutoReduceDt_Continue is false
 //              --> otherwise AUTO_REDUCE_DT may not be triggered due to this pressure floor
 #           ifdef DUAL_ENERGY
-            real MinPresForDEFix = (real)MIN_PRES;
+            real MinGasPresForDEFix = NULL_REAL;
             if ( !AutoReduceDt_Continue  &&  OPT__LAST_RESORT_FLOOR )
             {
 //             when the last-resort pressure floor is applied,
 //             ensure that the corresponding internal energy also meets the floor MIN_EINT
 #              ifdef COSMIC_RAY
-               const real PresFromMinEint = EoS_GasEint2GasPres_CPUPtr( (real)MIN_EINT,
-                                                                        EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
-#              else
-               const real PresFromMinEint = EoS_DensEint2Pres_CPUPtr( Update[DENS], (real)MIN_EINT, Update+NCOMP_FLUID,
-                                                                      EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
-#              endif // COSMIC_RAY
-               MinPresForDEFix = FMAX( MinPresForDEFix, PresFromMinEint );
+               const real Eint_CR = Update[CRAY];
+               const real Pres_CR = EoS_CREint2CRPres_CPUPtr( Eint_CR,
+                                                              EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
+//             cosmic-ray contribution should be excluded
+               MinGasPresForDEFix    = FMAX( (real)MIN_PRES - Pres_CR, (real)0.0 );
+               const real MinGasEint = FMAX( (real)MIN_EINT - Eint_CR, (real)0.0 );
+               const real GasPresFromMinGasEint = EoS_GasEint2GasPres_CPUPtr( MinGasEint,
+                                                                              EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
+#              else // #ifdef COSMIC_RAY
+               MinGasPresForDEFix    = (real)MIN_PRES;
+               const real MinGasEint = (real)MIN_EINT;
+               const real GasPresFromMinGasEint = EoS_DensEint2Pres_CPUPtr( Update[DENS], MinGasEint, Update+NCOMP_FLUID,
+                                                                            EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
+#              endif // #ifdef COSMIC_RAY ... else ...
+               MinGasPresForDEFix = FMAX( MinGasPresForDEFix, GasPresFromMinGasEint );
             }
 
             Hydro_DualEnergyFix( Update[DENS], Update[MOMX], Update[MOMY], Update[MOMZ], Update[ENGY], Update[DUAL], Update+NCOMP_FLUID,
                                  h_DE_Array_F_Out[TID][idx_out], EoS_AuxArray_Flt[1], EoS_AuxArray_Flt[2],
                                  (!AutoReduceDt_Continue && OPT__LAST_RESORT_FLOOR) ? CorrPres_Yes : CorrPres_No,
-                                 MinPresForDEFix, PassiveFloorMask, DUAL_ENERGY_SWITCH, Emag_Out );
+                                 MinGasPresForDEFix, PassiveFloorMask, DUAL_ENERGY_SWITCH, Emag_Out );
 
 //          apply internal energy floor if dual-energy formalism is not adopted
 //          --> apply it only when AutoReduceDt_Continue is false
 //              --> otherwise AUTO_REDUCE_DT may not be triggered due to this internal energy floor
 #           else
             if ( ! AutoReduceDt_Continue  &&  OPT__LAST_RESORT_FLOOR )
-               Update[ENGY] = Hydro_CheckMinEintInEngy( Update[DENS], Update[MOMX], Update[MOMY], Update[MOMZ], Update[ENGY],
-                                                        MIN_EINT, PassiveFloorMask, Emag_Out );
+            {
+#              ifdef COSMIC_RAY
+               const real Eint_CR = Update[CRAY];
+#              else // #ifdef COSMIC_RAY
+               const real Eint_CR = (real)0.0;
+#              endif // #ifdef COSMIC_RAY ... else ...
+
+               Update[ENGY] = Hydro_CheckMinGasEintInEngy( Update[DENS], Update[MOMX], Update[MOMY], Update[MOMZ], Update[ENGY],
+                                                           MIN_EINT, PassiveFloorMask, Emag_Out, Eint_CR );
+            }
 #           endif
 
 
 //          check if the newly updated values are still unphysical
 //          --> note that, when AutoReduceDt_Continue is false, we only check whether Eint is non-negligibly below MIN_EINT since even after calling
-//              Hydro_CheckMinEintInEngy() we may still have Eint < MIN_EINT due to round-off errors (especially when Eint << Ekin)
+//              Hydro_CheckMinGasEintInEngy() we may still have Eint < MIN_EINT due to round-off errors (especially when Eint << Ekin)
 //              --> it will not crash the code since we always apply MIN_EINT/MIN_PRES when calculating Eint/pressure
 //          --> when AutoReduceDt_Continue is true, we check Eint against MIN_EINT strictly
             if ( Unphysical(Update, AutoReduceDt_Continue, Emag_Out) )

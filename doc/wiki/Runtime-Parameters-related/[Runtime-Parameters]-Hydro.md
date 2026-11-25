@@ -306,7 +306,9 @@ Gas mass density floor.
 <a name="MIN_PRES"></a>
 * #### `MIN_PRES` &ensp; (&#8805;0.0) &ensp; [0.0]
     * **Description:**
-Gas pressure floor.
+Pressure floor.
+This floor includes gas pressure and cosmic-ray pressure when
+[[--cosmic_ray | [Installation]-Option-List#--cosmic_ray]] is enabled.
 When [[--eos | [Installation]-Option-List#--eos]]=`GAMMA` and [MIN_EINT](#MIN_EINT) is nonzero,
 the floor value must be nonzero; if not set manually, it will be computed from [MIN_EINT](#MIN_EINT) and the equation of state.
     * **Restriction:**
@@ -314,7 +316,9 @@ the floor value must be nonzero; if not set manually, it will be computed from [
 <a name="MIN_EINT"></a>
 * #### `MIN_EINT` &ensp; (&#8805;0.0) &ensp; [0.0]
     * **Description:**
-Gas internal energy density floor.
+Internal energy density floor.
+This floor includes gas internal energy and cosmic-ray energy when
+[[--cosmic_ray | [Installation]-Option-List#--cosmic_ray]] is enabled.
 When [[--eos | [Installation]-Option-List#--eos]]=`GAMMA` and [MIN_PRES](#MIN_PRES) is nonzero,
 the floor value must be nonzero; if not set manually, it will be computed from [MIN_PRES](#MIN_PRES) and the equation of state.
     * **Restriction:**
